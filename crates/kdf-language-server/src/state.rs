@@ -29,6 +29,8 @@ mod document_identity_tests;
 /// switch optional behaviour (`initializationOptions.kdf`).
 #[derive(Clone, Copy, Debug)]
 pub(crate) struct ClientCaps {
+    /// Versioned WorkspaceEdit support; required for automatic content/reflection edits.
+    pub(crate) versioned_edits: bool,
     /// `completionItem.snippetSupport`.
     pub(crate) snippets: bool,
     /// Completion documentation can be markdown (`completionItem.documentationFormat`).
@@ -52,6 +54,7 @@ pub(crate) struct ClientCaps {
 impl Default for ClientCaps {
     fn default() -> Self {
         Self {
+            versioned_edits: false,
             snippets: false,
             completion_markdown: false,
             resolve_documentation: false,
@@ -460,7 +463,11 @@ impl Backend {
             .lock()
             .await
             .lint_options(Profile::Runtime);
-        options.datapack_index = Some(reflection);
+        let schema_only = self.host_options().datapack == Some(None);
+        options.no_datapack = schema_only;
+        options.datapack_index = (!schema_only
+            && self.reflection_path(&Value::Null).await.is_some())
+        .then_some(reflection);
         options
     }
 

@@ -30,7 +30,7 @@
     "typecheck": "tsc -p . --noEmit",
     "test": "node --test test/*.test.cjs"
   },
-  "dependencies": { "vscode-languageclient": "^9.0.1" },
+  "dependencies": { "vscode-languageclient": "^9.0.1", "yaml": "^2.9.1" },
   "devDependencies": {
     "@types/node": "^22.20.0",
     "@types/vscode": "^1.113.0",
@@ -49,7 +49,18 @@
       { "command": "kdf.sdk.createProject", "title": "KDataForgeJS: Create Project Here", "icon": "$(new-folder)" },
       { "command": "kdf.sdk.createScript", "title": "KDataForgeJS: Create Script", "icon": "$(new-file)" },
       { "command": "kdf.sdk.refresh", "title": "KDataForgeJS: Refresh Built-in SDK", "icon": "$(refresh)" }
+      ,{ "command": "kdf.authoring.capabilities", "title": "KDataForgeJS: Show Capability Analysis" }
+      ,{ "command": "kdf.diagnostics.exportJson", "title": "KDataForge: Export Diagnostics as JSON" }
+      ,{ "command": "kdf.diagnostics.exportSarif", "title": "KDataForge: Export Diagnostics as SARIF" }
+      ,{ "command": "kdf.why", "title": "KDataForge: Explain Current Diagnostic" }
+      ,{ "command": "kdf.previewValue", "title": "KDataForge: Preview Selected Text or Icon" }
     ],
+    "customEditors": [{
+      "viewType": "kdf.contentForm",
+      "displayName": "KDataForge Content Form",
+      "selector": [{ "filenamePattern": "*.yml" }, { "filenamePattern": "*.yaml" }],
+      "priority": "option"
+    }],
     "configuration": {
       "title": "KDataForge",
       "properties": {

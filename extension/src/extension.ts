@@ -4,6 +4,7 @@ import * as path from 'node:path';
 import { spawn } from 'node:child_process';
 import { LanguageClient, State, type ServerOptions } from 'vscode-languageclient/node';
 import { registerSdkProjectCommands } from './sdkProjects';
+import { registerAuthoringFeatures } from './authoringFeatures';
 
 interface ClassRecord {
   path: string;
@@ -182,6 +183,7 @@ function command(action: () => Promise<void>): () => Promise<void> {
 export async function activate(extensionContext: vscode.ExtensionContext): Promise<void> {
   context = extensionContext;
   context.subscriptions.push(output, lintDiagnostics, ...registerSdkProjectCommands(context));
+  registerAuthoringFeatures(context, async (method, params) => (await activeClient()).sendRequest(method, params));
   context.subscriptions.push(
     vscode.commands.registerCommand('kdf.codex', command(openCodex)),
     vscode.commands.registerCommand('kdf.catalog', command(insertClass)),

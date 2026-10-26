@@ -57,9 +57,16 @@ impl ReflectionIndex {
             .replacements
             .iter()
             .filter(|record| {
+                let owner_matches = match (kind, owner, record.get("owner")) {
+                    ("class", None, None | Some(Value::Null)) => true,
+                    ("property", Some(owner), Some(Value::String(record_owner))) => {
+                        record_owner == owner
+                    }
+                    _ => false,
+                };
                 record.get("kind").and_then(Value::as_str) == Some(kind)
                     && record.get("oldName").and_then(Value::as_str) == Some(old)
-                    && record.get("owner").and_then(Value::as_str) == owner
+                    && owner_matches
             })
             .collect();
         if candidates.len() != 1 {

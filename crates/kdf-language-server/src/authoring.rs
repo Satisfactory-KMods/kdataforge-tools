@@ -78,6 +78,10 @@ fn check_params(snapshot: &SemanticSnapshot, params: &Value) -> Result<()> {
     Ok(())
 }
 
+fn has_snapshot_guard(params: &Value) -> bool {
+    params.get("snapshot").is_some() || params.get("textDocument").is_some()
+}
+
 impl Backend {
     pub(crate) fn epoch(&self) -> (u64, u64) {
         (
@@ -154,17 +158,19 @@ impl Backend {
     }
 
     pub(crate) async fn content_symbols(&self, params: Value) -> Result<Value> {
-        let (snapshot, _, epoch) = self.semantic_snapshot(false).await?;
+        let (snapshot, _, epoch) = self.semantic_snapshot(has_snapshot_guard(&params)).await?;
         check_params(&snapshot, &params)?;
         let path = params
             .get("textDocument")
             .map(|_| document_path(&params))
             .transpose()?;
-        let limit = params
-            .get("limit")
-            .and_then(Value::as_u64)
-            .unwrap_or(200)
-            .clamp(1, 200) as usize;
+        let limit = match params.get("limit") {
+            Some(value) => value
+                .as_u64()
+                .ok_or_else(|| Error::invalid_params("limit must be a nonnegative integer"))?
+                .clamp(1, 200) as usize,
+            None => 200,
+        };
         let mut items: Vec<_> = snapshot
             .symbols
             .iter()
@@ -203,7 +209,8 @@ impl Backend {
         }
         let query: authoring::CompletionQuery = serde_json::from_value(params.clone())
             .map_err(|error| Error::invalid_params(error.to_string()))?;
-        let (snapshot, reflection, epoch) = self.semantic_snapshot(false).await?;
+        let (snapshot, reflection, epoch) =
+            self.semantic_snapshot(has_snapshot_guard(&params)).await?;
         check_params(&snapshot, &params)?;
         let page = tokio::task::spawn_blocking(move || {
             authoring::complete(&snapshot, &reflection, &query)
@@ -295,7 +302,8 @@ impl Backend {
             .and_then(Value::as_str)
             .ok_or_else(|| Error::invalid_params("kind is required"))?
             .to_owned();
-        let (snapshot, reflection, epoch) = self.semantic_snapshot(false).await?;
+        let (snapshot, reflection, epoch) =
+            self.semantic_snapshot(has_snapshot_guard(&params)).await?;
         check_params(&snapshot, &params)?;
         let options = self.authoring_options(reflection).await;
         let mut result = tokio::task::spawn_blocking(move || {
@@ -366,7 +374,10 @@ impl Backend {
         uri: &Url,
         diagnostics: &[Diagnostic],
     ) -> Result<Vec<CodeActionOrCommand>> {
-        let (snapshot, reflection, epoch) = self.semantic_snapshot(false).await?;
+        if !self.caps().versioned_edits {
+            return Ok(vec![]);
+        }
+        let (snapshot, reflection, epoch) = self.semantic_snapshot(true).await?;
         let Some(path) = docs::path_of(uri).map(|path| docs::canonical(&path)) else {
             return Ok(vec![]);
         };
@@ -439,5 +450,60 @@ pub(crate) fn lsp_range(range: kdf_validation::Range) -> Range {
             line: range.end.line,
             character: range.end.character,
         },
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use tower_lsp::LspService;
+
+    #[tokio::test]
+    async fn a_newer_completion_generation_cancels_an_inflight_older_result() {
+        let root = tempfile::tempdir().unwrap();
+        std::fs::write(
+            root.path().join("pack.yml"),
+            "ref: Test\nname: Test\nversion: 1.0.0\n",
+        )
+        .unwrap();
+        let mut backend = None;
+        let (_service, _socket) = LspService::new(|client| {
+            let instance = Backend::new(client);
+            backend = Some(instance.clone());
+            instance
+        });
+        let backend = backend.unwrap();
+        *backend.state.root.lock().await = Some(root.path().to_path_buf());
+        let gate = backend.state.authoring.lock().await;
+        let old = backend.clone();
+        let old = tokio::spawn(async move {
+            old.content_completion(json!({"kind":"content","requestGeneration":1}))
+                .await
+        });
+        tokio::time::timeout(Duration::from_secs(5), async {
+            while backend.state.completion_generation.load(Ordering::SeqCst) < 1 {
+                tokio::task::yield_now().await;
+            }
+        })
+        .await
+        .unwrap();
+        let new = backend.clone();
+        let new = tokio::spawn(async move {
+            new.content_completion(json!({"kind":"content","requestGeneration":2}))
+                .await
+        });
+        tokio::time::timeout(Duration::from_secs(5), async {
+            while backend.state.completion_generation.load(Ordering::SeqCst) < 2 {
+                tokio::task::yield_now().await;
+            }
+        })
+        .await
+        .unwrap();
+        drop(gate);
+        assert_eq!(
+            old.await.unwrap().unwrap_err().code,
+            ErrorCode::ServerError(-32801)
+        );
+        assert_eq!(new.await.unwrap().unwrap()["requestGeneration"], 2);
     }
 }

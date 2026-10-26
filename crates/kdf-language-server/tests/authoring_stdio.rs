@@ -129,6 +129,20 @@ fn disk_change_and_dynamic_references_refuse_rename() {
         "type: cdo\npatches: [{target: '{cfg:dynamic}', properties: []}]\n",
     )
     .unwrap();
+    for (method, params) in [
+        (
+            "kdf/contentCompletion",
+            json!({"kind":"content","snapshot":token}),
+        ),
+        ("kdf/contentSymbols", json!({"snapshot":token})),
+        (
+            "kdf/effectiveSchema",
+            json!({"kind":"pack","snapshot":token}),
+        ),
+    ] {
+        let stale = client.request(method, params);
+        assert_eq!(stale["error"]["code"], -32801, "{method}: {stale}");
+    }
     let params = json!({"snapshot":token,"textDocument":{"uri":uri,"version":null},"position":{"line":2,"character":9},"newName":"New"});
     let stale = client.request("kdf/renameContent", params.clone());
     assert_eq!(stale["error"]["code"], -32801, "{stale}");
@@ -141,6 +155,30 @@ fn disk_change_and_dynamic_references_refuse_rename() {
         .as_str()
         .unwrap()
         .contains("dynamic"));
+    client.shutdown();
+}
+
+#[test]
+fn explain_matches_schema_only_validation_without_an_unavailable_datapack() {
+    let (root, root_uri, _, _) = fixture();
+    let (mut client, _) = Client::start_with(
+        env!("CARGO_BIN_EXE_kdf-language-server"),
+        &root_uri,
+        json!({}),
+        json!({"kdf":{"datapackPath":""}}),
+    );
+    let uri = Url::from_file_path(root.path().join("unknown.cdo.yml"))
+        .unwrap()
+        .to_string();
+    client.open(
+        &uri,
+        "type: cdo\npatches: [{target: /Script/Test.Missing, properties: []}]\n",
+    );
+    let why = result(client.request(
+        "kdf/explain",
+        json!({"textDocument":{"uri":uri,"version":1},"ruleId":"datapack.unavailable"}),
+    ));
+    assert!(why["explanations"].as_array().unwrap().is_empty(), "{why}");
     client.shutdown();
 }
 
@@ -166,7 +204,7 @@ fn why_and_verified_quick_fix_share_lint_evidence_and_reject_forgery() {
     let (mut client, _) = Client::start_with(
         env!("CARGO_BIN_EXE_kdf-language-server"),
         &root_uri,
-        json!({}),
+        json!({"workspace":{"workspaceEdit":{"documentChanges":true}}}),
         json!({"kdf":{"datapackPath":archive}}),
     );
     let uri = Url::from_file_path(root.path().join("outdated.cdo.yml"))
