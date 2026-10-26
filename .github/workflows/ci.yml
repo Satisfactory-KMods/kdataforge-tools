@@ -3,8 +3,6 @@ name: KDataForge Tools CI
 on:
   push:
     branches: [dev, main]
-  pull_request:
-    branches: [dev, main]
   workflow_dispatch:
 
 permissions:
