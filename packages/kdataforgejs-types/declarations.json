@@ -1,0 +1,16 @@
+{
+  "formatVersion": 1,
+  "package": "@sf-kmods/kdataforgejs",
+  "baseDeclaration": "@sf-kmods/kdataforgejs/index.d.ts",
+  "typeGenerator": {
+    "formatVersion": 9,
+    "outputPrefix": "typescript/kdataforgejs",
+    "generatedDeclaration": "typescript/kdataforgejs/kdataforge.generated.d.ts",
+    "artifacts": [
+      "kdataforge.generated.d.ts",
+      "tsconfig.json",
+      "paths.json",
+      "editor.json"
+    ]
+  }
+}

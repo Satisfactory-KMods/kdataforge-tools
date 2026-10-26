@@ -1,0 +1,24 @@
+{
+	"name": "{{ref}}",
+	"private": true,
+	"version": "0.1.0",
+	"description": "KDataForge project with KDataForgeJS (TypeScript) scripts. The DataForge folder is the pack; this file is editor tooling only.",
+	"scripts": {
+		"refresh": "kdf game-data",
+		"doctor": "kdf doctor",
+		"dev": "kdf dev",
+		"sync": "kdf sync",
+		"check": "kdf check",
+		"format": "kdf format",
+		"lint": "kdf lint",
+		"validate": "kdf validate",
+		"hash": "kdf hash",
+		"fix": "kdf format && kdf sync",
+		"test": "npm run verify",
+		"verify": "kdf sync && kdf check && kdf lint && kdf validate"
+	},
+	"devDependencies": {
+		"@sf-kmods/kdataforgejs": "^{{sdkVersion}}",
+		"@sf-kmods/kdataforgejs-cli": "^{{sdkVersion}}"
+	}
+}

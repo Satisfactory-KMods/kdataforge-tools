@@ -1,0 +1,33 @@
+type: cdo
+patches:
+  - target: /Script/FactoryGame.FGItemDescriptor
+    properties:
+      - path: mA
+        value: cfg:balance.missing
+      - path: mB
+        value: cfg:Nowhere:balance.speed
+      - path: mC
+        value: cfg:Balance.Speed
+      - path: mD
+        value: "{cfg:balance.speed"
+      - path: mE
+        value: {cfg:balance.speed}
+      - path: mF
+        value: "{cfgx:balance.speed}"
+      - path: mG
+        op: insert
+        index: cfg:balance.title
+        value: 1
+      - path: mH
+        op: add
+        value: cfg:balance.mode
+      - path: mI
+        op: clamp
+        min: cfg:balance.names
+        max: 5
+      - path: mJ
+        value: "{cfg:balance.}"
+      - path: mK
+        value: 1
+        conditions:
+          config: balance.speed contains 1 && missing.id

@@ -1,0 +1,20 @@
+[package]
+name = "kdf-validation"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+serde.workspace = true
+serde_json = { workspace = true, features = ["raw_value"] }
+serde_yaml.workspace = true
+jsonschema.workspace = true
+regex.workspace = true
+walkdir.workspace = true
+saphyr = "0.0.11"
+zip.workspace = true
+dunce.workspace = true
+toml = "0.8"
+sha2.workspace = true
+
+[dev-dependencies]
+tempfile = "3"

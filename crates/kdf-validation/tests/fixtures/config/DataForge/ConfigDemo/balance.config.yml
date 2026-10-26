@@ -1,0 +1,79 @@
+type: config
+category: DemoCategory
+fields:
+  - id: balance.enabled
+    type: boolean
+    name: Enable balancing
+    description: Master switch for the demo pack.
+    default: true
+  - id: balance.speed
+    type: number
+    valueType: float
+    name: Machine speed
+    description: Multiplier applied to production time.
+    tooltip:
+      title: Machine speed
+      text: Values above 2 are very fast.
+    default: 1.5
+    min: 0.5
+    max: 4
+    step: 0.5
+    decimals: 2
+    display: slider
+    apply: hot
+  - id: balance.stack
+    type: number
+    name: Stack size
+    description: Items per stack.
+    default: 100
+    min: 1
+    max: 1000
+    apply: hot
+  - id: balance.mode
+    type: select
+    name: Difficulty
+    description: Pick a difficulty.
+    default: easy
+    options:
+      - value: easy
+        label: Easy
+      - value: hard
+        label:
+          key: Hard
+          ns: ConfigDemo
+          source: Hard
+  - id: balance.tiers
+    type: select
+    valueType: int32
+    multiple: true
+    name: Tiers
+    description: Enabled tiers.
+    options:
+      - { value: 1, label: One }
+      - { value: 2, label: Two }
+      - { value: 3, label: Three }
+    default: [1, 2]
+    minSelected: 1
+  - id: balance.title
+    type: text
+    valueType: text
+    multiline: true
+    maxLength: 40
+    name: Title
+    description: Display title.
+    default: Demo
+  - id: balance.tag
+    type: text
+    valueType: tag
+    tagRoot: Demo
+    name: Tag
+    description: Marker tag.
+    default: Demo.Marker
+  - id: balance.names
+    type: text
+    multiple: true
+    name: Names
+    description: Names list.
+    default: [Alpha, Beta]
+    minCount: 1
+    maxCount: 4

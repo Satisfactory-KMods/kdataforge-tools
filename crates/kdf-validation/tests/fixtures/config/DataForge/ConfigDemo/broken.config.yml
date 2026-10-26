@@ -1,0 +1,64 @@
+fields:
+  - id: Balance.Speed
+    type: number
+    name: Duplicate by case
+    description: Same id as balance.speed ignoring case.
+    default: 1
+    category: DemoCategory
+  - id: balance.speed.fast
+    type: number
+    name: Prefix clash
+    description: balance.speed is already a value.
+    default: 1
+    category: DemoCategory
+  - id: contains
+    type: boolean
+    name: Reserved
+    description: Reserved word.
+    default: true
+    category: DemoCategory
+  - id: broken.reversed
+    type: number
+    name: Reversed
+    description: min is larger than max.
+    default: 3
+    min: 5
+    max: 1
+    category: DemoCategory
+  - id: broken.width
+    type: number
+    valueType: int8
+    name: Width
+    description: Bounds exceed int8.
+    default: 1
+    min: 0
+    max: 300
+    category: DemoCategory
+  - id: broken.default
+    type: text
+    name: Too long
+    description: Default is longer than maxLength.
+    default: toolong
+    maxLength: 3
+    category: DemoCategory
+  - id: broken.options
+    type: select
+    name: Options
+    description: Duplicate option and unknown default.
+    default: other
+    options:
+      - { value: a, label: A }
+      - { value: a, label: Again }
+    category: DemoCategory
+  - id: broken.nocategory
+    type: boolean
+    name: No category
+    description: Neither the field nor the document has a category.
+    default: false
+  - id: broken.reserved
+    type: boolean
+    name: Reserved keys
+    description: descriptionClass is reserved.
+    default: false
+    category: DemoCategory
+    descriptionClass: /Script/KDataForge.KDFConfigDescription

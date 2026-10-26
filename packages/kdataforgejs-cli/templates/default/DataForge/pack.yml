@@ -1,0 +1,10 @@
+ref: {{ref}}
+name: {{ref}}
+version: 0.1.0
+priority: 0
+enabled: true
+description: KDataForgeJS starter pack.
+scripts:
+  - language: kmods.typescript
+    languageVersion: 1
+    entry: scripts/main.ts

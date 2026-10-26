@@ -1,0 +1,6 @@
+type: localization
+namespace: ConfigDemo
+entries:
+  Greeting: "Stack is {cfg:balance.stack}, speed {cfg:balance.speed}"
+  Escaped: "Literal \\{cfg:balance.speed} stays"
+  Format: "{0} items of {item:/Script/FactoryGame.FGItemDescriptor:mDisplayName}"

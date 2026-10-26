@@ -1,0 +1,1479 @@
+{
+  "schemaVersion": 1,
+  "engineVersion": "5.6.1-83+++5.6.1-CSS",
+  "families": {
+    "unlock": {
+      "base": "/Script/FactoryGame.FGUnlock",
+      "entries": [
+        {
+          "family": "unlock",
+          "name": "ABUnlock_UnsafeExhaust_C",
+          "path": "/AB_FluidExtras/Exhausts/Func/ABUnlock_UnsafeExhaust.ABUnlock_UnsafeExhaust_C",
+          "parent": "/Script/FactoryGame.FGUnlock",
+          "abstract": false,
+          "blueprint": null,
+          "blueprints": [],
+          "source": "AB_FluidExtras",
+          "sourceFile": "/AB_FluidExtras/Exhausts/Func/ABUnlock_UnsafeExhaust"
+        },
+        {
+          "family": "unlock",
+          "name": "BP_UnlockArmEquipmentSlot_C",
+          "path": "/Game/FactoryGame/Unlocks/BP_UnlockArmEquipmentSlot.BP_UnlockArmEquipmentSlot_C",
+          "parent": "/Script/FactoryGame.FGUnlockArmEquipmentSlot",
+          "abstract": false,
+          "blueprint": null,
+          "blueprints": [],
+          "source": "Game",
+          "sourceFile": "/Game/FactoryGame/Unlocks/BP_UnlockArmEquipmentSlot"
+        },
+        {
+          "family": "unlock",
+          "name": "BP_UnlockBlueprints_C",
+          "path": "/Game/FactoryGame/Unlocks/BP_UnlockBlueprints.BP_UnlockBlueprints_C",
+          "parent": "/Script/FactoryGame.FGUnlockBlueprints",
+          "abstract": false,
+          "blueprint": null,
+          "blueprints": [],
+          "source": "Game",
+          "sourceFile": "/Game/FactoryGame/Unlocks/BP_UnlockBlueprints"
+        },
+        {
+          "family": "unlock",
+          "name": "BP_UnlockBuildEfficiency_C",
+          "path": "/Game/FactoryGame/Unlocks/BP_UnlockBuildEfficiency.BP_UnlockBuildEfficiency_C",
+          "parent": "/Script/FactoryGame.FGUnlockBuildEfficiency",
+          "abstract": false,
+          "blueprint": null,
+          "blueprints": [],
+          "source": "Game",
+          "sourceFile": "/Game/FactoryGame/Unlocks/BP_UnlockBuildEfficiency"
+        },
+        {
+          "family": "unlock",
+          "name": "BP_UnlockBuildOverclock_C",
+          "path": "/Game/FactoryGame/Unlocks/BP_UnlockBuildOverclock.BP_UnlockBuildOverclock_C",
+          "parent": "/Script/FactoryGame.FGUnlockBuildOverclock",
+          "abstract": false,
+          "blueprint": null,
+          "blueprints": [],
+          "source": "Game",
+          "sourceFile": "/Game/FactoryGame/Unlocks/BP_UnlockBuildOverclock"
+        },
+        {
+          "family": "unlock",
+          "name": "BP_UnlockBuildProductionBoost_C",
+          "path": "/Game/FactoryGame/Unlocks/BP_UnlockBuildProductionBoost.BP_UnlockBuildProductionBoost_C",
+          "parent": "/Script/FactoryGame.FGUnlockBuildProductionBoost",
+          "abstract": false,
+          "blueprint": null,
+          "blueprints": [],
+          "source": "Game",
+          "sourceFile": "/Game/FactoryGame/Unlocks/BP_UnlockBuildProductionBoost"
+        },
+        {
+          "family": "unlock",
+          "name": "BP_UnlockCentralStorageItemLimit_C",
+          "path": "/Game/FactoryGame/Unlocks/BP_UnlockCentralStorageItemLimit.BP_UnlockCentralStorageItemLimit_C",
+          "parent": "/Script/FactoryGame.FGUnlockCentralStorageItemLimit",
+          "abstract": false,
+          "blueprint": null,
+          "blueprints": [],
+          "source": "Game",
+          "sourceFile": "/Game/FactoryGame/Unlocks/BP_UnlockCentralStorageItemLimit"
+        },
+        {
+          "family": "unlock",
+          "name": "BP_UnlockCentralStorageUploadSlots_C",
+          "path": "/Game/FactoryGame/Unlocks/BP_UnlockCentralStorageUploadSlots.BP_UnlockCentralStorageUploadSlots_C",
+          "parent": "/Script/FactoryGame.FGUnlockCentralStorageUploadSlots",
+          "abstract": false,
+          "blueprint": null,
+          "blueprints": [],
+          "source": "Game",
+          "sourceFile": "/Game/FactoryGame/Unlocks/BP_UnlockCentralStorageUploadSlots"
+        },
+        {
+          "family": "unlock",
+          "name": "BP_UnlockCentralStorageUploadSpeed_C",
+          "path": "/Game/FactoryGame/Unlocks/BP_UnlockCentralStorageUploadSpeed.BP_UnlockCentralStorageUploadSpeed_C",
+          "parent": "/Script/FactoryGame.FGUnlockCentralStorageUploadSpeed",
+          "abstract": false,
+          "blueprint": null,
+          "blueprints": [],
+          "source": "Game",
+          "sourceFile": "/Game/FactoryGame/Unlocks/BP_UnlockCentralStorageUploadSpeed"
+        },
+        {
+          "family": "unlock",
+          "name": "BP_UnlockCheckmark_C",
+          "path": "/Game/FactoryGame/Unlocks/BP_UnlockCheckmark.BP_UnlockCheckmark_C",
+          "parent": "/Script/FactoryGame.FGUnlockCheckmark",
+          "abstract": false,
+          "blueprint": null,
+          "blueprints": [],
+          "source": "Game",
+          "sourceFile": "/Game/FactoryGame/Unlocks/BP_UnlockCheckmark"
+        },
+        {
+          "family": "unlock",
+          "name": "BP_UnlockCircuitDaisyChaining_C",
+          "path": "/Game/FactoryGame/Unlocks/BP_UnlockCircuitDaisyChaining.BP_UnlockCircuitDaisyChaining_C",
+          "parent": "/Script/FactoryGame.FGUnlockCircuitDaisyChaining",
+          "abstract": false,
+          "blueprint": null,
+          "blueprints": [],
+          "source": "Game",
+          "sourceFile": "/Game/FactoryGame/Unlocks/BP_UnlockCircuitDaisyChaining"
+        },
+        {
+          "family": "unlock",
+          "name": "BP_UnlockCustomizer_C",
+          "path": "/Game/FactoryGame/Unlocks/BP_UnlockCustomizer.BP_UnlockCustomizer_C",
+          "parent": "/Script/FactoryGame.FGUnlockCustomizer",
+          "abstract": false,
+          "blueprint": null,
+          "blueprints": [],
+          "source": "Game",
+          "sourceFile": "/Game/FactoryGame/Unlocks/BP_UnlockCustomizer"
+        },
+        {
+          "family": "unlock",
+          "name": "BP_UnlockEmote_C",
+          "path": "/Game/FactoryGame/Unlocks/BP_UnlockEmote.BP_UnlockEmote_C",
+          "parent": "/Script/FactoryGame.FGUnlockEmote",
+          "abstract": false,
+          "blueprint": null,
+          "blueprints": [],
+          "source": "Game",
+          "sourceFile": "/Game/FactoryGame/Unlocks/BP_UnlockEmote"
+        },
+        {
+          "family": "unlock",
+          "name": "BP_UnlockGiveItem_C",
+          "path": "/Game/FactoryGame/Unlocks/BP_UnlockGiveItem.BP_UnlockGiveItem_C",
+          "parent": "/Script/FactoryGame.FGUnlockGiveItem",
+          "abstract": false,
+          "blueprint": null,
+          "blueprints": [],
+          "source": "Game",
+          "sourceFile": "/Game/FactoryGame/Unlocks/BP_UnlockGiveItem"
+        },
+        {
+          "family": "unlock",
+          "name": "BP_UnlockInfoOnly_C",
+          "path": "/Game/FactoryGame/Unlocks/BP_UnlockInfoOnly.BP_UnlockInfoOnly_C",
+          "parent": "/Script/FactoryGame.FGUnlockInfoOnly",
+          "abstract": false,
+          "blueprint": null,
+          "blueprints": [],
+          "source": "Game",
+          "sourceFile": "/Game/FactoryGame/Unlocks/BP_UnlockInfoOnly"
+        },
+        {
+          "family": "unlock",
+          "name": "BP_UnlockInventorySlot_C",
+          "path": "/Game/FactoryGame/Unlocks/BP_UnlockInventorySlot.BP_UnlockInventorySlot_C",
+          "parent": "/Script/FactoryGame.FGUnlockInventorySlot",
+          "abstract": false,
+          "blueprint": null,
+          "blueprints": [],
+          "source": "Game",
+          "sourceFile": "/Game/FactoryGame/Unlocks/BP_UnlockInventorySlot"
+        },
+        {
+          "family": "unlock",
+          "name": "BP_UnlockItemDescriptor_C",
+          "path": "/Game/FactoryGame/Unlocks/BP_UnlockItemDescriptor.BP_UnlockItemDescriptor_C",
+          "parent": "/Script/FactoryGame.FGUnlockItemDescriptor",
+          "abstract": false,
+          "blueprint": null,
+          "blueprints": [],
+          "source": "Game",
+          "sourceFile": "/Game/FactoryGame/Unlocks/BP_UnlockItemDescriptor"
+        },
+        {
+          "family": "unlock",
+          "name": "BP_UnlockMap_C",
+          "path": "/Game/FactoryGame/Unlocks/BP_UnlockMap.BP_UnlockMap_C",
+          "parent": "/Script/FactoryGame.FGUnlockMap",
+          "abstract": false,
+          "blueprint": null,
+          "blueprints": [],
+          "source": "Game",
+          "sourceFile": "/Game/FactoryGame/Unlocks/BP_UnlockMap"
+        },
+        {
+          "family": "unlock",
+          "name": "BP_UnlockRecipe_C",
+          "path": "/Game/FactoryGame/Unlocks/BP_UnlockRecipe.BP_UnlockRecipe_C",
+          "parent": "/Script/FactoryGame.FGUnlockRecipe",
+          "abstract": false,
+          "blueprint": null,
+          "blueprints": [],
+          "source": "Game",
+          "sourceFile": "/Game/FactoryGame/Unlocks/BP_UnlockRecipe"
+        },
+        {
+          "family": "unlock",
+          "name": "BP_UnlockSAMIntensity_C",
+          "path": "/Game/FactoryGame/Unlocks/BP_UnlockSAMIntensity.BP_UnlockSAMIntensity_C",
+          "parent": "/Script/FactoryGame.FGUnlockSAMIntensity",
+          "abstract": false,
+          "blueprint": null,
+          "blueprints": [],
+          "source": "Game",
+          "sourceFile": "/Game/FactoryGame/Unlocks/BP_UnlockSAMIntensity"
+        },
+        {
+          "family": "unlock",
+          "name": "BP_UnlockScannableObject_C",
+          "path": "/Game/FactoryGame/Unlocks/BP_UnlockScannableObject.BP_UnlockScannableObject_C",
+          "parent": "/Script/FactoryGame.FGUnlockScannableObject",
+          "abstract": false,
+          "blueprint": null,
+          "blueprints": [],
+          "source": "Game",
+          "sourceFile": "/Game/FactoryGame/Unlocks/BP_UnlockScannableObject"
+        },
+        {
+          "family": "unlock",
+          "name": "BP_UnlockScannableResource_C",
+          "path": "/Game/FactoryGame/Unlocks/BP_UnlockScannableResource.BP_UnlockScannableResource_C",
+          "parent": "/Script/FactoryGame.FGUnlockScannableResource",
+          "abstract": false,
+          "blueprint": null,
+          "blueprints": [],
+          "source": "Game",
+          "sourceFile": "/Game/FactoryGame/Unlocks/BP_UnlockScannableResource"
+        },
+        {
+          "family": "unlock",
+          "name": "BP_UnlockSchematic_C",
+          "path": "/Game/FactoryGame/Unlocks/BP_UnlockSchematic.BP_UnlockSchematic_C",
+          "parent": "/Script/FactoryGame.FGUnlockSchematic",
+          "abstract": false,
+          "blueprint": null,
+          "blueprints": [],
+          "source": "Game",
+          "sourceFile": "/Game/FactoryGame/Unlocks/BP_UnlockSchematic"
+        },
+        {
+          "family": "unlock",
+          "name": "BP_CleanerUnlock_C",
+          "path": "/KLib/Unlocks/BP_CleanerUnlock.BP_CleanerUnlock_C",
+          "parent": "/Script/KLib.UKLUnlockCleanerItem",
+          "abstract": false,
+          "blueprint": null,
+          "blueprints": [],
+          "source": "KLib",
+          "sourceFile": "/KLib/Unlocks/BP_CleanerUnlock"
+        },
+        {
+          "family": "unlock",
+          "name": "BP_GiveToPlayersUnlock_C",
+          "path": "/KLib/Unlocks/BP_GiveToPlayersUnlock.BP_GiveToPlayersUnlock_C",
+          "parent": "/Script/KLib.KLGiveItemToAllPlayerUnlock",
+          "abstract": false,
+          "blueprint": null,
+          "blueprints": [],
+          "source": "KLib",
+          "sourceFile": "/KLib/Unlocks/BP_GiveToPlayersUnlock"
+        },
+        {
+          "family": "unlock",
+          "name": "BP_DeliverInventorySlotUnlock_C",
+          "path": "/KPrivateCodeLib/Unlocks/BP_DeliverInventorySlotUnlock.BP_DeliverInventorySlotUnlock_C",
+          "parent": "/Script/KPrivateCodeLib.KPCLDeliveryTaskInventorySlotUnlock",
+          "abstract": false,
+          "blueprint": null,
+          "blueprints": [],
+          "source": "KPrivateCodeLib",
+          "sourceFile": "/KPrivateCodeLib/Unlocks/BP_DeliverInventorySlotUnlock"
+        },
+        {
+          "family": "unlock",
+          "name": "BP_DeliveryTaskUnlock_C",
+          "path": "/KPrivateCodeLib/Unlocks/BP_DeliveryTaskUnlock.BP_DeliveryTaskUnlock_C",
+          "parent": "/Script/KPrivateCodeLib.KPCLDeliveryTaskUnlock",
+          "abstract": false,
+          "blueprint": null,
+          "blueprints": [],
+          "source": "KPrivateCodeLib",
+          "sourceFile": "/KPrivateCodeLib/Unlocks/BP_DeliveryTaskUnlock"
+        },
+        {
+          "family": "unlock",
+          "name": "BP_FaxitCapaUnlock_C",
+          "path": "/KPrivateCodeLib/Unlocks/BP_FaxitCapaUnlock.BP_FaxitCapaUnlock_C",
+          "parent": "/Script/KPrivateCodeLib.KPCLFaxitCapacityUnlock",
+          "abstract": false,
+          "blueprint": null,
+          "blueprints": [],
+          "source": "KPrivateCodeLib",
+          "sourceFile": "/KPrivateCodeLib/Unlocks/BP_FaxitCapaUnlock"
+        },
+        {
+          "family": "unlock",
+          "name": "BP_FaxitFeatureUnlock_C",
+          "path": "/KPrivateCodeLib/Unlocks/BP_FaxitFeatureUnlock.BP_FaxitFeatureUnlock_C",
+          "parent": "/Script/KPrivateCodeLib.KPCLFaxitFeatureUnlock",
+          "abstract": false,
+          "blueprint": null,
+          "blueprints": [],
+          "source": "KPrivateCodeLib",
+          "sourceFile": "/KPrivateCodeLib/Unlocks/BP_FaxitFeatureUnlock"
+        },
+        {
+          "family": "unlock",
+          "name": "BP_FaxitSpeedUnlock_C",
+          "path": "/KPrivateCodeLib/Unlocks/BP_FaxitSpeedUnlock.BP_FaxitSpeedUnlock_C",
+          "parent": "/Script/KPrivateCodeLib.KPCLFaxitSpeedUnlock",
+          "abstract": false,
+          "blueprint": null,
+          "blueprints": [],
+          "source": "KPrivateCodeLib",
+          "sourceFile": "/KPrivateCodeLib/Unlocks/BP_FaxitSpeedUnlock"
+        },
+        {
+          "cppName": "UFGUnlock",
+          "name": "FGUnlock",
+          "path": "/Script/FactoryGame.FGUnlock",
+          "abstract": true,
+          "source": "FactoryGame",
+          "sourceFile": "Source/FactoryGame/Public/Unlocks/FGUnlock.h",
+          "parent": null,
+          "family": "unlock",
+          "blueprint": null,
+          "blueprints": [
+            "/AB_FluidExtras/Exhausts/Func/ABUnlock_UnsafeExhaust.ABUnlock_UnsafeExhaust_C"
+          ]
+        },
+        {
+          "cppName": "UFGUnlockArmEquipmentSlot",
+          "name": "FGUnlockArmEquipmentSlot",
+          "path": "/Script/FactoryGame.FGUnlockArmEquipmentSlot",
+          "abstract": true,
+          "source": "FactoryGame",
+          "sourceFile": "Source/FactoryGame/Public/Unlocks/FGUnlockArmEquipmentSlot.h",
+          "parent": "/Script/FactoryGame.FGUnlock",
+          "family": "unlock",
+          "blueprint": "/Game/FactoryGame/Unlocks/BP_UnlockArmEquipmentSlot.BP_UnlockArmEquipmentSlot_C",
+          "blueprints": [
+            "/Game/FactoryGame/Unlocks/BP_UnlockArmEquipmentSlot.BP_UnlockArmEquipmentSlot_C"
+          ]
+        },
+        {
+          "cppName": "UFGUnlockBlueprints",
+          "name": "FGUnlockBlueprints",
+          "path": "/Script/FactoryGame.FGUnlockBlueprints",
+          "abstract": true,
+          "source": "FactoryGame",
+          "sourceFile": "Source/FactoryGame/Public/Unlocks/FGUnlockBlueprints.h",
+          "parent": "/Script/FactoryGame.FGUnlockRecipe",
+          "family": "unlock",
+          "blueprint": "/Game/FactoryGame/Unlocks/BP_UnlockBlueprints.BP_UnlockBlueprints_C",
+          "blueprints": [
+            "/Game/FactoryGame/Unlocks/BP_UnlockBlueprints.BP_UnlockBlueprints_C"
+          ]
+        },
+        {
+          "cppName": "UFGUnlockBuildEfficiency",
+          "name": "FGUnlockBuildEfficiency",
+          "path": "/Script/FactoryGame.FGUnlockBuildEfficiency",
+          "abstract": true,
+          "source": "FactoryGame",
+          "sourceFile": "Source/FactoryGame/Public/Unlocks/FGUnlockBuildEfficiency.h",
+          "parent": "/Script/FactoryGame.FGUnlock",
+          "family": "unlock",
+          "blueprint": "/Game/FactoryGame/Unlocks/BP_UnlockBuildEfficiency.BP_UnlockBuildEfficiency_C",
+          "blueprints": [
+            "/Game/FactoryGame/Unlocks/BP_UnlockBuildEfficiency.BP_UnlockBuildEfficiency_C"
+          ]
+        },
+        {
+          "cppName": "UFGUnlockBuildOverclock",
+          "name": "FGUnlockBuildOverclock",
+          "path": "/Script/FactoryGame.FGUnlockBuildOverclock",
+          "abstract": true,
+          "source": "FactoryGame",
+          "sourceFile": "Source/FactoryGame/Public/Unlocks/FGUnlockBuildOverclock.h",
+          "parent": "/Script/FactoryGame.FGUnlock",
+          "family": "unlock",
+          "blueprint": "/Game/FactoryGame/Unlocks/BP_UnlockBuildOverclock.BP_UnlockBuildOverclock_C",
+          "blueprints": [
+            "/Game/FactoryGame/Unlocks/BP_UnlockBuildOverclock.BP_UnlockBuildOverclock_C"
+          ]
+        },
+        {
+          "cppName": "UFGUnlockBuildProductionBoost",
+          "name": "FGUnlockBuildProductionBoost",
+          "path": "/Script/FactoryGame.FGUnlockBuildProductionBoost",
+          "abstract": true,
+          "source": "FactoryGame",
+          "sourceFile": "Source/FactoryGame/Public/Unlocks/FGUnlockBuildProductionBoost.h",
+          "parent": "/Script/FactoryGame.FGUnlock",
+          "family": "unlock",
+          "blueprint": "/Game/FactoryGame/Unlocks/BP_UnlockBuildProductionBoost.BP_UnlockBuildProductionBoost_C",
+          "blueprints": [
+            "/Game/FactoryGame/Unlocks/BP_UnlockBuildProductionBoost.BP_UnlockBuildProductionBoost_C"
+          ]
+        },
+        {
+          "cppName": "UFGUnlockCentralStorageItemLimit",
+          "name": "FGUnlockCentralStorageItemLimit",
+          "path": "/Script/FactoryGame.FGUnlockCentralStorageItemLimit",
+          "abstract": true,
+          "source": "FactoryGame",
+          "sourceFile": "Source/FactoryGame/Public/Unlocks/FGCentralStorageUnlock.h",
+          "parent": "/Script/FactoryGame.FGUnlock",
+          "family": "unlock",
+          "blueprint": "/Game/FactoryGame/Unlocks/BP_UnlockCentralStorageItemLimit.BP_UnlockCentralStorageItemLimit_C",
+          "blueprints": [
+            "/Game/FactoryGame/Unlocks/BP_UnlockCentralStorageItemLimit.BP_UnlockCentralStorageItemLimit_C"
+          ]
+        },
+        {
+          "cppName": "UFGUnlockCentralStorageUploadSlots",
+          "name": "FGUnlockCentralStorageUploadSlots",
+          "path": "/Script/FactoryGame.FGUnlockCentralStorageUploadSlots",
+          "abstract": true,
+          "source": "FactoryGame",
+          "sourceFile": "Source/FactoryGame/Public/Unlocks/FGCentralStorageUnlock.h",
+          "parent": "/Script/FactoryGame.FGUnlock",
+          "family": "unlock",
+          "blueprint": "/Game/FactoryGame/Unlocks/BP_UnlockCentralStorageUploadSlots.BP_UnlockCentralStorageUploadSlots_C",
+          "blueprints": [
+            "/Game/FactoryGame/Unlocks/BP_UnlockCentralStorageUploadSlots.BP_UnlockCentralStorageUploadSlots_C"
+          ]
+        },
+        {
+          "cppName": "UFGUnlockCentralStorageUploadSpeed",
+          "name": "FGUnlockCentralStorageUploadSpeed",
+          "path": "/Script/FactoryGame.FGUnlockCentralStorageUploadSpeed",
+          "abstract": true,
+          "source": "FactoryGame",
+          "sourceFile": "Source/FactoryGame/Public/Unlocks/FGCentralStorageUnlock.h",
+          "parent": "/Script/FactoryGame.FGUnlock",
+          "family": "unlock",
+          "blueprint": "/Game/FactoryGame/Unlocks/BP_UnlockCentralStorageUploadSpeed.BP_UnlockCentralStorageUploadSpeed_C",
+          "blueprints": [
+            "/Game/FactoryGame/Unlocks/BP_UnlockCentralStorageUploadSpeed.BP_UnlockCentralStorageUploadSpeed_C"
+          ]
+        },
+        {
+          "cppName": "UFGUnlockCheckmark",
+          "name": "FGUnlockCheckmark",
+          "path": "/Script/FactoryGame.FGUnlockCheckmark",
+          "abstract": true,
+          "source": "FactoryGame",
+          "sourceFile": "Source/FactoryGame/Public/Unlocks/FGUnlockCheckmark.h",
+          "parent": "/Script/FactoryGame.FGUnlockInfoOnly",
+          "family": "unlock",
+          "blueprint": "/Game/FactoryGame/Unlocks/BP_UnlockCheckmark.BP_UnlockCheckmark_C",
+          "blueprints": [
+            "/Game/FactoryGame/Unlocks/BP_UnlockCheckmark.BP_UnlockCheckmark_C"
+          ]
+        },
+        {
+          "cppName": "UFGUnlockCircuitDaisyChaining",
+          "name": "FGUnlockCircuitDaisyChaining",
+          "path": "/Script/FactoryGame.FGUnlockCircuitDaisyChaining",
+          "abstract": false,
+          "source": "FactoryGame",
+          "sourceFile": "Source/FactoryGame/Public/Unlocks/FGUnlockCircuitDaisyChaining.h",
+          "parent": "/Script/FactoryGame.FGUnlock",
+          "family": "unlock",
+          "blueprint": "/Game/FactoryGame/Unlocks/BP_UnlockCircuitDaisyChaining.BP_UnlockCircuitDaisyChaining_C",
+          "blueprints": [
+            "/Game/FactoryGame/Unlocks/BP_UnlockCircuitDaisyChaining.BP_UnlockCircuitDaisyChaining_C"
+          ]
+        },
+        {
+          "cppName": "UFGUnlockCustomization",
+          "name": "FGUnlockCustomization",
+          "path": "/Script/FactoryGame.FGUnlockCustomization",
+          "abstract": false,
+          "source": "FactoryGame",
+          "sourceFile": "Source/FactoryGame/Public/Unlocks/FGUnlockCustomization.h",
+          "parent": "/Script/FactoryGame.FGUnlock",
+          "family": "unlock",
+          "blueprint": null,
+          "blueprints": []
+        },
+        {
+          "cppName": "UFGUnlockCustomizer",
+          "name": "FGUnlockCustomizer",
+          "path": "/Script/FactoryGame.FGUnlockCustomizer",
+          "abstract": true,
+          "source": "FactoryGame",
+          "sourceFile": "Source/FactoryGame/Public/Unlocks/FGUnlockCustomizer.h",
+          "parent": "/Script/FactoryGame.FGUnlock",
+          "family": "unlock",
+          "blueprint": "/Game/FactoryGame/Unlocks/BP_UnlockCustomizer.BP_UnlockCustomizer_C",
+          "blueprints": [
+            "/Game/FactoryGame/Unlocks/BP_UnlockCustomizer.BP_UnlockCustomizer_C"
+          ]
+        },
+        {
+          "cppName": "UFGUnlockEmote",
+          "name": "FGUnlockEmote",
+          "path": "/Script/FactoryGame.FGUnlockEmote",
+          "abstract": true,
+          "source": "FactoryGame",
+          "sourceFile": "Source/FactoryGame/Public/Unlocks/FGUnlockEmote.h",
+          "parent": "/Script/FactoryGame.FGUnlock",
+          "family": "unlock",
+          "blueprint": "/Game/FactoryGame/Unlocks/BP_UnlockEmote.BP_UnlockEmote_C",
+          "blueprints": [
+            "/Game/FactoryGame/Unlocks/BP_UnlockEmote.BP_UnlockEmote_C"
+          ]
+        },
+        {
+          "cppName": "UFGUnlockGiveItem",
+          "name": "FGUnlockGiveItem",
+          "path": "/Script/FactoryGame.FGUnlockGiveItem",
+          "abstract": true,
+          "source": "FactoryGame",
+          "sourceFile": "Source/FactoryGame/Public/Unlocks/FGUnlockGiveItem.h",
+          "parent": "/Script/FactoryGame.FGUnlock",
+          "family": "unlock",
+          "blueprint": "/Game/FactoryGame/Unlocks/BP_UnlockGiveItem.BP_UnlockGiveItem_C",
+          "blueprints": [
+            "/Game/FactoryGame/Unlocks/BP_UnlockGiveItem.BP_UnlockGiveItem_C"
+          ]
+        },
+        {
+          "cppName": "UFGUnlockInfoOnly",
+          "name": "FGUnlockInfoOnly",
+          "path": "/Script/FactoryGame.FGUnlockInfoOnly",
+          "abstract": true,
+          "source": "FactoryGame",
+          "sourceFile": "Source/FactoryGame/Public/Unlocks/FGUnlockInfoOnly.h",
+          "parent": "/Script/FactoryGame.FGUnlock",
+          "family": "unlock",
+          "blueprint": "/Game/FactoryGame/Unlocks/BP_UnlockInfoOnly.BP_UnlockInfoOnly_C",
+          "blueprints": [
+            "/Game/FactoryGame/Unlocks/BP_UnlockInfoOnly.BP_UnlockInfoOnly_C"
+          ]
+        },
+        {
+          "cppName": "UFGUnlockInventorySlot",
+          "name": "FGUnlockInventorySlot",
+          "path": "/Script/FactoryGame.FGUnlockInventorySlot",
+          "abstract": true,
+          "source": "FactoryGame",
+          "sourceFile": "Source/FactoryGame/Public/Unlocks/FGUnlockInventorySlot.h",
+          "parent": "/Script/FactoryGame.FGUnlock",
+          "family": "unlock",
+          "blueprint": "/Game/FactoryGame/Unlocks/BP_UnlockInventorySlot.BP_UnlockInventorySlot_C",
+          "blueprints": [
+            "/Game/FactoryGame/Unlocks/BP_UnlockInventorySlot.BP_UnlockInventorySlot_C"
+          ]
+        },
+        {
+          "cppName": "UFGUnlockItemDescriptor",
+          "name": "FGUnlockItemDescriptor",
+          "path": "/Script/FactoryGame.FGUnlockItemDescriptor",
+          "abstract": true,
+          "source": "FactoryGame",
+          "sourceFile": "Source/FactoryGame/Public/Unlocks/FGUnlockItemDescriptor.h",
+          "parent": "/Script/FactoryGame.FGUnlock",
+          "family": "unlock",
+          "blueprint": "/Game/FactoryGame/Unlocks/BP_UnlockItemDescriptor.BP_UnlockItemDescriptor_C",
+          "blueprints": [
+            "/Game/FactoryGame/Unlocks/BP_UnlockItemDescriptor.BP_UnlockItemDescriptor_C"
+          ]
+        },
+        {
+          "cppName": "UFGUnlockMap",
+          "name": "FGUnlockMap",
+          "path": "/Script/FactoryGame.FGUnlockMap",
+          "abstract": true,
+          "source": "FactoryGame",
+          "sourceFile": "Source/FactoryGame/Public/Unlocks/FGUnlockMap.h",
+          "parent": "/Script/FactoryGame.FGUnlock",
+          "family": "unlock",
+          "blueprint": "/Game/FactoryGame/Unlocks/BP_UnlockMap.BP_UnlockMap_C",
+          "blueprints": [
+            "/Game/FactoryGame/Unlocks/BP_UnlockMap.BP_UnlockMap_C"
+          ]
+        },
+        {
+          "cppName": "UFGUnlockRecipe",
+          "name": "FGUnlockRecipe",
+          "path": "/Script/FactoryGame.FGUnlockRecipe",
+          "abstract": true,
+          "source": "FactoryGame",
+          "sourceFile": "Source/FactoryGame/Public/Unlocks/FGUnlockRecipe.h",
+          "parent": "/Script/FactoryGame.FGUnlock",
+          "family": "unlock",
+          "blueprint": "/Game/FactoryGame/Unlocks/BP_UnlockRecipe.BP_UnlockRecipe_C",
+          "blueprints": [
+            "/Game/FactoryGame/Unlocks/BP_UnlockRecipe.BP_UnlockRecipe_C"
+          ]
+        },
+        {
+          "cppName": "UFGUnlockSAMIntensity",
+          "name": "FGUnlockSAMIntensity",
+          "path": "/Script/FactoryGame.FGUnlockSAMIntensity",
+          "abstract": true,
+          "source": "FactoryGame",
+          "sourceFile": "Source/FactoryGame/Public/Unlocks/FGUnlockSAMIntensity.h",
+          "parent": "/Script/FactoryGame.FGUnlock",
+          "family": "unlock",
+          "blueprint": "/Game/FactoryGame/Unlocks/BP_UnlockSAMIntensity.BP_UnlockSAMIntensity_C",
+          "blueprints": [
+            "/Game/FactoryGame/Unlocks/BP_UnlockSAMIntensity.BP_UnlockSAMIntensity_C"
+          ]
+        },
+        {
+          "cppName": "UFGUnlockScannableObject",
+          "name": "FGUnlockScannableObject",
+          "path": "/Script/FactoryGame.FGUnlockScannableObject",
+          "abstract": true,
+          "source": "FactoryGame",
+          "sourceFile": "Source/FactoryGame/Public/Unlocks/FGUnlockScannableObject.h",
+          "parent": "/Script/FactoryGame.FGUnlock",
+          "family": "unlock",
+          "blueprint": "/Game/FactoryGame/Unlocks/BP_UnlockScannableObject.BP_UnlockScannableObject_C",
+          "blueprints": [
+            "/Game/FactoryGame/Unlocks/BP_UnlockScannableObject.BP_UnlockScannableObject_C"
+          ]
+        },
+        {
+          "cppName": "UFGUnlockScannableResource",
+          "name": "FGUnlockScannableResource",
+          "path": "/Script/FactoryGame.FGUnlockScannableResource",
+          "abstract": true,
+          "source": "FactoryGame",
+          "sourceFile": "Source/FactoryGame/Public/Unlocks/FGUnlockScannableResource.h",
+          "parent": "/Script/FactoryGame.FGUnlock",
+          "family": "unlock",
+          "blueprint": "/Game/FactoryGame/Unlocks/BP_UnlockScannableResource.BP_UnlockScannableResource_C",
+          "blueprints": [
+            "/Game/FactoryGame/Unlocks/BP_UnlockScannableResource.BP_UnlockScannableResource_C"
+          ]
+        },
+        {
+          "cppName": "UFGUnlockSchematic",
+          "name": "FGUnlockSchematic",
+          "path": "/Script/FactoryGame.FGUnlockSchematic",
+          "abstract": true,
+          "source": "FactoryGame",
+          "sourceFile": "Source/FactoryGame/Public/Unlocks/FGUnlockSchematic.h",
+          "parent": "/Script/FactoryGame.FGUnlock",
+          "family": "unlock",
+          "blueprint": "/Game/FactoryGame/Unlocks/BP_UnlockSchematic.BP_UnlockSchematic_C",
+          "blueprints": [
+            "/Game/FactoryGame/Unlocks/BP_UnlockSchematic.BP_UnlockSchematic_C"
+          ]
+        },
+        {
+          "cppName": "UFGUnlockTape",
+          "name": "FGUnlockTape",
+          "path": "/Script/FactoryGame.FGUnlockTape",
+          "abstract": false,
+          "source": "FactoryGame",
+          "sourceFile": "Source/FactoryGame/Public/FGUnlockTape.h",
+          "parent": "/Script/FactoryGame.FGUnlock",
+          "family": "unlock",
+          "blueprint": null,
+          "blueprints": []
+        },
+        {
+          "cppName": "UFGUnlockVisualizationMode",
+          "name": "FGUnlockVisualizationMode",
+          "path": "/Script/FactoryGame.FGUnlockVisualizationMode",
+          "abstract": true,
+          "source": "FactoryGame",
+          "sourceFile": "Source/FactoryGame/Public/Unlocks/FGUnlockVisualizationMode.h",
+          "parent": "/Script/FactoryGame.FGUnlock",
+          "family": "unlock",
+          "blueprint": null,
+          "blueprints": []
+        },
+        {
+          "cppName": "UKLGiveItemToAllPlayerUnlock",
+          "name": "KLGiveItemToAllPlayerUnlock",
+          "path": "/Script/KLib.KLGiveItemToAllPlayerUnlock",
+          "abstract": false,
+          "source": "KLib",
+          "sourceFile": "Mods/GameFeatures/KLib/Source/KLib/Public/Unlocks/KLGiveItemToAllPlayerUnlock.h",
+          "parent": "/Script/FactoryGame.FGUnlock",
+          "family": "unlock",
+          "blueprint": "/KLib/Unlocks/BP_GiveToPlayersUnlock.BP_GiveToPlayersUnlock_C",
+          "blueprints": [
+            "/KLib/Unlocks/BP_GiveToPlayersUnlock.BP_GiveToPlayersUnlock_C"
+          ]
+        },
+        {
+          "cppName": "UKLNetworkLevelUnlock",
+          "name": "KLNetworkLevelUnlock",
+          "path": "/Script/KLib.KLNetworkLevelUnlock",
+          "abstract": false,
+          "source": "KLib",
+          "sourceFile": "Mods/GameFeatures/KLib/Source/KLib/Public/Unlocks/KLNetworkLevelUnlock.h",
+          "parent": "/Script/FactoryGame.FGUnlock",
+          "family": "unlock",
+          "blueprint": null,
+          "blueprints": []
+        },
+        {
+          "cppName": "UKLUnlockExtractorScanner",
+          "name": "KLUnlockExtractorScanner",
+          "path": "/Script/KLib.KLUnlockExtractorScanner",
+          "abstract": false,
+          "source": "KLib",
+          "sourceFile": "Mods/GameFeatures/KLib/Source/KLib/Public/Unlocks/KLUnlockExtractorScanner.h",
+          "parent": "/Script/FactoryGame.FGUnlockScannableResource",
+          "family": "unlock",
+          "blueprint": null,
+          "blueprints": []
+        },
+        {
+          "cppName": "UUKLUnlockCleanerItem",
+          "name": "UKLUnlockCleanerItem",
+          "path": "/Script/KLib.UKLUnlockCleanerItem",
+          "abstract": false,
+          "source": "KLib",
+          "sourceFile": "Mods/GameFeatures/KLib/Source/KLib/Public/Unlocks/UKLUnlockCleanerItem.h",
+          "parent": "/Script/FactoryGame.FGUnlockInfoOnly",
+          "family": "unlock",
+          "blueprint": "/KLib/Unlocks/BP_CleanerUnlock.BP_CleanerUnlock_C",
+          "blueprints": [
+            "/KLib/Unlocks/BP_CleanerUnlock.BP_CleanerUnlock_C"
+          ]
+        },
+        {
+          "cppName": "UKPCLDeliveryTaskInventorySlotUnlock",
+          "name": "KPCLDeliveryTaskInventorySlotUnlock",
+          "path": "/Script/KPrivateCodeLib.KPCLDeliveryTaskInventorySlotUnlock",
+          "abstract": false,
+          "source": "KPrivateCodeLib",
+          "sourceFile": "Mods/GameFeatures/KPrivateCodeLib/Source/KPrivateCodeLib/Public/Unlocks/KPCLDeliveryTaskInventorySlotUnlock.h",
+          "parent": "/Script/KPrivateCodeLib.KPCLDeliveryTaskSlotUnlockBase",
+          "family": "unlock",
+          "blueprint": "/KPrivateCodeLib/Unlocks/BP_DeliverInventorySlotUnlock.BP_DeliverInventorySlotUnlock_C",
+          "blueprints": [
+            "/KPrivateCodeLib/Unlocks/BP_DeliverInventorySlotUnlock.BP_DeliverInventorySlotUnlock_C"
+          ]
+        },
+        {
+          "cppName": "UKPCLDeliveryTaskQueueSlotUnlock",
+          "name": "KPCLDeliveryTaskQueueSlotUnlock",
+          "path": "/Script/KPrivateCodeLib.KPCLDeliveryTaskQueueSlotUnlock",
+          "abstract": false,
+          "source": "KPrivateCodeLib",
+          "sourceFile": "Mods/GameFeatures/KPrivateCodeLib/Source/KPrivateCodeLib/Public/Unlocks/KPCLDeliveryTaskQueueSlotUnlock.h",
+          "parent": "/Script/KPrivateCodeLib.KPCLDeliveryTaskSlotUnlockBase",
+          "family": "unlock",
+          "blueprint": null,
+          "blueprints": []
+        },
+        {
+          "cppName": "UKPCLDeliveryTaskSlotUnlockBase",
+          "name": "KPCLDeliveryTaskSlotUnlockBase",
+          "path": "/Script/KPrivateCodeLib.KPCLDeliveryTaskSlotUnlockBase",
+          "abstract": true,
+          "source": "KPrivateCodeLib",
+          "sourceFile": "Mods/GameFeatures/KPrivateCodeLib/Source/KPrivateCodeLib/Public/Unlocks/KPCLDeliveryTaskSlotUnlockBase.h",
+          "parent": "/Script/FactoryGame.FGUnlock",
+          "family": "unlock",
+          "blueprint": null,
+          "blueprints": []
+        },
+        {
+          "cppName": "UKPCLDeliveryTaskUnlock",
+          "name": "KPCLDeliveryTaskUnlock",
+          "path": "/Script/KPrivateCodeLib.KPCLDeliveryTaskUnlock",
+          "abstract": false,
+          "source": "KPrivateCodeLib",
+          "sourceFile": "Mods/GameFeatures/KPrivateCodeLib/Source/KPrivateCodeLib/Public/Unlocks/KPCLDeliveryTaskUnlock.h",
+          "parent": "/Script/FactoryGame.FGUnlock",
+          "family": "unlock",
+          "blueprint": "/KPrivateCodeLib/Unlocks/BP_DeliveryTaskUnlock.BP_DeliveryTaskUnlock_C",
+          "blueprints": [
+            "/KPrivateCodeLib/Unlocks/BP_DeliveryTaskUnlock.BP_DeliveryTaskUnlock_C"
+          ]
+        },
+        {
+          "cppName": "UKPCLFaxitCapacityUnlock",
+          "name": "KPCLFaxitCapacityUnlock",
+          "path": "/Script/KPrivateCodeLib.KPCLFaxitCapacityUnlock",
+          "abstract": false,
+          "source": "KPrivateCodeLib",
+          "sourceFile": "Mods/GameFeatures/KPrivateCodeLib/Source/KPrivateCodeLib/Public/Unlocks/KPCLFaxitCapacityUnlock.h",
+          "parent": "/Script/KPrivateCodeLib.KPCLFaxitUnlockBase",
+          "family": "unlock",
+          "blueprint": "/KPrivateCodeLib/Unlocks/BP_FaxitCapaUnlock.BP_FaxitCapaUnlock_C",
+          "blueprints": [
+            "/KPrivateCodeLib/Unlocks/BP_FaxitCapaUnlock.BP_FaxitCapaUnlock_C"
+          ]
+        },
+        {
+          "cppName": "UKPCLFaxitFeatureUnlock",
+          "name": "KPCLFaxitFeatureUnlock",
+          "path": "/Script/KPrivateCodeLib.KPCLFaxitFeatureUnlock",
+          "abstract": false,
+          "source": "KPrivateCodeLib",
+          "sourceFile": "Mods/GameFeatures/KPrivateCodeLib/Source/KPrivateCodeLib/Public/Unlocks/KPCLFaxitFeatureUnlock.h",
+          "parent": "/Script/KPrivateCodeLib.KPCLFaxitUnlockBase",
+          "family": "unlock",
+          "blueprint": "/KPrivateCodeLib/Unlocks/BP_FaxitFeatureUnlock.BP_FaxitFeatureUnlock_C",
+          "blueprints": [
+            "/KPrivateCodeLib/Unlocks/BP_FaxitFeatureUnlock.BP_FaxitFeatureUnlock_C"
+          ]
+        },
+        {
+          "cppName": "UKPCLFaxitSpeedUnlock",
+          "name": "KPCLFaxitSpeedUnlock",
+          "path": "/Script/KPrivateCodeLib.KPCLFaxitSpeedUnlock",
+          "abstract": false,
+          "source": "KPrivateCodeLib",
+          "sourceFile": "Mods/GameFeatures/KPrivateCodeLib/Source/KPrivateCodeLib/Public/Unlocks/KPCLFaxitSpeedUnlock.h",
+          "parent": "/Script/KPrivateCodeLib.KPCLFaxitUnlockBase",
+          "family": "unlock",
+          "blueprint": "/KPrivateCodeLib/Unlocks/BP_FaxitSpeedUnlock.BP_FaxitSpeedUnlock_C",
+          "blueprints": [
+            "/KPrivateCodeLib/Unlocks/BP_FaxitSpeedUnlock.BP_FaxitSpeedUnlock_C"
+          ]
+        },
+        {
+          "cppName": "UKPCLFaxitUnlockBase",
+          "name": "KPCLFaxitUnlockBase",
+          "path": "/Script/KPrivateCodeLib.KPCLFaxitUnlockBase",
+          "abstract": true,
+          "source": "KPrivateCodeLib",
+          "sourceFile": "Mods/GameFeatures/KPrivateCodeLib/Source/KPrivateCodeLib/Public/Unlocks/KPCLFaxitUnlockBase.h",
+          "parent": "/Script/FactoryGame.FGUnlock",
+          "family": "unlock",
+          "blueprint": null,
+          "blueprints": []
+        }
+      ]
+    },
+    "dependency": {
+      "base": "/Script/FactoryGame.FGAvailabilityDependency",
+      "entries": [
+        {
+          "family": "dependency",
+          "name": "BP_ActorsBuiltDependency_C",
+          "path": "/Game/FactoryGame/AvailabilityDependencies/BP_ActorsBuiltDependency.BP_ActorsBuiltDependency_C",
+          "parent": "/Script/FactoryGame.FGActorsBuiltDependency",
+          "abstract": false,
+          "blueprint": null,
+          "blueprints": [],
+          "source": "Game",
+          "sourceFile": "/Game/FactoryGame/AvailabilityDependencies/BP_ActorsBuiltDependency"
+        },
+        {
+          "family": "dependency",
+          "name": "BP_CurrentOnboardingStepDependency_C",
+          "path": "/Game/FactoryGame/AvailabilityDependencies/BP_CurrentOnboardingStepDependency.BP_CurrentOnboardingStepDependency_C",
+          "parent": "/Script/FactoryGame.FGCurrentOnboardingStepDependency",
+          "abstract": false,
+          "blueprint": null,
+          "blueprints": [],
+          "source": "Game",
+          "sourceFile": "/Game/FactoryGame/AvailabilityDependencies/BP_CurrentOnboardingStepDependency"
+        },
+        {
+          "family": "dependency",
+          "name": "BP_GameCompletedDependency_C",
+          "path": "/Game/FactoryGame/AvailabilityDependencies/BP_GameCompletedDependency.BP_GameCompletedDependency_C",
+          "parent": "/Script/FactoryGame.FGGameCompletedDependency",
+          "abstract": false,
+          "blueprint": null,
+          "blueprints": [],
+          "source": "Game",
+          "sourceFile": "/Game/FactoryGame/AvailabilityDependencies/BP_GameCompletedDependency"
+        },
+        {
+          "family": "dependency",
+          "name": "BP_GamePhaseReachedDependency_C",
+          "path": "/Game/FactoryGame/AvailabilityDependencies/BP_GamePhaseReachedDependency.BP_GamePhaseReachedDependency_C",
+          "parent": "/Script/FactoryGame.FGGamePhaseReachedDependency",
+          "abstract": false,
+          "blueprint": null,
+          "blueprints": [],
+          "source": "Game",
+          "sourceFile": "/Game/FactoryGame/AvailabilityDependencies/BP_GamePhaseReachedDependency"
+        },
+        {
+          "family": "dependency",
+          "name": "BP_ItemFailedToSinkDependency_C",
+          "path": "/Game/FactoryGame/AvailabilityDependencies/BP_ItemFailedToSinkDependency.BP_ItemFailedToSinkDependency_C",
+          "parent": "/Script/FactoryGame.FGItemFailedToSinkDependency",
+          "abstract": false,
+          "blueprint": null,
+          "blueprints": [],
+          "source": "Game",
+          "sourceFile": "/Game/FactoryGame/AvailabilityDependencies/BP_ItemFailedToSinkDependency"
+        },
+        {
+          "family": "dependency",
+          "name": "BP_ItemPickedUpDependency_C",
+          "path": "/Game/FactoryGame/AvailabilityDependencies/BP_ItemPickedUpDependency.BP_ItemPickedUpDependency_C",
+          "parent": "/Script/FactoryGame.FGItemPickedUpDependency",
+          "abstract": false,
+          "blueprint": null,
+          "blueprints": [],
+          "source": "Game",
+          "sourceFile": "/Game/FactoryGame/AvailabilityDependencies/BP_ItemPickedUpDependency"
+        },
+        {
+          "family": "dependency",
+          "name": "BP_LockSpaceElevatorShipmentDependency_C",
+          "path": "/Game/FactoryGame/AvailabilityDependencies/BP_LockSpaceElevatorShipmentDependency.BP_LockSpaceElevatorShipmentDependency_C",
+          "parent": "/Script/FactoryGame.FGLockSpaceElevatorShipmentDependency",
+          "abstract": false,
+          "blueprint": null,
+          "blueprints": [],
+          "source": "Game",
+          "sourceFile": "/Game/FactoryGame/AvailabilityDependencies/BP_LockSpaceElevatorShipmentDependency"
+        },
+        {
+          "family": "dependency",
+          "name": "BP_MessageInterruptedDependency_C",
+          "path": "/Game/FactoryGame/AvailabilityDependencies/BP_MessageInterruptedDependency.BP_MessageInterruptedDependency_C",
+          "parent": "/Script/FactoryGame.FGMessageInterruptedDependency",
+          "abstract": false,
+          "blueprint": null,
+          "blueprints": [],
+          "source": "Game",
+          "sourceFile": "/Game/FactoryGame/AvailabilityDependencies/BP_MessageInterruptedDependency"
+        },
+        {
+          "family": "dependency",
+          "name": "BP_MessageNotPlayedDependency_C",
+          "path": "/Game/FactoryGame/AvailabilityDependencies/BP_MessageNotPlayedDependency.BP_MessageNotPlayedDependency_C",
+          "parent": "/Script/FactoryGame.FGMessageNotPlayedDependency",
+          "abstract": false,
+          "blueprint": null,
+          "blueprints": [],
+          "source": "Game",
+          "sourceFile": "/Game/FactoryGame/AvailabilityDependencies/BP_MessageNotPlayedDependency"
+        },
+        {
+          "family": "dependency",
+          "name": "BP_MessagePlayedDependency_C",
+          "path": "/Game/FactoryGame/AvailabilityDependencies/BP_MessagePlayedDependency.BP_MessagePlayedDependency_C",
+          "parent": "/Script/FactoryGame.FGMessagePlayedDependency",
+          "abstract": false,
+          "blueprint": null,
+          "blueprints": [],
+          "source": "Game",
+          "sourceFile": "/Game/FactoryGame/AvailabilityDependencies/BP_MessagePlayedDependency"
+        },
+        {
+          "family": "dependency",
+          "name": "BP_RandomChanceDependency_C",
+          "path": "/Game/FactoryGame/AvailabilityDependencies/BP_RandomChanceDependency.BP_RandomChanceDependency_C",
+          "parent": "/Script/FactoryGame.FGRandomChanceDependency",
+          "abstract": false,
+          "blueprint": null,
+          "blueprints": [],
+          "source": "Game",
+          "sourceFile": "/Game/FactoryGame/AvailabilityDependencies/BP_RandomChanceDependency"
+        },
+        {
+          "family": "dependency",
+          "name": "BP_ResearchTreeProgressionDependency_C",
+          "path": "/Game/FactoryGame/AvailabilityDependencies/BP_ResearchTreeProgressionDependency.BP_ResearchTreeProgressionDependency_C",
+          "parent": "/Script/FactoryGame.FGResearchTreeProgressionDependency",
+          "abstract": false,
+          "blueprint": null,
+          "blueprints": [],
+          "source": "Game",
+          "sourceFile": "/Game/FactoryGame/AvailabilityDependencies/BP_ResearchTreeProgressionDependency"
+        },
+        {
+          "family": "dependency",
+          "name": "BP_SchematicNotPurchasedDependency_C",
+          "path": "/Game/FactoryGame/AvailabilityDependencies/BP_SchematicNotPurchasedDependency.BP_SchematicNotPurchasedDependency_C",
+          "parent": "/Script/FactoryGame.FGSchematicNotPurchasedDependency",
+          "abstract": false,
+          "blueprint": null,
+          "blueprints": [],
+          "source": "Game",
+          "sourceFile": "/Game/FactoryGame/AvailabilityDependencies/BP_SchematicNotPurchasedDependency"
+        },
+        {
+          "family": "dependency",
+          "name": "BP_SchematicPurchasedDependency_C",
+          "path": "/Game/FactoryGame/AvailabilityDependencies/BP_SchematicPurchasedDependency.BP_SchematicPurchasedDependency_C",
+          "parent": "/Script/FactoryGame.FGSchematicPurchasedDependency",
+          "abstract": false,
+          "blueprint": null,
+          "blueprints": [],
+          "source": "Game",
+          "sourceFile": "/Game/FactoryGame/AvailabilityDependencies/BP_SchematicPurchasedDependency"
+        },
+        {
+          "family": "dependency",
+          "name": "BP_SchematicSpammedDependency_C",
+          "path": "/Game/FactoryGame/AvailabilityDependencies/BP_SchematicSpammedDependency.BP_SchematicSpammedDependency_C",
+          "parent": "/Script/FactoryGame.FGSchematicSpammedDependency",
+          "abstract": false,
+          "blueprint": null,
+          "blueprints": [],
+          "source": "Game",
+          "sourceFile": "/Game/FactoryGame/AvailabilityDependencies/BP_SchematicSpammedDependency"
+        },
+        {
+          "family": "dependency",
+          "name": "BP_SchematicTypeDependency_C",
+          "path": "/Game/FactoryGame/AvailabilityDependencies/BP_SchematicTypeDependency.BP_SchematicTypeDependency_C",
+          "parent": "/Script/FactoryGame.FGSchematicTypeDependency",
+          "abstract": false,
+          "blueprint": null,
+          "blueprints": [],
+          "source": "Game",
+          "sourceFile": "/Game/FactoryGame/AvailabilityDependencies/BP_SchematicTypeDependency"
+        },
+        {
+          "family": "dependency",
+          "name": "BP_SpaceElevatorFullyBuiltDependency_C",
+          "path": "/Game/FactoryGame/AvailabilityDependencies/BP_SpaceElevatorFullyBuiltDependency.BP_SpaceElevatorFullyBuiltDependency_C",
+          "parent": "/Script/FactoryGame.FGSpaceElevatorFullyBuiltDependency",
+          "abstract": false,
+          "blueprint": null,
+          "blueprints": [],
+          "source": "Game",
+          "sourceFile": "/Game/FactoryGame/AvailabilityDependencies/BP_SpaceElevatorFullyBuiltDependency"
+        },
+        {
+          "cppName": "UFGActorsBuiltDependency",
+          "name": "FGActorsBuiltDependency",
+          "path": "/Script/FactoryGame.FGActorsBuiltDependency",
+          "abstract": true,
+          "source": "FactoryGame",
+          "sourceFile": "Source/FactoryGame/Public/AvailabilityDependencies/FGActorsBuiltDependency.h",
+          "parent": "/Script/FactoryGame.FGAvailabilityDependency",
+          "family": "dependency",
+          "blueprint": "/Game/FactoryGame/AvailabilityDependencies/BP_ActorsBuiltDependency.BP_ActorsBuiltDependency_C",
+          "blueprints": [
+            "/Game/FactoryGame/AvailabilityDependencies/BP_ActorsBuiltDependency.BP_ActorsBuiltDependency_C"
+          ]
+        },
+        {
+          "cppName": "UFGAvailabilityDependency",
+          "name": "FGAvailabilityDependency",
+          "path": "/Script/FactoryGame.FGAvailabilityDependency",
+          "abstract": true,
+          "source": "FactoryGame",
+          "sourceFile": "Source/FactoryGame/Public/AvailabilityDependencies/FGAvailabilityDependency.h",
+          "parent": null,
+          "family": "dependency",
+          "blueprint": null,
+          "blueprints": []
+        },
+        {
+          "cppName": "UFGCalendarOpenedDependency",
+          "name": "FGCalendarOpenedDependency",
+          "path": "/Script/FactoryGame.FGCalendarOpenedDependency",
+          "abstract": false,
+          "source": "FactoryGame",
+          "sourceFile": "Source/FactoryGame/Public/AvailabilityDependencies/FGCalendarOpenedDependency.h",
+          "parent": "/Script/FactoryGame.FGAvailabilityDependency",
+          "family": "dependency",
+          "blueprint": null,
+          "blueprints": []
+        },
+        {
+          "cppName": "UFGCalendarSlotUnlockedDependency",
+          "name": "FGCalendarSlotUnlockedDependency",
+          "path": "/Script/FactoryGame.FGCalendarSlotUnlockedDependency",
+          "abstract": false,
+          "source": "FactoryGame",
+          "sourceFile": "Source/FactoryGame/Public/AvailabilityDependencies/FGCalendarSlotUnlockedDependency.h",
+          "parent": "/Script/FactoryGame.FGAvailabilityDependency",
+          "family": "dependency",
+          "blueprint": null,
+          "blueprints": []
+        },
+        {
+          "cppName": "UFGConsumablesConsumedDependency",
+          "name": "FGConsumablesConsumedDependency",
+          "path": "/Script/FactoryGame.FGConsumablesConsumedDependency",
+          "abstract": true,
+          "source": "FactoryGame",
+          "sourceFile": "Source/FactoryGame/Public/AvailabilityDependencies/FGConsumablesConsumedDependency.h",
+          "parent": "/Script/FactoryGame.FGAvailabilityDependency",
+          "family": "dependency",
+          "blueprint": null,
+          "blueprints": []
+        },
+        {
+          "cppName": "UFGCreaturesKilledDependency",
+          "name": "FGCreaturesKilledDependency",
+          "path": "/Script/FactoryGame.FGCreaturesKilledDependency",
+          "abstract": true,
+          "source": "FactoryGame",
+          "sourceFile": "Source/FactoryGame/Public/AvailabilityDependencies/FGCreaturesKilledDependency.h",
+          "parent": "/Script/FactoryGame.FGAvailabilityDependency",
+          "family": "dependency",
+          "blueprint": null,
+          "blueprints": []
+        },
+        {
+          "cppName": "UFGCurrentOnboardingStepDependency",
+          "name": "FGCurrentOnboardingStepDependency",
+          "path": "/Script/FactoryGame.FGCurrentOnboardingStepDependency",
+          "abstract": true,
+          "source": "FactoryGame",
+          "sourceFile": "Source/FactoryGame/Public/AvailabilityDependencies/FGCurrentOnboardingStepDependency.h",
+          "parent": "/Script/FactoryGame.FGAvailabilityDependency",
+          "family": "dependency",
+          "blueprint": "/Game/FactoryGame/AvailabilityDependencies/BP_CurrentOnboardingStepDependency.BP_CurrentOnboardingStepDependency_C",
+          "blueprints": [
+            "/Game/FactoryGame/AvailabilityDependencies/BP_CurrentOnboardingStepDependency.BP_CurrentOnboardingStepDependency_C"
+          ]
+        },
+        {
+          "cppName": "UFGEventDisabledDependency",
+          "name": "FGEventDisabledDependency",
+          "path": "/Script/FactoryGame.FGEventDisabledDependency",
+          "abstract": false,
+          "source": "FactoryGame",
+          "sourceFile": "Source/FactoryGame/Public/AvailabilityDependencies/FGEventDisabledDependency.h",
+          "parent": "/Script/FactoryGame.FGAvailabilityDependency",
+          "family": "dependency",
+          "blueprint": null,
+          "blueprints": []
+        },
+        {
+          "cppName": "UFGGameCompletedDependency",
+          "name": "FGGameCompletedDependency",
+          "path": "/Script/FactoryGame.FGGameCompletedDependency",
+          "abstract": true,
+          "source": "FactoryGame",
+          "sourceFile": "Source/FactoryGame/Public/AvailabilityDependencies/FGGameCompletedDependency.h",
+          "parent": "/Script/FactoryGame.FGAvailabilityDependency",
+          "family": "dependency",
+          "blueprint": "/Game/FactoryGame/AvailabilityDependencies/BP_GameCompletedDependency.BP_GameCompletedDependency_C",
+          "blueprints": [
+            "/Game/FactoryGame/AvailabilityDependencies/BP_GameCompletedDependency.BP_GameCompletedDependency_C"
+          ]
+        },
+        {
+          "cppName": "UFGGamePhaseReachedDependency",
+          "name": "FGGamePhaseReachedDependency",
+          "path": "/Script/FactoryGame.FGGamePhaseReachedDependency",
+          "abstract": true,
+          "source": "FactoryGame",
+          "sourceFile": "Source/FactoryGame/Public/AvailabilityDependencies/FGGamePhaseReachedDependency.h",
+          "parent": "/Script/FactoryGame.FGAvailabilityDependency",
+          "family": "dependency",
+          "blueprint": "/Game/FactoryGame/AvailabilityDependencies/BP_GamePhaseReachedDependency.BP_GamePhaseReachedDependency_C",
+          "blueprints": [
+            "/Game/FactoryGame/AvailabilityDependencies/BP_GamePhaseReachedDependency.BP_GamePhaseReachedDependency_C"
+          ]
+        },
+        {
+          "cppName": "UFGItemFailedToSinkDependency",
+          "name": "FGItemFailedToSinkDependency",
+          "path": "/Script/FactoryGame.FGItemFailedToSinkDependency",
+          "abstract": true,
+          "source": "FactoryGame",
+          "sourceFile": "Source/FactoryGame/Public/AvailabilityDependencies/FGItemFailedToSinkDependency.h",
+          "parent": "/Script/FactoryGame.FGAvailabilityDependency",
+          "family": "dependency",
+          "blueprint": "/Game/FactoryGame/AvailabilityDependencies/BP_ItemFailedToSinkDependency.BP_ItemFailedToSinkDependency_C",
+          "blueprints": [
+            "/Game/FactoryGame/AvailabilityDependencies/BP_ItemFailedToSinkDependency.BP_ItemFailedToSinkDependency_C"
+          ]
+        },
+        {
+          "cppName": "UFGItemPickedUpDependency",
+          "name": "FGItemPickedUpDependency",
+          "path": "/Script/FactoryGame.FGItemPickedUpDependency",
+          "abstract": true,
+          "source": "FactoryGame",
+          "sourceFile": "Source/FactoryGame/Public/AvailabilityDependencies/FGItemPickedUpDependency.h",
+          "parent": "/Script/FactoryGame.FGAvailabilityDependency",
+          "family": "dependency",
+          "blueprint": "/Game/FactoryGame/AvailabilityDependencies/BP_ItemPickedUpDependency.BP_ItemPickedUpDependency_C",
+          "blueprints": [
+            "/Game/FactoryGame/AvailabilityDependencies/BP_ItemPickedUpDependency.BP_ItemPickedUpDependency_C"
+          ]
+        },
+        {
+          "cppName": "UFGItemSinkDependency",
+          "name": "FGItemSinkDependency",
+          "path": "/Script/FactoryGame.FGItemSinkDependency",
+          "abstract": false,
+          "source": "FactoryGame",
+          "sourceFile": "Source/FactoryGame/Public/AvailabilityDependencies/FGItemSinkDependency.h",
+          "parent": "/Script/FactoryGame.FGAvailabilityDependency",
+          "family": "dependency",
+          "blueprint": null,
+          "blueprints": []
+        },
+        {
+          "cppName": "UFGItemsManuallyCraftedDependency",
+          "name": "FGItemsManuallyCraftedDependency",
+          "path": "/Script/FactoryGame.FGItemsManuallyCraftedDependency",
+          "abstract": true,
+          "source": "FactoryGame",
+          "sourceFile": "Source/FactoryGame/Public/AvailabilityDependencies/FGItemsManuallyCraftedDependency.h",
+          "parent": "/Script/FactoryGame.FGAvailabilityDependency",
+          "family": "dependency",
+          "blueprint": null,
+          "blueprints": []
+        },
+        {
+          "cppName": "UFGLockSpaceElevatorShipmentDependency",
+          "name": "FGLockSpaceElevatorShipmentDependency",
+          "path": "/Script/FactoryGame.FGLockSpaceElevatorShipmentDependency",
+          "abstract": true,
+          "source": "FactoryGame",
+          "sourceFile": "Source/FactoryGame/Public/AvailabilityDependencies/FGLockSpaceElevatorShipmentDependency.h",
+          "parent": "/Script/FactoryGame.FGAvailabilityDependency",
+          "family": "dependency",
+          "blueprint": "/Game/FactoryGame/AvailabilityDependencies/BP_LockSpaceElevatorShipmentDependency.BP_LockSpaceElevatorShipmentDependency_C",
+          "blueprints": [
+            "/Game/FactoryGame/AvailabilityDependencies/BP_LockSpaceElevatorShipmentDependency.BP_LockSpaceElevatorShipmentDependency_C"
+          ]
+        },
+        {
+          "cppName": "UFGMessageInterruptedDependency",
+          "name": "FGMessageInterruptedDependency",
+          "path": "/Script/FactoryGame.FGMessageInterruptedDependency",
+          "abstract": true,
+          "source": "FactoryGame",
+          "sourceFile": "Source/FactoryGame/Public/AvailabilityDependencies/FGMessageInterruptedDependency.h",
+          "parent": "/Script/FactoryGame.FGAvailabilityDependency",
+          "family": "dependency",
+          "blueprint": "/Game/FactoryGame/AvailabilityDependencies/BP_MessageInterruptedDependency.BP_MessageInterruptedDependency_C",
+          "blueprints": [
+            "/Game/FactoryGame/AvailabilityDependencies/BP_MessageInterruptedDependency.BP_MessageInterruptedDependency_C"
+          ]
+        },
+        {
+          "cppName": "UFGMessageNotPlayedDependency",
+          "name": "FGMessageNotPlayedDependency",
+          "path": "/Script/FactoryGame.FGMessageNotPlayedDependency",
+          "abstract": true,
+          "source": "FactoryGame",
+          "sourceFile": "Source/FactoryGame/Public/AvailabilityDependencies/FGMessagePlayedDependency.h",
+          "parent": "/Script/FactoryGame.FGMessagePlayedDependency",
+          "family": "dependency",
+          "blueprint": "/Game/FactoryGame/AvailabilityDependencies/BP_MessageNotPlayedDependency.BP_MessageNotPlayedDependency_C",
+          "blueprints": [
+            "/Game/FactoryGame/AvailabilityDependencies/BP_MessageNotPlayedDependency.BP_MessageNotPlayedDependency_C"
+          ]
+        },
+        {
+          "cppName": "UFGMessagePlayedDependency",
+          "name": "FGMessagePlayedDependency",
+          "path": "/Script/FactoryGame.FGMessagePlayedDependency",
+          "abstract": true,
+          "source": "FactoryGame",
+          "sourceFile": "Source/FactoryGame/Public/AvailabilityDependencies/FGMessagePlayedDependency.h",
+          "parent": "/Script/FactoryGame.FGAvailabilityDependency",
+          "family": "dependency",
+          "blueprint": "/Game/FactoryGame/AvailabilityDependencies/BP_MessagePlayedDependency.BP_MessagePlayedDependency_C",
+          "blueprints": [
+            "/Game/FactoryGame/AvailabilityDependencies/BP_MessagePlayedDependency.BP_MessagePlayedDependency_C"
+          ]
+        },
+        {
+          "cppName": "UFGPersonalElevatorDependency",
+          "name": "FGPersonalElevatorDependency",
+          "path": "/Script/FactoryGame.FGPersonalElevatorDependency",
+          "abstract": false,
+          "source": "FactoryGame",
+          "sourceFile": "Source/FactoryGame/Public/AvailabilityDependencies/FGPersonalElevatorDependency.h",
+          "parent": "/Script/FactoryGame.FGAvailabilityDependency",
+          "family": "dependency",
+          "blueprint": null,
+          "blueprints": []
+        },
+        {
+          "cppName": "UFGProximityToItemDependency",
+          "name": "FGProximityToItemDependency",
+          "path": "/Script/FactoryGame.FGProximityToItemDependency",
+          "abstract": true,
+          "source": "FactoryGame",
+          "sourceFile": "Source/FactoryGame/Public/AvailabilityDependencies/FGProximityToItemDependency.h",
+          "parent": "/Script/FactoryGame.FGAvailabilityDependency",
+          "family": "dependency",
+          "blueprint": null,
+          "blueprints": []
+        },
+        {
+          "cppName": "UFGRandomChanceDependency",
+          "name": "FGRandomChanceDependency",
+          "path": "/Script/FactoryGame.FGRandomChanceDependency",
+          "abstract": true,
+          "source": "FactoryGame",
+          "sourceFile": "Source/FactoryGame/Public/AvailabilityDependencies/FGRandomChanceDependency.h",
+          "parent": "/Script/FactoryGame.FGAvailabilityDependency",
+          "family": "dependency",
+          "blueprint": "/Game/FactoryGame/AvailabilityDependencies/BP_RandomChanceDependency.BP_RandomChanceDependency_C",
+          "blueprints": [
+            "/Game/FactoryGame/AvailabilityDependencies/BP_RandomChanceDependency.BP_RandomChanceDependency_C"
+          ]
+        },
+        {
+          "cppName": "UFGRecipeCategoryBuiltDependency",
+          "name": "FGRecipeCategoryBuiltDependency",
+          "path": "/Script/FactoryGame.FGRecipeCategoryBuiltDependency",
+          "abstract": false,
+          "source": "FactoryGame",
+          "sourceFile": "Source/FactoryGame/Public/AvailabilityDependencies/FGRecipeCategoryBuiltDependency.h",
+          "parent": "/Script/FactoryGame.FGAvailabilityDependency",
+          "family": "dependency",
+          "blueprint": null,
+          "blueprints": []
+        },
+        {
+          "cppName": "UFGRecipeUnlockedDependency",
+          "name": "FGRecipeUnlockedDependency",
+          "path": "/Script/FactoryGame.FGRecipeUnlockedDependency",
+          "abstract": true,
+          "source": "FactoryGame",
+          "sourceFile": "Source/FactoryGame/Public/AvailabilityDependencies/FGRecipeUnlockedDependency.h",
+          "parent": "/Script/FactoryGame.FGAvailabilityDependency",
+          "family": "dependency",
+          "blueprint": null,
+          "blueprints": []
+        },
+        {
+          "cppName": "UFGResearchTreeProgressionDependency",
+          "name": "FGResearchTreeProgressionDependency",
+          "path": "/Script/FactoryGame.FGResearchTreeProgressionDependency",
+          "abstract": true,
+          "source": "FactoryGame",
+          "sourceFile": "Source/FactoryGame/Public/AvailabilityDependencies/FGResearchTreeProgressionDependency.h",
+          "parent": "/Script/FactoryGame.FGAvailabilityDependency",
+          "family": "dependency",
+          "blueprint": "/Game/FactoryGame/AvailabilityDependencies/BP_ResearchTreeProgressionDependency.BP_ResearchTreeProgressionDependency_C",
+          "blueprints": [
+            "/Game/FactoryGame/AvailabilityDependencies/BP_ResearchTreeProgressionDependency.BP_ResearchTreeProgressionDependency_C"
+          ]
+        },
+        {
+          "cppName": "UFGSameDirNotPlayedDependency",
+          "name": "FGSameDirNotPlayedDependency",
+          "path": "/Script/FactoryGame.FGSameDirNotPlayedDependency",
+          "abstract": true,
+          "source": "FactoryGame",
+          "sourceFile": "Source/FactoryGame/Public/AvailabilityDependencies/FGSameDirNotPlayedDependency.h",
+          "parent": "/Script/FactoryGame.FGAvailabilityDependency",
+          "family": "dependency",
+          "blueprint": null,
+          "blueprints": []
+        },
+        {
+          "cppName": "UFGSchematicNotPurchasedDependency",
+          "name": "FGSchematicNotPurchasedDependency",
+          "path": "/Script/FactoryGame.FGSchematicNotPurchasedDependency",
+          "abstract": true,
+          "source": "FactoryGame",
+          "sourceFile": "Source/FactoryGame/Public/AvailabilityDependencies/FGSchematicPurchasedDependency.h",
+          "parent": "/Script/FactoryGame.FGSchematicPurchasedDependency",
+          "family": "dependency",
+          "blueprint": "/Game/FactoryGame/AvailabilityDependencies/BP_SchematicNotPurchasedDependency.BP_SchematicNotPurchasedDependency_C",
+          "blueprints": [
+            "/Game/FactoryGame/AvailabilityDependencies/BP_SchematicNotPurchasedDependency.BP_SchematicNotPurchasedDependency_C"
+          ]
+        },
+        {
+          "cppName": "UFGSchematicPurchasedDependency",
+          "name": "FGSchematicPurchasedDependency",
+          "path": "/Script/FactoryGame.FGSchematicPurchasedDependency",
+          "abstract": true,
+          "source": "FactoryGame",
+          "sourceFile": "Source/FactoryGame/Public/AvailabilityDependencies/FGSchematicPurchasedDependency.h",
+          "parent": "/Script/FactoryGame.FGAvailabilityDependency",
+          "family": "dependency",
+          "blueprint": "/Game/FactoryGame/AvailabilityDependencies/BP_SchematicPurchasedDependency.BP_SchematicPurchasedDependency_C",
+          "blueprints": [
+            "/Game/FactoryGame/AvailabilityDependencies/BP_SchematicPurchasedDependency.BP_SchematicPurchasedDependency_C"
+          ]
+        },
+        {
+          "cppName": "UFGSchematicSpammedDependency",
+          "name": "FGSchematicSpammedDependency",
+          "path": "/Script/FactoryGame.FGSchematicSpammedDependency",
+          "abstract": true,
+          "source": "FactoryGame",
+          "sourceFile": "Source/FactoryGame/Public/AvailabilityDependencies/FGSchematicSpammedDependency.h",
+          "parent": "/Script/FactoryGame.FGAvailabilityDependency",
+          "family": "dependency",
+          "blueprint": "/Game/FactoryGame/AvailabilityDependencies/BP_SchematicSpammedDependency.BP_SchematicSpammedDependency_C",
+          "blueprints": [
+            "/Game/FactoryGame/AvailabilityDependencies/BP_SchematicSpammedDependency.BP_SchematicSpammedDependency_C"
+          ]
+        },
+        {
+          "cppName": "UFGSchematicTypeDependency",
+          "name": "FGSchematicTypeDependency",
+          "path": "/Script/FactoryGame.FGSchematicTypeDependency",
+          "abstract": true,
+          "source": "FactoryGame",
+          "sourceFile": "Source/FactoryGame/Public/AvailabilityDependencies/FGSchematicTypeDependency.h",
+          "parent": "/Script/FactoryGame.FGAvailabilityDependency",
+          "family": "dependency",
+          "blueprint": "/Game/FactoryGame/AvailabilityDependencies/BP_SchematicTypeDependency.BP_SchematicTypeDependency_C",
+          "blueprints": [
+            "/Game/FactoryGame/AvailabilityDependencies/BP_SchematicTypeDependency.BP_SchematicTypeDependency_C"
+          ]
+        },
+        {
+          "cppName": "UFGSpaceElevatorFullyBuiltDependency",
+          "name": "FGSpaceElevatorFullyBuiltDependency",
+          "path": "/Script/FactoryGame.FGSpaceElevatorFullyBuiltDependency",
+          "abstract": true,
+          "source": "FactoryGame",
+          "sourceFile": "Source/FactoryGame/Public/AvailabilityDependencies/FGSpaceElevatorFullyBuiltDependency.h",
+          "parent": "/Script/FactoryGame.FGAvailabilityDependency",
+          "family": "dependency",
+          "blueprint": "/Game/FactoryGame/AvailabilityDependencies/BP_SpaceElevatorFullyBuiltDependency.BP_SpaceElevatorFullyBuiltDependency_C",
+          "blueprints": [
+            "/Game/FactoryGame/AvailabilityDependencies/BP_SpaceElevatorFullyBuiltDependency.BP_SpaceElevatorFullyBuiltDependency_C"
+          ]
+        },
+        {
+          "cppName": "UFGTakeDamageDependency",
+          "name": "FGTakeDamageDependency",
+          "path": "/Script/FactoryGame.FGTakeDamageDependency",
+          "abstract": false,
+          "source": "FactoryGame",
+          "sourceFile": "Source/FactoryGame/Public/AvailabilityDependencies/FGTakeDamageDependency.h",
+          "parent": "/Script/FactoryGame.FGAvailabilityDependency",
+          "family": "dependency",
+          "blueprint": null,
+          "blueprints": []
+        },
+        {
+          "cppName": "UFGToiletFlushDependency",
+          "name": "FGToiletFlushDependency",
+          "path": "/Script/FactoryGame.FGToiletFlushDependency",
+          "abstract": false,
+          "source": "FactoryGame",
+          "sourceFile": "Source/FactoryGame/Public/AvailabilityDependencies/FGToiletFlushDependency.h",
+          "parent": "/Script/FactoryGame.FGAvailabilityDependency",
+          "family": "dependency",
+          "blueprint": null,
+          "blueprints": []
+        },
+        {
+          "cppName": "UFGWeatherReactionSeenDependency",
+          "name": "FGWeatherReactionSeenDependency",
+          "path": "/Script/FactoryGame.FGWeatherReactionSeenDependency",
+          "abstract": false,
+          "source": "FactoryGame",
+          "sourceFile": "Source/FactoryGame/Public/AvailabilityDependencies/FGWeatherReactionSeenDependency.h",
+          "parent": "/Script/FactoryGame.FGAvailabilityDependency",
+          "family": "dependency",
+          "blueprint": null,
+          "blueprints": []
+        }
+      ]
+    }
+  }
+}

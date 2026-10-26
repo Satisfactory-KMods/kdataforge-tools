@@ -1,0 +1,50 @@
+name: KDataForge Tools CI
+
+on:
+  push:
+    branches: [dev, main]
+  pull_request:
+    branches: [dev, main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: kdataforge-tools-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: Windows x64
+            runner: '["self-hosted","Windows","X64"]'
+          - os: Linux x64
+            runner: '["arc-runner-set"]'
+    name: ${{ matrix.os }}
+    runs-on: ${{ fromJSON(matrix.runner) }}
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with: { fetch-depth: 0 }
+      - uses: pnpm/action-setup@v4
+        with: { version: 10.12.4 }
+      - uses: actions/setup-node@v7.1.0
+        with:
+          node-version: 24
+          cache: pnpm
+      - uses: dtolnay/rust-toolchain@stable
+        with: { components: rustfmt, clippy }
+      - uses: Swatinem/rust-cache@v2
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - run: pnpm test
+      - run: pnpm typecheck
+      - run: cargo fmt --all -- --check
+      - run: cargo clippy --workspace --all-targets --locked -- -D warnings
+      - run: cargo test --workspace --locked
+      - run: cargo build --workspace --locked --release
+      - run: node extension/scripts/stage.cjs

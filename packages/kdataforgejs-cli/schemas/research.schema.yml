@@ -1,0 +1,76 @@
+$schema: https://json-schema.org/draft/2020-12/schema
+$id: https://raw.githubusercontent.com/Satisfactory-KMods/KDataForge-Linter/main/src/kdataforge_linter/schemas/research.schema.yml
+x-kdf-type: research
+title: KDataForge research trees
+$defs:
+  entry:
+    type: object
+    additionalProperties: false
+    properties:
+      id:
+        $ref: https://raw.githubusercontent.com/Satisfactory-KMods/KDataForge-Linter/main/src/kdataforge_linter/schemas/common.schema.yml#/$defs/token
+      class:
+        $ref: https://raw.githubusercontent.com/Satisfactory-KMods/KDataForge-Linter/main/src/kdataforge_linter/schemas/common.schema.yml#/$defs/nonEmptyString
+      parent:
+        $ref: https://raw.githubusercontent.com/Satisfactory-KMods/KDataForge-Linter/main/src/kdataforge_linter/schemas/common.schema.yml#/$defs/nonEmptyString
+      register: { type: boolean }
+      properties:
+        $ref: https://raw.githubusercontent.com/Satisfactory-KMods/KDataForge-Linter/main/src/kdataforge_linter/schemas/common.schema.yml#/$defs/properties
+      unlockDependencies:
+        type: array
+        items:
+          $ref: https://raw.githubusercontent.com/Satisfactory-KMods/KDataForge-Linter/main/src/kdataforge_linter/schemas/common.schema.yml#/$defs/instancedObject
+      visibilityDependencies:
+        type: array
+        items:
+          $ref: https://raw.githubusercontent.com/Satisfactory-KMods/KDataForge-Linter/main/src/kdataforge_linter/schemas/common.schema.yml#/$defs/instancedObject
+      autoPath: { type: boolean, default: false }
+      addNodes:
+        type: array
+        minItems: 1
+        items:
+          $ref: https://raw.githubusercontent.com/Satisfactory-KMods/KDataForge-Linter/main/src/kdataforge_linter/schemas/common.schema.yml#/$defs/researchNode
+      nodes:
+        type: array
+        minItems: 1
+        items:
+          $ref: https://raw.githubusercontent.com/Satisfactory-KMods/KDataForge-Linter/main/src/kdataforge_linter/schemas/common.schema.yml#/$defs/researchNode
+      removeNodes:
+        type: array
+        minItems: 1
+        items:
+          oneOf:
+            - $ref: https://raw.githubusercontent.com/Satisfactory-KMods/KDataForge-Linter/main/src/kdataforge_linter/schemas/common.schema.yml#/$defs/nonEmptyString
+            - type: object
+              additionalProperties: false
+              required: [schematic]
+              properties:
+                schematic:
+                  $ref: https://raw.githubusercontent.com/Satisfactory-KMods/KDataForge-Linter/main/src/kdataforge_linter/schemas/common.schema.yml#/$defs/nonEmptyString
+    oneOf:
+      - required: [id]
+        not: { required: [class] }
+      - required: [class]
+        not: { required: [id] }
+allOf:
+  - $ref: https://raw.githubusercontent.com/Satisfactory-KMods/KDataForge-Linter/main/src/kdataforge_linter/schemas/common.schema.yml#/$defs/documentBase
+  - type: object
+    properties:
+      type: { enum: [research, mam] }
+      remove:
+        $ref: https://raw.githubusercontent.com/Satisfactory-KMods/KDataForge-Linter/main/src/kdataforge_linter/schemas/common.schema.yml#/$defs/contentRemoval
+    anyOf:
+      - required: [research]
+        properties:
+          research:
+            type: array
+            minItems: 1
+            items:
+              $ref: '#/$defs/entry'
+      - required: [remove]
+        properties:
+          research:
+            not:
+              type: array
+              minItems: 1
+unevaluatedProperties: false

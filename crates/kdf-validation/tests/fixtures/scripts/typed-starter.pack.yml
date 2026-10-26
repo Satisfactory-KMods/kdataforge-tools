@@ -1,0 +1,45 @@
+ref: TypedStarter
+name: Typed Starter
+version: 0.1.0
+priority: 0
+enabled: true
+description: Strict TypeScript starter for KDataForgeJS.
+scripts:
+  - language: kmods.typescript
+    languageVersion: 1
+    entry: scripts/main.ts
+    realm: any
+    network: any
+    authority: any
+    reflectionClasses:
+      - /Game/FactoryGame/Recipes/Constructor/Recipe_IronPlate.Recipe_IronPlate_C
+      - /Script/FactoryGame.FGItemDescriptor
+    imports:
+      - key: starter-binary
+        kind: binary
+        path: example.bin
+        sha256: 67c1a6d8ff7b756531c7a35016e81cbc9dcf725e705c19e0c0e54c8c75cdd9ad
+      - key: starter-cdo
+        kind: yaml
+        path: example.cdo.yml
+        sha256: 568e13371e6f4b35a39157ade733b09b8b26767b299f8f78da0a916cf0f2897a
+      - key: starter-audio
+        kind: audio
+        path: example.ogg
+        sha256: 79ccd40a21165c325e3a332318eadb75c7ea454f16a2b84eb1555900d04f7eb6
+      - key: starter-image
+        kind: image
+        path: example.png
+        sha256: 51883ed78310853396fc8736c466d26499f2617a827ef9c3673970c74fbd12ac
+      - key: starter-text
+        kind: text
+        path: example.txt
+        sha256: 4c0d141d5e8a4600f3e4f1e91e7194f7b097e458aceeada2f2c6f3d5c90b10f5
+      - key: starter-audio-wav
+        kind: audio
+        path: example.wav
+        sha256: 5c4a6a3899fb27e8b6c7e8f81bec1796194b5113eebeff4697f0abd51d609753
+      - key: starter-yaml
+        kind: yaml
+        path: example.yml
+        sha256: 80fff166c19e539c9bc35497a185a8adc1a1b6a4a6a1bdc7b2ebe6c014b11036

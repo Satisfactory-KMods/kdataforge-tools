@@ -1,0 +1,36 @@
+{
+  "KDataForgeJS handler": {
+    "prefix": "kdf-handler",
+    "description": "Create a typed KDataForgeJS handler.",
+    "body": [
+      "import { defineHandler } from \"@sf-kmods/kdataforgejs\";",
+      "",
+      "export default defineHandler(async (ctx) => {",
+      "    ${1:console.info(ctx.catalog().digest);}",
+      "    await Promise.resolve();",
+      "});"
+    ]
+  },
+  "KDataForgeJS metadata": {
+    "prefix": "kdf-meta",
+    "description": "Declare KDataForgeJS runtime capabilities.",
+    "body": [
+      "export const meta = defineMeta({",
+      "    capabilities: [\"${1:kdf.imports.read}\"],",
+      "});"
+    ]
+  },
+  "KDataForgeJS item": {
+    "prefix": "kdf-item",
+    "description": "Create an item from a typed KDataForgeJS handler.",
+    "body": [
+      "const ${1:item} = ctx.createItem({",
+      "    id: \"${2:my-pack.item}\",",
+      "    parent: { classPath: \"/Script/FactoryGame.FGItemDescriptor\" },",
+      "    displayName: { namespace: \"${3:my-pack}\", key: \"${4:item}\", source: \"${5:Item}\" },",
+      "    form: \"solid\",",
+      "    stackSize: \"big\",",
+      "});"
+    ]
+  }
+}

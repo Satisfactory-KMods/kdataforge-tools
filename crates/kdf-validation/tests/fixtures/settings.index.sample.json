@@ -1,0 +1,70 @@
+{
+  "schemaVersion": 1,
+  "engineVersion": "5.6.1-sample",
+  "counts": { "session": 1, "ags": 1, "option": 1, "other": 0 },
+  "settings": [
+    {
+      "id": "FG.NoPower",
+      "provider": "ags",
+      "path": "/Game/FactoryGame/Interface/UI/Menu/AdvancedGameSettings/AGS_NoPower.AGS_NoPower",
+      "class": "/Script/FactoryGame.FGUserSetting",
+      "source": { "kind": "game", "ref": "FactoryGame", "version": "sample" },
+      "displayName": "No Power",
+      "tooltip": "Buildings do not require power.",
+      "valueType": "bool",
+      "default": false,
+      "sessionWide": true,
+      "dedicatedServerRelevant": true,
+      "managerClass": "/Script/FactoryGame.FGAdvancedGameSettings",
+      "mapWhitelist": []
+    },
+    {
+      "id": "Gameplay.FOV",
+      "provider": "option",
+      "path": "/Game/FactoryGame/Interface/UI/Menu/Options/Settings/US_FOV.US_FOV",
+      "class": "/Script/FactoryGame.FGUserSetting",
+      "source": { "kind": "game", "ref": "FactoryGame", "version": "sample" },
+      "displayName": "Field of View",
+      "tooltip": "",
+      "valueType": "int",
+      "default": 90,
+      "range": { "min": 70, "max": 120 },
+      "placements": [
+        {
+          "category": {
+            "class": "/Game/FactoryGame/Settings/OptionsMenu/Categories/USC_Video.USC_Video_C",
+            "displayName": "Video",
+            "menuPriority": 20
+          },
+          "subCategory": {
+            "class": "/Game/FactoryGame/Settings/OptionsMenu/Categories/USC_Camera.USC_Camera_C",
+            "displayName": "Camera",
+            "menuPriority": 5
+          },
+          "menuPriority": 10
+        }
+      ],
+      "sessionWide": false,
+      "dedicatedServerRelevant": false,
+      "managerClass": "/Script/FactoryGame.FGGameUserSettings",
+      "mapWhitelist": []
+    },
+    {
+      "id": "KMods.SFP.ProductionMultiplier",
+      "provider": "session",
+      "path": "/SatisfactoryPlus/Settings/SS_ProductionMultiplier.SS_ProductionMultiplier",
+      "class": "/Script/SML.SMLSessionSetting",
+      "source": { "kind": "mod", "ref": "SatisfactoryPlus", "version": "sample" },
+      "displayName": "Production multiplier",
+      "tooltip": "",
+      "valueType": "float",
+      "default": 1.0,
+      "range": { "min": 0.1, "max": 10 },
+      "sessionWide": true,
+      "dedicatedServerRelevant": true,
+      "managerClass": "/Script/SML.SessionSettingsManager",
+      "mapWhitelist": []
+    }
+  ],
+  "unresolved": []
+}

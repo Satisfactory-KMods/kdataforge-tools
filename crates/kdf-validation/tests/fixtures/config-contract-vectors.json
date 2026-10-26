@@ -1,0 +1,168 @@
+{
+  "contractVersion": 1,
+  "notes": [
+    "Canonical contract vectors for the editor validation core (kdf-validation) and the C++ runtime (checked manually via KDF.Config.Expr / KDF.Template console commands).",
+    "Offsets and lengths are UTF-16 code units. Numbers compare numerically (100 equals 100.0).",
+    "Expression AST: [\"or\", a, b, ...] and [\"and\", a, b, ...] are flattened; [\"not\", a]; [\"cmp\", op, a, b]; operands: bare ids and cfg:<id> are [\"cfg\", null, id], cfg:<pack>:<id> is [\"cfg\", pack, id], session:/ags:/option:<K> is [\"setting\", provider, K]; literals [\"num\", n], [\"str\", s], [\"bool\", b], [\"list\", [literals]].",
+    "Expression error codes: empty, unexpected-char, expected-operand, expected-close-paren, expected-close-bracket, unterminated-string, invalid-number, invalid-ref, reserved-id, chained-comparison, list-element-not-literal, trailing-input, too-deep. Nesting of ( and ! is limited to 64 levels (shared counter); the token that opens level 65 is too-deep, at its start offset. Prefixes (cfg, session, ags, option) and the words true, false, in, contains are case-sensitive: True and In are ordinary ids, Cfg:x is not a reference.",
+    "Type issue codes: compare-mismatch, order-non-number, contains-non-list, in-non-list, list-element-mismatch, unknown-id. Issue span = the comparison (or list literal / operand) span.",
+    "Eval values: own-pack ids by id, other packs as '<pack>:<id>', settings as '<provider>:<key>'. A missing operand that is evaluated is the runtime error unknown-id; && and || short-circuit.",
+    "Template expand vectors cover the pre-pass phase (prefixes cfg, session, ags, option); values are canonical text (arrays are joined with ', '). Scan vectors cover the apply phase (prefixes class, item, resource, building, recipe, schematic, research, category, dataasset, asset).",
+    "Member AST: {kind: ident|path|call}; args: [\"num\", n], [\"str\", s], [\"bool\", b], [\"ident\", name], [\"struct\", type-or-null, [\"positional\", [args]] | [\"named\", {field: arg}]].",
+    "Element conditions: every map element of every sequence (any depth, also inside value payloads) may carry conditions / conditionBehavior / conditionBehaivor, except inside a conditions subtree. 'stripped' removes the keys and keeps elements; 'pruned' evaluates config expressions with 'values' and removes failing elements. Root-level document conditions are not element conditions and stay."
+  ],
+  "expression": {
+    "parse": [
+      { "id": "p001", "src": "features.value >= 100 && !features.legacy", "ast": ["and", ["cmp", ">=", ["cfg", null, "features.value"], ["num", 100]], ["not", ["cfg", null, "features.legacy"]]] },
+      { "id": "p002", "src": "x in [1, 2.5, -3]", "ast": ["cmp", "in", ["cfg", null, "x"], ["list", [["num", 1], ["num", 2.5], ["num", -3]]]] },
+      { "id": "p003", "src": "a || b || c", "ast": ["or", ["cfg", null, "a"], ["cfg", null, "b"], ["cfg", null, "c"]] },
+      { "id": "p004", "src": "a && b || c && d", "ast": ["or", ["and", ["cfg", null, "a"], ["cfg", null, "b"]], ["and", ["cfg", null, "c"], ["cfg", null, "d"]]] },
+      { "id": "p005", "src": "!(a || b)", "ast": ["not", ["or", ["cfg", null, "a"], ["cfg", null, "b"]]] },
+      { "id": "p006", "src": "tags contains 'iron'", "ast": ["cmp", "contains", ["cfg", null, "tags"], ["str", "iron"]] },
+      { "id": "p007", "src": "cfg:Other:balance.speed > 1", "ast": ["cmp", ">", ["cfg", "Other", "balance.speed"], ["num", 1]] },
+      { "id": "p008", "src": "cfg:balance.speed <= 4", "ast": ["cmp", "<=", ["cfg", null, "balance.speed"], ["num", 4]] },
+      { "id": "p009", "src": "session:FG.PlayerCanFly == true", "ast": ["cmp", "==", ["setting", "session", "FG.PlayerCanFly"], ["bool", true]] },
+      { "id": "p010", "src": "ags:FG.NoPower != false", "ast": ["cmp", "!=", ["setting", "ags", "FG.NoPower"], ["bool", false]] },
+      { "id": "p011", "src": "mode == \"hard\"", "ast": ["cmp", "==", ["cfg", null, "mode"], ["str", "hard"]] },
+      { "id": "p012", "src": "in.x == 1", "ast": ["cmp", "==", ["cfg", null, "in.x"], ["num", 1]] },
+      { "id": "p013", "src": "!!a", "ast": ["not", ["not", ["cfg", null, "a"]]] },
+      { "id": "p014", "src": "!a == b", "ast": ["cmp", "==", ["not", ["cfg", null, "a"]], ["cfg", null, "b"]] },
+      { "id": "p015", "src": "a", "ast": ["cfg", null, "a"] },
+      { "id": "p016", "src": "'it\\'s' == s", "ast": ["cmp", "==", ["str", "it's"], ["cfg", null, "s"]] },
+      { "id": "p017", "src": "\"ü😀\" == s", "ast": ["cmp", "==", ["str", "ü😀"], ["cfg", null, "s"]] },
+      { "id": "p018", "src": "  ( a )  ", "ast": ["cfg", null, "a"] },
+      { "id": "p019", "src": "x in []", "ast": ["cmp", "in", ["cfg", null, "x"], ["list", []]] },
+      { "id": "p020", "src": "option:FG.Gameplay.Fov >= 90", "ast": ["cmp", ">=", ["setting", "option", "FG.Gameplay.Fov"], ["num", 90]] },
+      { "id": "p021", "src": "True == 1", "ast": ["cmp", "==", ["cfg", null, "True"], ["num", 1]] },
+      { "id": "p022", "src": "In != Contains && !FALSE", "ast": ["and", ["cmp", "!=", ["cfg", null, "In"], ["cfg", null, "Contains"]], ["not", ["cfg", null, "FALSE"]]] }
+    ],
+    "errors": [
+      { "id": "e001", "src": "a ==", "error": { "code": "expected-operand", "at": 4 } },
+      { "id": "e002", "src": "a < b < c", "error": { "code": "chained-comparison", "at": 6 } },
+      { "id": "e003", "src": "(a && b", "error": { "code": "expected-close-paren", "at": 7 } },
+      { "id": "e004", "src": "x in [1, 2", "error": { "code": "expected-close-bracket", "at": 10 } },
+      { "id": "e005", "src": "'abc", "error": { "code": "unterminated-string", "at": 0 } },
+      { "id": "e006", "src": "x == 1.", "error": { "code": "invalid-number", "at": 5 } },
+      { "id": "e007", "src": "cfg:true == 1", "error": { "code": "reserved-id", "at": 4 } },
+      { "id": "e008", "src": "a b", "error": { "code": "trailing-input", "at": 2 } },
+      { "id": "e009", "src": "", "error": { "code": "empty", "at": 0 } },
+      { "id": "e010", "src": "a # b", "error": { "code": "unexpected-char", "at": 2 } },
+      { "id": "e011", "src": "x in [a, 1]", "error": { "code": "list-element-not-literal", "at": 6 } },
+      { "id": "e012", "src": "session:", "error": { "code": "invalid-ref", "at": 0 } },
+      { "id": "e013", "src": "cfg:P:", "error": { "code": "invalid-ref", "at": 0 } },
+      { "id": "e014", "src": ")", "error": { "code": "expected-operand", "at": 0 } },
+      { "id": "e015", "src": "!", "error": { "code": "expected-operand", "at": 1 } },
+      { "id": "e016", "src": "\"😀\" ==", "error": { "code": "expected-operand", "at": 7 } },
+      { "id": "e017", "src": "a == == b", "error": { "code": "expected-operand", "at": 5 } },
+      { "id": "e018", "src": "   ", "error": { "code": "empty", "at": 0 } },
+      { "id": "e019", "src": "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!a", "error": { "code": "too-deep", "at": 64 } },
+      { "id": "e020", "src": "(((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((a)))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))", "error": { "code": "too-deep", "at": 64 } },
+      { "id": "e021", "src": "!(!(!(!(!(!(!(!(!(!(!(!(!(!(!(!(!(!(!(!(!(!(!(!(!(!(!(!(!(!(!(!(!(a)))))))))))))))))))))))))))))))))", "error": { "code": "too-deep", "at": 64 } },
+      { "id": "e022", "src": "Cfg:x", "error": { "code": "unexpected-char", "at": 3 } },
+      { "id": "e023", "src": "a IN [1]", "error": { "code": "trailing-input", "at": 2 } },
+      { "id": "e024", "src": "cfg:True == cfg:true", "error": { "code": "reserved-id", "at": 16 } }
+    ],
+    "typecheck": [
+      { "id": "t001", "src": "tags contains 3", "operands": { "tags": "list<string>" }, "issues": [{ "code": "list-element-mismatch", "at": 0, "len": 15 }] },
+      { "id": "t002", "src": "speed > 'x'", "operands": { "speed": "number" }, "issues": [{ "code": "order-non-number", "at": 0, "len": 11 }] },
+      { "id": "t003", "src": "flag == 1", "operands": { "flag": "bool" }, "issues": [{ "code": "compare-mismatch", "at": 0, "len": 9 }] },
+      { "id": "t004", "src": "n contains 1", "operands": { "n": "number" }, "issues": [{ "code": "contains-non-list", "at": 0, "len": 12 }] },
+      { "id": "t005", "src": "1 in n", "operands": { "n": "number" }, "issues": [{ "code": "in-non-list", "at": 0, "len": 6 }] },
+      { "id": "t006", "src": "tags == tags", "operands": { "tags": "list<string>" }, "issues": [{ "code": "compare-mismatch", "at": 0, "len": 12 }] },
+      { "id": "t007", "src": "x in [1, 'a']", "operands": { "x": "number" }, "issues": [{ "code": "list-element-mismatch", "at": 5, "len": 8 }] },
+      { "id": "t008", "src": "speed >= 1 && flag", "operands": { "speed": "number", "flag": "bool" }, "issues": [] },
+      { "id": "t009", "src": "session:X > 1", "operands": { "session:X": "unknown" }, "issues": [] },
+      { "id": "t010", "src": "a && missing", "operands": { "a": "bool" }, "issues": [{ "code": "unknown-id", "at": 5, "len": 7 }] },
+      { "id": "t011", "src": "tiers contains 3 || tiers == []", "operands": { "tiers": "list<number>" }, "issues": [{ "code": "compare-mismatch", "at": 20, "len": 11 }] }
+    ],
+    "eval": [
+      { "id": "v001", "src": "!s", "values": { "s": "" }, "result": true },
+      { "id": "v002", "src": "n == 1.0", "values": { "n": 1 }, "result": true },
+      { "id": "v003", "src": "a && b", "values": { "a": true, "b": false }, "result": false },
+      { "id": "v004", "src": "x in [1, 2]", "values": { "x": 2 }, "result": true },
+      { "id": "v005", "src": "tags contains 'iron'", "values": { "tags": ["iron", "copper"] }, "result": true },
+      { "id": "v006", "src": "n > 2 || missing", "values": { "n": 3 }, "result": true },
+      { "id": "v007", "src": "missing || n > 2", "values": { "n": 3 }, "error": "unknown-id" },
+      { "id": "v008", "src": "!(n >= 10) && flag", "values": { "n": 5, "flag": true }, "result": true },
+      { "id": "v009", "src": "s", "values": { "s": "abc" }, "result": true },
+      { "id": "v010", "src": "l", "values": { "l": [] }, "result": false },
+      { "id": "v011", "src": "cfg:Other:speed >= 2", "values": { "Other:speed": 2 }, "result": true },
+      { "id": "v012", "src": "session:FG.Fly == true", "values": { "session:FG.Fly": true }, "result": true },
+      { "id": "v013", "src": "mode == 'hard' || mode == \"easy\"", "values": { "mode": "easy" }, "result": true },
+      { "id": "v014", "src": "!flag == false", "values": { "flag": true }, "result": true },
+      { "id": "v015", "src": "x in []", "values": { "x": 1 }, "result": false },
+      { "id": "v016", "src": "n != 0", "values": { "n": 0 }, "result": false },
+      { "id": "v017", "src": "a && missing", "values": { "a": false }, "result": false }
+    ]
+  },
+  "template": {
+    "expand": [
+      { "id": "x001", "src": "x{cfg:a}y", "values": { "cfg:a": "5" }, "output": "x5y" },
+      { "id": "x002", "src": "{0} and {cfg:a}", "values": { "cfg:a": "5" }, "output": "{0} and 5" },
+      { "id": "x003", "src": "\\{cfg:a}", "values": { "cfg:a": "5" }, "output": "{cfg:a}" },
+      { "id": "x004", "src": "\\{item:X:mName}", "values": {}, "output": "\\{item:X:mName}" },
+      { "id": "x005", "src": "{item:/Game/A.A_C:Fn({cfg:n})}", "values": { "cfg:n": "3" }, "output": "{item:/Game/A.A_C:Fn(3)}" },
+      { "id": "x006", "src": "{cfg:a", "values": { "cfg:a": "5" }, "output": "{cfg:a", "unterminated": true },
+      { "id": "x007", "src": "{cfg:list}", "values": { "cfg:list": ["a", "b"] }, "output": "a, b" },
+      { "id": "x008", "src": "{cfgx:a}", "values": {}, "output": "{cfgx:a}" },
+      { "id": "x009", "src": "{item:X:Fn('}', {cfg:n})}", "values": { "cfg:n": "3" }, "output": "{item:X:Fn('}', 3)}" },
+      { "id": "x010", "src": "{session:FG.Fly}", "values": { "session:FG.Fly": "true" }, "output": "true" },
+      { "id": "x011", "src": "{cfg:Other:speed}", "values": { "cfg:Other:speed": "2.5" }, "output": "2.5" },
+      { "id": "x012", "src": "a{cfg:x}{cfg:x}b", "values": { "cfg:x": "{cfg:x}" }, "output": "a{cfg:x}{cfg:x}b" }
+    ],
+    "scan": [
+      { "id": "s001", "src": "Made from {item:/Game/A.A_C:GetItemName}", "phase": "apply", "segments": [["text", "Made from "], ["token", "item", "/Game/A.A_C:GetItemName"]] },
+      { "id": "s002", "src": "{class:/Script/Engine.KismetMathLibrary:Max_DoubleDouble(1, 2)}", "phase": "apply", "segments": [["token", "class", "/Script/Engine.KismetMathLibrary:Max_DoubleDouble(1, 2)"]] },
+      { "id": "s003", "src": "{item:X:Fn({item:Y:GetStackSize})}", "phase": "apply", "segments": [["token", "item", "X:Fn({item:Y:GetStackSize})"]] },
+      { "id": "s004", "src": "{cfg:a}", "phase": "apply", "segments": [["text", "{cfg:a}"]] },
+      { "id": "s005", "src": "{dataasset:/Game/KMods/DA_X.DA_X:mName} / {asset:/Game/C.C:GetFloatValue(2.5)}", "phase": "apply", "segments": [["token", "dataasset", "/Game/KMods/DA_X.DA_X:mName"], ["text", " / "], ["token", "asset", "/Game/C.C:GetFloatValue(2.5)"]] },
+      { "id": "s006", "src": "\\{recipe:R:mDisplayName}", "phase": "apply", "segments": [["text", "{recipe:R:mDisplayName}"]] }
+    ],
+    "member": [
+      { "id": "m001", "src": "GetItemName", "member": { "kind": "ident", "name": "GetItemName" } },
+      { "id": "m002", "src": "GetItemName()", "member": { "kind": "call", "name": "GetItemName", "args": [] } },
+      { "id": "m003", "src": "mDisplayName", "member": { "kind": "ident", "name": "mDisplayName" } },
+      { "id": "m004", "src": "mStruct.Field", "member": { "kind": "path", "path": "mStruct.Field" } },
+      { "id": "m005", "src": "mArr[0]", "member": { "kind": "path", "path": "mArr[0]" } },
+      { "id": "m006", "src": "Fn(1, 'a', true, EResourceForm::RF_SOLID, '/Game/X.X_C', ItemAmount{'/Game/X.X_C', 200}, {Amount=2})", "member": { "kind": "call", "name": "Fn", "args": [["num", 1], ["str", "a"], ["bool", true], ["ident", "EResourceForm::RF_SOLID"], ["str", "/Game/X.X_C"], ["struct", "ItemAmount", ["positional", [["str", "/Game/X.X_C"], ["num", 200]]]], ["struct", null, ["named", { "Amount": ["num", 2] }]]] } },
+      { "id": "m007", "src": "Fn(1, 2", "error": "unbalanced" },
+      { "id": "m008", "src": "", "error": "empty" },
+      { "id": "m009", "src": "Fn(1,)", "error": "expected-argument" },
+      { "id": "m010", "src": "Fn(-2.5, \"q\\\"x\")", "member": { "kind": "call", "name": "Fn", "args": [["num", -2.5], ["str", "q\"x"]] } }
+    ]
+  },
+  "elementConditions": [
+    {
+      "id": "c001",
+      "input": { "patches": [{ "target": "/Script/X.Y", "ops": [{ "op": "set", "path": "a", "value": 1 }, { "op": "set", "path": "b", "value": 2, "conditions": { "config": "features.b" } }] }] },
+      "stripped": { "patches": [{ "target": "/Script/X.Y", "ops": [{ "op": "set", "path": "a", "value": 1 }, { "op": "set", "path": "b", "value": 2 }] }] },
+      "sites": ["/patches/0/ops/1"],
+      "values": { "features.b": false },
+      "pruned": { "patches": [{ "target": "/Script/X.Y", "ops": [{ "op": "set", "path": "a", "value": 1 }] }] }
+    },
+    {
+      "id": "c002",
+      "input": { "conditions": { "config": "x" }, "ingredients": [{ "item": "A", "amount": 1, "conditions": [{ "config": "y" }], "conditionBehavior": "OR" }, { "item": "B", "amount": 2 }] },
+      "stripped": { "conditions": { "config": "x" }, "ingredients": [{ "item": "A", "amount": 1 }, { "item": "B", "amount": 2 }] },
+      "sites": ["/ingredients/0"],
+      "values": { "x": true, "y": false },
+      "pruned": { "conditions": { "config": "x" }, "ingredients": [{ "item": "B", "amount": 2 }] }
+    },
+    {
+      "id": "c003",
+      "input": { "conditions": [{ "hasMod": "A", "conditions": { "config": "z" } }], "x": [1, 2] },
+      "stripped": { "conditions": [{ "hasMod": "A", "conditions": { "config": "z" } }], "x": [1, 2] },
+      "sites": [],
+      "values": {},
+      "pruned": { "conditions": [{ "hasMod": "A", "conditions": { "config": "z" } }], "x": [1, 2] }
+    },
+    {
+      "id": "c004",
+      "input": { "patches": [{ "ops": [{ "op": "set", "path": "mList", "value": [{ "a": 1, "conditions": { "config": "keep" } }, { "a": 2, "conditionBehaivor": "AND", "conditions": [{ "config": "drop" }] }] }] }] },
+      "stripped": { "patches": [{ "ops": [{ "op": "set", "path": "mList", "value": [{ "a": 1 }, { "a": 2 }] }] }] },
+      "sites": ["/patches/0/ops/0/value/0", "/patches/0/ops/0/value/1"],
+      "values": { "keep": true, "drop": false },
+      "pruned": { "patches": [{ "ops": [{ "op": "set", "path": "mList", "value": [{ "a": 1 }] }] }] }
+    }
+  ]
+}

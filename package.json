@@ -1,0 +1,17 @@
+{
+  "name": "@sf-kmods/kdataforge-tools-workspace",
+  "private": true,
+  "version": "9999.9.9",
+  "packageManager": "pnpm@10.12.4",
+  "scripts": {
+    "build": "pnpm -r run build && npm --prefix extension run build",
+    "test": "pnpm -r run test && npm --prefix extension test && pnpm test:version",
+    "typecheck": "npm --prefix extension run typecheck",
+    "version": "node scripts/version.mjs --apply",
+    "test:version": "node --test scripts/version.test.mjs"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.0",
+    "typescript": "5.7.3"
+  }
+}

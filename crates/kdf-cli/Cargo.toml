@@ -1,0 +1,18 @@
+[package]
+name = "kdf-cli"
+version.workspace = true
+edition.workspace = true
+
+[[bin]]
+name = "kdf"
+path = "src/main.rs"
+
+[dependencies]
+kdf-validation = { path = "../kdf-validation" }
+serde_json.workspace = true
+clap = { version = "4", features = ["derive"] }
+url.workspace = true
+
+[dev-dependencies]
+tempfile = "3"
+zip.workspace = true

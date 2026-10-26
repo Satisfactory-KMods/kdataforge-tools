@@ -1,0 +1,19 @@
+[workspace]
+members = ["crates/kdf-validation", "crates/kdf-language-server", "crates/kdf-cli"]
+resolver = "2"
+
+[workspace.package]
+edition = "2021"
+version = "9999.9.9"
+
+[workspace.dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+serde_yaml = "0.9"
+jsonschema = { version = "0.33", default-features = false }
+regex = "1"
+walkdir = "2"
+url = "2"
+zip = { version = "2", default-features = false, features = ["deflate"] }
+dunce = "1"
+sha2 = "0.10"

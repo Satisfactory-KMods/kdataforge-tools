@@ -1,0 +1,41 @@
+$schema: https://json-schema.org/draft/2020-12/schema
+$id: https://raw.githubusercontent.com/Satisfactory-KMods/KDataForge-Linter/main/src/kdataforge_linter/schemas/category_reorder.schema.yml
+x-kdf-type: category_reorder
+title: KDataForge category ordering
+allOf:
+  - $ref: https://raw.githubusercontent.com/Satisfactory-KMods/KDataForge-Linter/main/src/kdataforge_linter/schemas/common.schema.yml#/$defs/documentBase
+  - type: object
+    required: [subType, category, order]
+    properties:
+      type: { const: category_reorder }
+      subType:
+        type: string
+        enum: [items, recipe, schematic, settings]
+      category:
+        $ref: https://raw.githubusercontent.com/Satisfactory-KMods/KDataForge-Linter/main/src/kdataforge_linter/schemas/common.schema.yml#/$defs/nonEmptyString
+      subCategory:
+        $ref: https://raw.githubusercontent.com/Satisfactory-KMods/KDataForge-Linter/main/src/kdataforge_linter/schemas/common.schema.yml#/$defs/nonEmptyString
+      categoryPriority: { type: number }
+      subCategoryPriority: { type: number }
+      order:
+        type: array
+        minItems: 1
+        uniqueItems: true
+        items:
+          $ref: https://raw.githubusercontent.com/Satisfactory-KMods/KDataForge-Linter/main/src/kdataforge_linter/schemas/common.schema.yml#/$defs/nonEmptyString
+    allOf:
+      - if:
+          required: [subCategoryPriority]
+        then:
+          required: [subCategory]
+      - if:
+          properties:
+            subType: { const: recipe }
+          required: [subType]
+        then:
+          not:
+            anyOf:
+              - required: [subCategory]
+              - required: [subCategoryPriority]
+    unevaluatedProperties: false
+unevaluatedProperties: false

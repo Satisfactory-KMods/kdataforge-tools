@@ -1,0 +1,4 @@
+{
+	"extends": "@sf-kmods/kdataforgejs/tsconfig.base.json",
+	"include": ["DataForge/**/*.ts"]
+}

@@ -1,0 +1,26 @@
+{
+	"name": "@sf-kmods/kdataforgejs",
+	"version": "9999.9.9",
+	"description": "TypeScript types for KDataForgeJS packs: declarations of the built-in @sf-kmods/kdataforgejs module plus a strict tsconfig base.",
+	"license": "MIT",
+	"author": "Kyri123/Kyrium",
+	"homepage": "https://docs.k-mods.com/kdataforge/",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/Satisfactory-KMods/kdataforge-tools.git",
+		"directory": "packages/kdataforgejs-types"
+	},
+	"publishConfig": { "access": "public" },
+	"keywords": ["kdataforge", "satisfactory", "modding", "typescript"],
+	"files": ["index.d.ts", "lib", "tsconfig.base.json", "declarations.json", "editor.kdfjs.json", "README.md"],
+	"exports": {
+		"./tsconfig.base.json": "./tsconfig.base.json",
+		"./declarations.json": "./declarations.json",
+		"./package.json": "./package.json"
+	},
+	"scripts": {
+		"sync": "node scripts/sync-declarations.mjs",
+		"build": "node scripts/sync-declarations.mjs",
+		"test": "node --test \"test/*.test.mjs\""
+	}
+}

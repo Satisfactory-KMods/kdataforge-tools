@@ -1,0 +1,7 @@
+type: cdo
+priority: 100
+patches:
+  - target: /Game/Example.Example_C
+    properties:
+      - path: mValue
+        value: 2

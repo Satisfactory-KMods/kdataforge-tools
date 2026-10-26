@@ -1,0 +1,21 @@
+$schema: https://json-schema.org/draft/2020-12/schema
+$id: https://raw.githubusercontent.com/Satisfactory-KMods/KDataForge-Linter/main/src/kdataforge_linter/schemas/unlock.schema.yml
+x-kdf-type: unlock
+title: KDataForge unlock classes
+allOf:
+  - $ref: https://raw.githubusercontent.com/Satisfactory-KMods/KDataForge-Linter/main/src/kdataforge_linter/schemas/common.schema.yml#/$defs/documentBase
+  - type: object
+    required: [unlocks]
+    properties:
+      type: { const: unlock }
+      unlocks:
+        type: array
+        minItems: 1
+        items:
+          allOf:
+            - $ref: https://raw.githubusercontent.com/Satisfactory-KMods/KDataForge-Linter/main/src/kdataforge_linter/schemas/common.schema.yml#/$defs/generatedEntry
+            - if:
+                required: [id]
+              then:
+                required: [parent]
+unevaluatedProperties: false

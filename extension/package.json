@@ -1,0 +1,76 @@
+{
+  "name": "kdataforge",
+  "displayName": "KDataForge Tools",
+  "publisher": "kmods",
+  "version": "9999.9.9",
+  "description": "KDataForge YAML language support, linter, Codex and KDataForgeJS authoring tools.",
+  "license": "SEE LICENSE IN LICENSE",
+  "pricing": "Free",
+  "categories": ["Programming Languages", "Linters", "Snippets"],
+  "keywords": ["KDataForge", "KDataForgeJS", "Satisfactory", "YAML", "LSP", "modding"],
+  "icon": "media/icon.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Satisfactory-KMods/kdataforge-tools.git",
+    "directory": "extension"
+  },
+  "homepage": "https://docs.k-mods.com/kdataforge/reference/vscode-extension-lsp/",
+  "bugs": { "url": "https://github.com/Satisfactory-KMods/kdataforge-tools/issues" },
+  "extensionKind": ["workspace"],
+  "capabilities": {
+    "untrustedWorkspaces": { "supported": false },
+    "virtualWorkspaces": { "supported": false }
+  },
+  "engines": { "vscode": "^1.113.0" },
+  "main": "./dist/extension.js",
+  "activationEvents": ["onLanguage:yaml", "onCommand:kdf.codex", "workspaceContains:**/DataForge/pack.yml"],
+  "scripts": {
+    "sync:sdk": "node scripts/sync-sdk.cjs",
+    "build": "npm run sync:sdk && tsc -p . --noEmit && esbuild src/extension.ts --bundle --platform=node --format=cjs --external:vscode --outfile=dist/extension.js",
+    "typecheck": "tsc -p . --noEmit",
+    "test": "node --test test/*.test.cjs"
+  },
+  "dependencies": { "vscode-languageclient": "^9.0.1" },
+  "devDependencies": {
+    "@types/node": "^22.20.0",
+    "@types/vscode": "^1.113.0",
+    "esbuild": "^0.25.12",
+    "typescript": "5.7.3"
+  },
+  "files": ["bin/**", "dist/**", "LICENSE", "media/**", "README.md", "sdk/**", "snippets/**"],
+  "contributes": {
+    "commands": [
+      { "command": "kdf.codex", "title": "KDataForge: Open Codex", "icon": "$(book)" },
+      { "command": "kdf.catalog", "title": "KDataForge: Insert Class Reference", "icon": "$(list-selection)" },
+      { "command": "kdf.lintFile", "title": "KDataForge: Lint File", "icon": "$(check)" },
+      { "command": "kdf.lintProject", "title": "KDataForge: Lint Project", "icon": "$(check-all)" },
+      { "command": "kdf.lintOutput", "title": "KDataForge: Show Lint Output", "icon": "$(output)" },
+      { "command": "kdf.switchDatapack", "title": "KDataForge: Switch Datapack", "icon": "$(database)" },
+      { "command": "kdf.sdk.createProject", "title": "KDataForgeJS: Create Project Here", "icon": "$(new-folder)" },
+      { "command": "kdf.sdk.createScript", "title": "KDataForgeJS: Create Script", "icon": "$(new-file)" },
+      { "command": "kdf.sdk.refresh", "title": "KDataForgeJS: Refresh Built-in SDK", "icon": "$(refresh)" }
+    ],
+    "configuration": {
+      "title": "KDataForge",
+      "properties": {
+        "kdf.languageServerPath": { "type": "string", "default": "", "description": "Language server executable override." },
+        "kdf.cliPath": { "type": "string", "default": "", "description": "kdf CLI executable override." },
+        "kdf.datapackPath": { "type": "string", "default": "", "description": "Reflection .kdfdata archive. Empty enables schema-only validation." }
+      }
+    },
+    "snippets": [{ "language": "typescript", "path": "./snippets/kdataforgejs.code-snippets" }],
+    "menus": {
+      "explorer/context": [
+        { "command": "kdf.sdk.createProject", "when": "resourceScheme == file && explorerResourceIsFolder", "group": "kdf@1" },
+        { "command": "kdf.sdk.createScript", "when": "resourceScheme == file", "group": "kdf@2" },
+        { "command": "kdf.codex", "when": "resourceScheme == file", "group": "kdf@3" },
+        { "command": "kdf.lintFile", "when": "resourceScheme == file && !explorerResourceIsFolder && (resourceExtname == .yml || resourceExtname == .yaml)", "group": "kdf@4" }
+      ],
+      "editor/context": [
+        { "command": "kdf.sdk.createScript", "when": "resourceScheme == file && editorLangId == typescript", "group": "kdf@1" },
+        { "command": "kdf.catalog", "when": "resourceScheme == file && editorLangId == yaml", "group": "kdf@2" },
+        { "command": "kdf.lintFile", "when": "resourceScheme == file && editorLangId == yaml", "group": "kdf@3" }
+      ]
+    }
+  }
+}

@@ -1,0 +1,7 @@
+ref: Other
+name: Other Pack
+version: 1.0.0
+description:
+  key: OtherDescription
+  ns: Other
+  source: A second pack that shares configuration.

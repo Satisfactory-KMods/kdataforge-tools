@@ -1,0 +1,9 @@
+ref: ConfigDemo
+name: Config Demo
+version: 1.0.0
+description: Player-configurable balancing used by the validation tests.
+icon: icon.png
+dependencies:
+  - Other
+conditions:
+  config: balance.enabled

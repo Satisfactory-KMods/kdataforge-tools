@@ -1,0 +1,208 @@
+$schema: https://json-schema.org/draft/2020-12/schema
+$id: https://raw.githubusercontent.com/Satisfactory-KMods/KDataForge-Linter/main/src/kdataforge_linter/schemas/config.schema.yml
+x-kdf-type: config
+title: KDataForge pack configuration
+allOf:
+  - $ref: https://raw.githubusercontent.com/Satisfactory-KMods/KDataForge-Linter/main/src/kdataforge_linter/schemas/common.schema.yml#/$defs/documentBase
+  - type: object
+    required: [fields]
+    properties:
+      type: { const: config }
+      category:
+        $ref: https://raw.githubusercontent.com/Satisfactory-KMods/KDataForge-Linter/main/src/kdataforge_linter/schemas/common.schema.yml#/$defs/nonEmptyString
+      fields:
+        type: array
+        minItems: 1
+        items:
+          $ref: '#/$defs/field'
+unevaluatedProperties: false
+$defs:
+  tooltip:
+    type: object
+    additionalProperties: false
+    minProperties: 1
+    properties:
+      title:
+        $ref: https://raw.githubusercontent.com/Satisfactory-KMods/KDataForge-Linter/main/src/kdataforge_linter/schemas/common.schema.yml#/$defs/textValue
+      text:
+        $ref: https://raw.githubusercontent.com/Satisfactory-KMods/KDataForge-Linter/main/src/kdataforge_linter/schemas/common.schema.yml#/$defs/textValue
+  scalarValue:
+    type: [string, number, boolean]
+  option:
+    type: object
+    additionalProperties: false
+    required: [value, label]
+    properties:
+      value:
+        $ref: '#/$defs/scalarValue'
+      label:
+        $ref: https://raw.githubusercontent.com/Satisfactory-KMods/KDataForge-Linter/main/src/kdataforge_linter/schemas/common.schema.yml#/$defs/textValue
+  field:
+    type: object
+    required: [id, type, name, description, default]
+    properties:
+      id:
+        $ref: https://raw.githubusercontent.com/Satisfactory-KMods/KDataForge-Linter/main/src/kdataforge_linter/schemas/common.schema.yml#/$defs/configId
+      type:
+        enum: [text, number, boolean, select]
+      name:
+        $ref: https://raw.githubusercontent.com/Satisfactory-KMods/KDataForge-Linter/main/src/kdataforge_linter/schemas/common.schema.yml#/$defs/textValue
+      description:
+        $ref: https://raw.githubusercontent.com/Satisfactory-KMods/KDataForge-Linter/main/src/kdataforge_linter/schemas/common.schema.yml#/$defs/textValue
+      tooltip:
+        $ref: '#/$defs/tooltip'
+      category:
+        $ref: https://raw.githubusercontent.com/Satisfactory-KMods/KDataForge-Linter/main/src/kdataforge_linter/schemas/common.schema.yml#/$defs/nonEmptyString
+      apply:
+        enum: [hot, cold]
+        default: cold
+      order:
+        type: integer
+      default: {}
+      # Reserved for a later version (custom description classes). Accepted by the schema, reported as
+      # config.reserved-key by the semantic rules, ignored by the runtime.
+      descriptionClass:
+        $ref: https://raw.githubusercontent.com/Satisfactory-KMods/KDataForge-Linter/main/src/kdataforge_linter/schemas/common.schema.yml#/$defs/nonEmptyString
+      properties: {}
+    allOf:
+      - $ref: '#/$defs/whenText'
+      - $ref: '#/$defs/whenNumber'
+      - $ref: '#/$defs/whenBoolean'
+      - $ref: '#/$defs/whenSelect'
+    unevaluatedProperties: false
+  whenText:
+    if:
+      required: [type]
+      properties:
+        type: { const: text }
+    then:
+      properties:
+        valueType:
+          enum: [string, text, name, tag]
+        multiple: { type: boolean }
+        multiline: { type: boolean }
+        maxLength: { type: integer, minimum: 1 }
+        tagRoot:
+          $ref: https://raw.githubusercontent.com/Satisfactory-KMods/KDataForge-Linter/main/src/kdataforge_linter/schemas/common.schema.yml#/$defs/nonEmptyString
+        minCount: { type: integer, minimum: 0 }
+        maxCount: { type: integer, minimum: 1 }
+      allOf:
+        - if:
+            required: [multiline]
+            properties:
+              multiline: { const: true }
+          then:
+            required: [valueType]
+            properties:
+              valueType: { const: text }
+        - if:
+            required: [multiple]
+            properties:
+              multiple: { const: true }
+          then:
+            properties:
+              default:
+                type: array
+                items: { type: string }
+          else:
+            properties:
+              default: { type: string }
+  whenNumber:
+    if:
+      required: [type]
+      properties:
+        type: { const: number }
+    then:
+      properties:
+        valueType:
+          enum: [int32, int8, int16, int64, uint8, float, double]
+        multiple: { type: boolean }
+        min: { type: number }
+        max: { type: number }
+        step: { type: number, exclusiveMinimum: 0 }
+        decimals: { type: integer, minimum: 0, maximum: 9 }
+        display:
+          enum: [slider, input]
+        minCount: { type: integer, minimum: 0 }
+        maxCount: { type: integer, minimum: 1 }
+      allOf:
+        - if:
+            required: [multiple]
+            properties:
+              multiple: { const: true }
+          then:
+            properties:
+              default:
+                type: array
+                items: { type: number }
+          else:
+            properties:
+              default: { type: number }
+        - if:
+            required: [display]
+            properties:
+              display: { const: slider }
+          then:
+            required: [min, max]
+        # An omitted valueType means int32, so integer rules apply unless a float type is named.
+        - if:
+            anyOf:
+              - not:
+                  required: [valueType]
+              - required: [valueType]
+                properties:
+                  valueType:
+                    enum: [int32, int8, int16, int64, uint8]
+          then:
+            properties:
+              min: { type: integer }
+              max: { type: integer }
+              step: { type: integer, minimum: 1 }
+              default:
+                anyOf:
+                  - type: integer
+                  - type: array
+                    items: { type: integer }
+  whenBoolean:
+    if:
+      required: [type]
+      properties:
+        type: { const: boolean }
+    then:
+      properties:
+        valueType:
+          enum: [bool, uint8]
+        default: { type: boolean }
+  whenSelect:
+    if:
+      required: [type]
+      properties:
+        type: { const: select }
+    then:
+      required: [options]
+      properties:
+        valueType:
+          enum: [string, text, name, tag, int8, int16, int32, int64, uint8, float, double, bool]
+        multiple: { type: boolean }
+        options:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/$defs/option'
+        minSelected: { type: integer, minimum: 0 }
+        maxSelected: { type: integer, minimum: 1 }
+      allOf:
+        - if:
+            required: [multiple]
+            properties:
+              multiple: { const: true }
+          then:
+            properties:
+              default:
+                type: array
+                items:
+                  $ref: '#/$defs/scalarValue'
+          else:
+            properties:
+              default:
+                $ref: '#/$defs/scalarValue'

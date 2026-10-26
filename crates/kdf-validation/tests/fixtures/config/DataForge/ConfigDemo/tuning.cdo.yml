@@ -1,0 +1,24 @@
+type: cdo
+patches:
+  - target: /Script/FactoryGame.FGItemDescriptor
+    properties:
+      - path: mStackSize
+        value: cfg:balance.stack
+      - path: mCanBeDiscarded
+        value: cfg:balance.enabled
+      - path: mDisplayName
+        value: "{cfg:balance.title} / {cfg:balance.mode} / {cfg:Other:shared.level}"
+      - path: mEnergyValue
+        op: multiply
+        value: cfg:balance.speed
+      - path: mSmallDropInfo
+        op: clamp
+        min: cfg:balance.speed
+        max: cfg:Other:shared.level
+      - path: mDescription
+        value: 'cfg:balance.mode stays literal in single quotes'
+      - path: mTags
+        op: append
+        value: cfg:balance.tag
+        conditions:
+          config: balance.mode == "hard" && balance.tiers contains 2

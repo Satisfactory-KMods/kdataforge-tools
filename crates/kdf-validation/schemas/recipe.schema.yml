@@ -1,0 +1,26 @@
+$schema: https://json-schema.org/draft/2020-12/schema
+$id: https://raw.githubusercontent.com/Satisfactory-KMods/KDataForge-Linter/main/src/kdataforge_linter/schemas/recipe.schema.yml
+x-kdf-type: recipe
+title: KDataForge recipes
+allOf:
+  - $ref: https://raw.githubusercontent.com/Satisfactory-KMods/KDataForge-Linter/main/src/kdataforge_linter/schemas/common.schema.yml#/$defs/documentBase
+  - type: object
+    properties:
+      type: { const: recipe }
+      remove:
+        $ref: https://raw.githubusercontent.com/Satisfactory-KMods/KDataForge-Linter/main/src/kdataforge_linter/schemas/common.schema.yml#/$defs/contentRemoval
+    anyOf:
+      - required: [recipes]
+        properties:
+          recipes:
+            type: array
+            minItems: 1
+            items:
+              $ref: https://raw.githubusercontent.com/Satisfactory-KMods/KDataForge-Linter/main/src/kdataforge_linter/schemas/common.schema.yml#/$defs/registerableEntry
+      - required: [remove]
+        properties:
+          recipes:
+            not:
+              type: array
+              minItems: 1
+unevaluatedProperties: false

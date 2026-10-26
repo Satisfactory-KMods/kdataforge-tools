@@ -1,0 +1,135 @@
+$schema: https://json-schema.org/draft/2020-12/schema
+$id: https://raw.githubusercontent.com/Satisfactory-KMods/KDataForge-Linter/main/src/kdataforge_linter/schemas/pack.schema.yml
+x-kdf-type: pack
+title: KDataForge pack manifest
+type: object
+additionalProperties: false
+required: [ref, name, version]
+properties:
+  $schema:
+    $ref: https://raw.githubusercontent.com/Satisfactory-KMods/KDataForge-Linter/main/src/kdataforge_linter/schemas/common.schema.yml#/$defs/schemaReference
+  ref:
+    $ref: https://raw.githubusercontent.com/Satisfactory-KMods/KDataForge-Linter/main/src/kdataforge_linter/schemas/common.schema.yml#/$defs/token
+  name:
+    oneOf:
+      - $ref: https://raw.githubusercontent.com/Satisfactory-KMods/KDataForge-Linter/main/src/kdataforge_linter/schemas/common.schema.yml#/$defs/nonEmptyString
+      - $ref: https://raw.githubusercontent.com/Satisfactory-KMods/KDataForge-Linter/main/src/kdataforge_linter/schemas/common.schema.yml#/$defs/localizedText
+  description:
+    oneOf:
+      - type: string
+      - $ref: https://raw.githubusercontent.com/Satisfactory-KMods/KDataForge-Linter/main/src/kdataforge_linter/schemas/common.schema.yml#/$defs/localizedText
+  # Pack icon: pack-relative png/jpg/jpeg/tga/bmp file, or a /Game/... texture object path.
+  icon:
+    $ref: https://raw.githubusercontent.com/Satisfactory-KMods/KDataForge-Linter/main/src/kdataforge_linter/schemas/common.schema.yml#/$defs/nonEmptyString
+  version:
+    type: string
+    pattern: '^\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?$'
+  contributer:
+    oneOf:
+      - $ref: https://raw.githubusercontent.com/Satisfactory-KMods/KDataForge-Linter/main/src/kdataforge_linter/schemas/common.schema.yml#/$defs/token
+      - type: array
+        minItems: 1
+        uniqueItems: true
+        items:
+          $ref: https://raw.githubusercontent.com/Satisfactory-KMods/KDataForge-Linter/main/src/kdataforge_linter/schemas/common.schema.yml#/$defs/token
+  priority:
+    type: integer
+    minimum: -2147483648
+    maximum: 2147483647
+    default: 100
+  enabled:
+    type: boolean
+    default: true
+  debug:
+    type: boolean
+    default: false
+  conditionBehaivor:
+    $ref: https://raw.githubusercontent.com/Satisfactory-KMods/KDataForge-Linter/main/src/kdataforge_linter/schemas/common.schema.yml#/$defs/conditionBehavior
+  conditionBehavior:
+    $ref: https://raw.githubusercontent.com/Satisfactory-KMods/KDataForge-Linter/main/src/kdataforge_linter/schemas/common.schema.yml#/$defs/conditionBehavior
+  conditions:
+    $ref: https://raw.githubusercontent.com/Satisfactory-KMods/KDataForge-Linter/main/src/kdataforge_linter/schemas/common.schema.yml#/$defs/conditions
+  dependencies:
+    type: array
+    uniqueItems: true
+    items:
+      $ref: https://raw.githubusercontent.com/Satisfactory-KMods/KDataForge-Linter/main/src/kdataforge_linter/schemas/common.schema.yml#/$defs/token
+  redirects:
+    type: object
+    additionalProperties:
+      $ref: https://raw.githubusercontent.com/Satisfactory-KMods/KDataForge-Linter/main/src/kdataforge_linter/schemas/common.schema.yml#/$defs/token
+  scripts:
+    description: Explicit runtime script entries. IDs are generated; capabilities belong in TypeScript meta.
+    type: array
+    items:
+      type: object
+      additionalProperties: false
+      required: [language, entry]
+      not:
+        required: [reflectionClasses, classes]
+      properties:
+        language:
+          type: string
+          maxLength: 128
+          pattern: '^\s*[A-Za-z][A-Za-z0-9_-]*(\.[A-Za-z][A-Za-z0-9_-]*)*\s*$'
+        languageVersion:
+          type: integer
+          minimum: 1
+          maximum: 4294967295
+          default: 1
+        entry:
+          $ref: '#/$defs/scriptPath'
+        realm:
+          type: string
+          pattern: '^([aA][nN][yY]|[sS][eE][rR][vV][eE][rR]|[cC][lL][iI][eE][nN][tT])$'
+        network:
+          type: string
+          pattern: '^([aA][nN][yY]|[sS][tT][aA][nN][dD][aA][lL][oO][nN][eE]|[nN][eE][tT][wW][oO][rR][kK][eE][dD])$'
+        authority:
+          type: string
+          pattern: '^([aA][nN][yY]|[rR][eE][qQ][uU][iI][rR][eE][dD]|[fF][oO][rR][bB][iI][dD][dD][eE][nN])$'
+        reflectionClasses:
+          $ref: '#/$defs/reflectionClasses'
+        classes:
+          $ref: '#/$defs/reflectionClasses'
+        imports:
+          type: array
+          maxItems: 64
+          items:
+            type: object
+            additionalProperties: false
+            required: [key, kind, path]
+            anyOf:
+              - required: [sha256]
+              - required: [digest]
+            properties:
+              key:
+                type: string
+                maxLength: 128
+                pattern: '^[A-Za-z][A-Za-z0-9._/-]*$'
+              kind:
+                type: string
+                pattern: '^([yY][aA][mM][lL]|[sS][tT][rR][uU][cC][tT][uU][rR][eE][dD]|[tT][eE][xX][tT]|[bB][iI][nN][aA][rR][yY]|[iI][mM][aA][gG][eE]|[aA][uU][dD][iI][oO])$'
+              path:
+                $ref: '#/$defs/scriptPath'
+              sha256:
+                $ref: '#/$defs/sha256'
+              digest:
+                $ref: '#/$defs/sha256'
+$defs:
+  scriptPath:
+    type: string
+    minLength: 1
+    maxLength: 1024
+    pattern: '^[A-Za-z0-9][A-Za-z0-9._/-]*$'
+  sha256:
+    type: string
+    pattern: '^[A-Fa-f0-9]{64}$'
+  reflectionClasses:
+    type: array
+    maxItems: 64
+    uniqueItems: true
+    items:
+      type: string
+      maxLength: 1024
+      pattern: '^/[^\\\s]+\.[^\\\s/]+$'

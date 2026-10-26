@@ -1,0 +1,19 @@
+type: recipe
+conditions:
+  config: balance.enabled
+recipes:
+  - id: Recipe_DemoPlate
+    parent: /Script/FactoryGame.FGRecipe
+    properties:
+      - path: mManufactoringDuration
+        op: multiply
+        value: cfg:balance.speed
+      - path: mIngredients
+        op: set
+        value:
+          - ItemClass: /Game/FactoryGame/Resource/Parts/IronPlate/Desc_IronPlate.Desc_IronPlate_C
+            Amount: 2
+          - ItemClass: /Game/FactoryGame/Resource/Parts/Screw/Desc_Screw.Desc_Screw_C
+            Amount: cfg:balance.stack
+            conditions:
+              config: balance.mode == 'hard'

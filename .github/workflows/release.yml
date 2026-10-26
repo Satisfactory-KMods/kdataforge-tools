@@ -1,0 +1,164 @@
+name: KDataForge Tools Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: Publish the built artifacts to Marketplace and npm
+        type: boolean
+        required: true
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: kdataforge-tools-release-${{ github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  version:
+    name: Resolve branch channel
+    runs-on: arc-runner-set
+    outputs:
+      channel: ${{ steps.channel.outputs.value }}
+      package_version: ${{ steps.version.outputs.package }}
+      extension_version: ${{ steps.version.outputs.extension }}
+    steps:
+      - name: Accept only dev or main
+        id: channel
+        shell: bash
+        run: |
+          case "${GITHUB_REF_NAME}" in
+            dev) echo 'value=beta' >> "$GITHUB_OUTPUT" ;;
+            main) echo 'value=stable' >> "$GITHUB_OUTPUT" ;;
+            *) echo 'Release workflow accepts only dev or main.' >&2; exit 1 ;;
+          esac
+      - uses: actions/checkout@v7.0.1
+        with: { fetch-depth: 0 }
+      - uses: actions/setup-node@v7.1.0
+        with: { node-version: 24 }
+      - id: version
+        shell: bash
+        run: |
+          channel='${{ steps.channel.outputs.value }}'
+          echo "package=$(node scripts/version.mjs --channel "$channel")" >> "$GITHUB_OUTPUT"
+          echo "extension=$(node scripts/version.mjs --channel "$channel" --extension)" >> "$GITHUB_OUTPUT"
+
+  package-extension:
+    needs: version
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: win32-x64
+            runner: '["self-hosted","Windows","X64"]'
+          - target: linux-x64
+            runner: '["arc-runner-set"]'
+    runs-on: ${{ fromJSON(matrix.runner) }}
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with: { fetch-depth: 0 }
+      - uses: pnpm/action-setup@v4
+        with: { version: 10.12.4 }
+      - uses: actions/setup-node@v7.1.0
+        with:
+          node-version: 24
+          cache: pnpm
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - run: pnpm install --frozen-lockfile
+      - name: Apply branch version
+        run: node scripts/version.mjs --channel ${{ needs.version.outputs.channel }} --apply
+      - run: pnpm build
+      - run: pnpm test
+      - run: cargo test --workspace --locked
+      - run: cargo build --workspace --locked --release
+      - run: node extension/scripts/stage.cjs
+      - name: Package experimental VSIX
+        if: needs.version.outputs.channel == 'beta'
+        working-directory: extension
+        run: npx --yes @vscode/vsce@4.0.0 package --no-dependencies --pre-release --target ${{ matrix.target }} --out "${{ runner.temp }}/kmods.kdataforge-${{ needs.version.outputs.extension_version }}-${{ matrix.target }}.vsix"
+      - name: Package stable VSIX
+        if: needs.version.outputs.channel == 'stable'
+        working-directory: extension
+        run: npx --yes @vscode/vsce@4.0.0 package --no-dependencies --target ${{ matrix.target }} --out "${{ runner.temp }}/kmods.kdataforge-${{ needs.version.outputs.extension_version }}-${{ matrix.target }}.vsix"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kmods-kdataforge-${{ needs.version.outputs.extension_version }}-${{ matrix.target }}
+          path: ${{ runner.temp }}/kmods.kdataforge-${{ needs.version.outputs.extension_version }}-${{ matrix.target }}.vsix
+          if-no-files-found: error
+
+  package-npm:
+    needs: version
+    runs-on: arc-runner-set
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with: { fetch-depth: 0 }
+      - uses: pnpm/action-setup@v4
+        with: { version: 10.12.4 }
+      - uses: actions/setup-node@v7.1.0
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: node scripts/version.mjs --channel ${{ needs.version.outputs.channel }} --apply
+      - run: pnpm --filter @sf-kmods/kdataforgejs build
+      - run: pnpm --filter @sf-kmods/kdataforgejs-cli build
+      - run: pnpm --filter @sf-kmods/kdataforgejs pack --pack-destination "$RUNNER_TEMP/npm"
+      - run: pnpm --filter @sf-kmods/kdataforgejs-cli pack --pack-destination "$RUNNER_TEMP/npm"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kdataforge-npm-${{ needs.version.outputs.package_version }}
+          path: ${{ runner.temp }}/npm/*.tgz
+          if-no-files-found: error
+
+  publish-extension:
+    if: inputs.publish
+    needs: [version, package-extension]
+    runs-on: arc-runner-set
+    environment: kdataforge-marketplace-release
+    steps:
+      - uses: actions/download-artifact@v5
+        with:
+          pattern: kmods-kdataforge-${{ needs.version.outputs.extension_version }}-*
+          path: ${{ runner.temp }}/vsix
+          merge-multiple: true
+      - uses: actions/setup-node@v7.1.0
+        with: { node-version: 24 }
+      - name: Publish platform packages
+        shell: bash
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+        run: |
+          set -euo pipefail
+          mapfile -t files < <(find "$RUNNER_TEMP/vsix" -type f -name '*.vsix' -print | sort)
+          test "${#files[@]}" -eq 2
+          for file in "${files[@]}"; do npx --yes @vscode/vsce@4.0.0 publish --packagePath "$file"; done
+
+  publish-npm:
+    if: inputs.publish
+    needs: [version, package-npm]
+    runs-on: arc-runner-set
+    environment: npm-publish
+    steps:
+      - uses: actions/download-artifact@v5
+        with:
+          name: kdataforge-npm-${{ needs.version.outputs.package_version }}
+          path: ${{ runner.temp }}/npm
+      - uses: actions/setup-node@v7.1.0
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+      - name: Publish exact npm tarballs
+        shell: bash
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          set -euo pipefail
+          tag='${{ needs.version.outputs.channel }}'
+          if [ "$tag" = stable ]; then tag=latest; fi
+          mapfile -t files < <(find "$RUNNER_TEMP/npm" -type f -name '*.tgz' -print | sort)
+          test "${#files[@]}" -eq 2
+          for file in "${files[@]}"; do npm publish "$file" --access public --tag "$tag"; done

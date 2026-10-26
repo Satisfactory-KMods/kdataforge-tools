@@ -1,0 +1,10 @@
+category: /Script/FactoryGame.FGCategory
+fields:
+  - id: shared.level
+    type: number
+    name: Level
+    description: Shared level.
+    default: 3
+    min: 1
+    max: 5
+    apply: hot

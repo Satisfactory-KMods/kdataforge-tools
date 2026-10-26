@@ -1,0 +1,9 @@
+node_modules/
+target/
+dist/
+dist-test/
+extension/bin/
+extension/sdk/
+artifacts/
+*.vsix
+.DS_Store

@@ -1,0 +1,75 @@
+$schema: https://json-schema.org/draft/2020-12/schema
+$id: https://raw.githubusercontent.com/Satisfactory-KMods/KDataForge-Linter/main/src/kdataforge_linter/schemas/schematic.schema.yml
+x-kdf-type: schematic
+title: KDataForge schematics
+$defs:
+  entry:
+    type: object
+    additionalProperties: false
+    properties:
+      id:
+        $ref: https://raw.githubusercontent.com/Satisfactory-KMods/KDataForge-Linter/main/src/kdataforge_linter/schemas/common.schema.yml#/$defs/token
+      class:
+        $ref: https://raw.githubusercontent.com/Satisfactory-KMods/KDataForge-Linter/main/src/kdataforge_linter/schemas/common.schema.yml#/$defs/nonEmptyString
+      parent:
+        $ref: https://raw.githubusercontent.com/Satisfactory-KMods/KDataForge-Linter/main/src/kdataforge_linter/schemas/common.schema.yml#/$defs/nonEmptyString
+      register: { type: boolean }
+      properties:
+        $ref: https://raw.githubusercontent.com/Satisfactory-KMods/KDataForge-Linter/main/src/kdataforge_linter/schemas/common.schema.yml#/$defs/properties
+      unlocks:
+        type: array
+        items:
+          $ref: https://raw.githubusercontent.com/Satisfactory-KMods/KDataForge-Linter/main/src/kdataforge_linter/schemas/common.schema.yml#/$defs/instancedObject
+      dependencies:
+        type: array
+        items:
+          $ref: https://raw.githubusercontent.com/Satisfactory-KMods/KDataForge-Linter/main/src/kdataforge_linter/schemas/common.schema.yml#/$defs/instancedObject
+      recipes:
+        type: array
+        items:
+          $ref: https://raw.githubusercontent.com/Satisfactory-KMods/KDataForge-Linter/main/src/kdataforge_linter/schemas/common.schema.yml#/$defs/nonEmptyString
+      schematics:
+        type: array
+        items:
+          $ref: https://raw.githubusercontent.com/Satisfactory-KMods/KDataForge-Linter/main/src/kdataforge_linter/schemas/common.schema.yml#/$defs/nonEmptyString
+      handSlots: { type: integer, minimum: 1 }
+      inventorySlots: { type: integer, minimum: 1 }
+      scannableResources:
+        type: array
+        items:
+          type: object
+          additionalProperties: false
+          required: [resource]
+          properties:
+            resource:
+              $ref: https://raw.githubusercontent.com/Satisfactory-KMods/KDataForge-Linter/main/src/kdataforge_linter/schemas/common.schema.yml#/$defs/nonEmptyString
+            nodeType:
+              enum: [Node, FrackingSatellite, FrackingCore, Geyser, Deposit]
+              default: Node
+    oneOf:
+      - required: [id]
+        not: { required: [class] }
+      - required: [class]
+        not: { required: [id] }
+allOf:
+  - $ref: https://raw.githubusercontent.com/Satisfactory-KMods/KDataForge-Linter/main/src/kdataforge_linter/schemas/common.schema.yml#/$defs/documentBase
+  - type: object
+    properties:
+      type: { const: schematic }
+      remove:
+        $ref: https://raw.githubusercontent.com/Satisfactory-KMods/KDataForge-Linter/main/src/kdataforge_linter/schemas/common.schema.yml#/$defs/contentRemoval
+    anyOf:
+      - required: [schematics]
+        properties:
+          schematics:
+            type: array
+            minItems: 1
+            items:
+              $ref: '#/$defs/entry'
+      - required: [remove]
+        properties:
+          schematics:
+            not:
+              type: array
+              minItems: 1
+unevaluatedProperties: false

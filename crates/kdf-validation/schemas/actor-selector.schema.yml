@@ -1,0 +1,39 @@
+$schema: https://json-schema.org/draft/2020-12/schema
+$id: https://raw.githubusercontent.com/Satisfactory-KMods/KDataForge-Linter/main/src/kdataforge_linter/schemas/actor-selector.schema.yml
+title: KDataForge actor instance selector
+type: object
+additionalProperties: false
+minProperties: 1
+properties:
+  tags:
+    oneOf:
+      - { type: string, minLength: 1, pattern: '\S' }
+      - type: array
+        minItems: 1
+        items: { type: string, minLength: 1, pattern: '\S' }
+  sphere:
+    type: object
+    additionalProperties: false
+    required: [center, radius]
+    properties:
+      center: { $ref: '#/$defs/vector' }
+      radius: { type: number, exclusiveMinimum: 0 }
+  box:
+    type: object
+    additionalProperties: false
+    required: [min, max]
+    properties:
+      min: { $ref: '#/$defs/vector' }
+      max: { $ref: '#/$defs/vector' }
+  currentRecipe:
+    oneOf:
+      - { type: string, minLength: 1, pattern: '\S' }
+      - type: array
+        minItems: 1
+        items: { type: string, minLength: 1, pattern: '\S' }
+$defs:
+  vector:
+    type: array
+    minItems: 3
+    maxItems: 3
+    items: { type: number }

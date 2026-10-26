@@ -1,0 +1,117 @@
+$schema: https://json-schema.org/draft/2020-12/schema
+$id: https://raw.githubusercontent.com/Satisfactory-KMods/KDataForge-Linter/main/src/kdataforge_linter/schemas/resourcenode.schema.yml
+x-kdf-type: resourcenode
+title: KDataForge resource node placement, removal and appearance
+allOf:
+  - $ref: https://raw.githubusercontent.com/Satisfactory-KMods/KDataForge-Linter/main/src/kdataforge_linter/schemas/common.schema.yml#/$defs/documentBase
+  - type: object
+    anyOf:
+      - required: [remove]
+      - required: [add]
+      - required: [replace]
+      - required: [visuals]
+      - required: [hideMeshes]
+    allOf:
+      - if:
+          required: [meshActorsPerTick]
+        then:
+          anyOf:
+            - required: [visuals]
+            - required: [hideMeshes]
+    properties:
+      type: { const: resourcenode }
+      visuals:
+        type: array
+        minItems: 1
+        items:
+          $ref: '#/$defs/visualRule'
+      hideMeshes:
+        type: array
+        minItems: 1
+        items: { type: string, minLength: 1, pattern: '\S' }
+      meshActorsPerTick:
+        type: integer
+        minimum: 1
+        maximum: 1024
+        default: 1
+      add:
+        type: array
+        minItems: 1
+        items:
+          $ref: '#/$defs/addition'
+      replace:
+        type: array
+        minItems: 1
+        items:
+          $ref: '#/$defs/replacement'
+      remove:
+        type: array
+        minItems: 1
+        items:
+          $ref: https://raw.githubusercontent.com/Satisfactory-KMods/KDataForge-Linter/main/src/kdataforge_linter/schemas/common.schema.yml#/$defs/resourceNodeRemoval
+unevaluatedProperties: false
+$defs:
+  visualRule:
+    type: object
+    additionalProperties: false
+    required: [resource, materials]
+    properties:
+      resource: { type: string, minLength: 1, pattern: '\S' }
+      materials:
+        type: array
+        minItems: 1
+        maxItems: 64
+        items:
+          type: object
+          additionalProperties: false
+          required: [slot, material]
+          properties:
+            slot: { type: integer, minimum: 0, maximum: 63 }
+            material: { type: string, minLength: 1, pattern: '\S' }
+  vector:
+    type: array
+    minItems: 3
+    maxItems: 3
+    items: { type: number }
+  placement:
+    type: object
+    required: [id, resource, position]
+    properties:
+      id: { type: string, minLength: 1 }
+      resource: { type: string, minLength: 1 }
+      fromResource: { type: string, minLength: 1 }
+      position: { $ref: '#/$defs/vector' }
+      rotation: { $ref: '#/$defs/vector' }
+      purity: { enum: [Impure, Normal, Pure] }
+      checkRange: { type: number, exclusiveMinimum: 0, maximum: 100000, default: 500 }
+      allowToMove: { type: boolean, default: true }
+      preventOverlap: { type: boolean, default: false }
+      overlapClass: { type: string, minLength: 1, default: /Script/FactoryGame.FGResourceNodeBase }
+      mesh: { type: string, minLength: 1 }
+      material: { type: string, minLength: 1 }
+      materials:
+        type: array
+        maxItems: 64
+        items:
+          oneOf:
+            - { type: string, minLength: 1 }
+            - { type: 'null' }
+    not:
+      required: [material, materials]
+  addition:
+    allOf:
+      - $ref: '#/$defs/placement'
+      - type: object
+        properties:
+          reuseExisting: { type: boolean, default: true }
+    unevaluatedProperties: false
+  replacement:
+    allOf:
+      - $ref: '#/$defs/placement'
+      - type: object
+        properties:
+          fromResource: { type: string, minLength: 1 }
+          radius: { type: number, exclusiveMinimum: 0, maximum: 100000 }
+        not:
+          required: [radius, checkRange]
+    unevaluatedProperties: false

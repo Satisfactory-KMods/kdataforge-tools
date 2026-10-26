@@ -1,0 +1,543 @@
+$schema: https://json-schema.org/draft/2020-12/schema
+$id: https://raw.githubusercontent.com/Satisfactory-KMods/KDataForge-Linter/main/src/kdataforge_linter/schemas/common.schema.yml
+title: KDataForge shared schema definitions
+$defs:
+  nonEmptyString:
+    type: string
+    minLength: 1
+  token:
+    type: string
+    pattern: ^[A-Za-z][A-Za-z0-9_.-]*$
+  stringOrList:
+    oneOf:
+      - $ref: '#/$defs/nonEmptyString'
+      - type: array
+        minItems: 1
+        items:
+          $ref: '#/$defs/nonEmptyString'
+  # Pack configuration field id: dotted segments, expression-safe.
+  classExclusion:
+    type: string
+    minLength: 1
+    pattern: '^\s*(?:/.*|[^*?]+)$'
+    description: Exact class reference, or full class-path wildcard starting with /.
+  classExclusions:
+    oneOf:
+      - $ref: '#/$defs/classExclusion'
+      - type: array
+        minItems: 1
+        items:
+          $ref: '#/$defs/classExclusion'
+  configId:
+    type: string
+    pattern: '^[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)*$'
+  # Unquoted whole-scalar reference resolved before the stages run (cfg:<id>, cfg:<pack>:<id>, session:/ags:/option:<StrId>).
+  typedRef:
+    type: string
+    pattern: '^(?:cfg|session|ags|option):\S+$'
+  # FText identity forms understood by the runtime value codec.
+  localizedText:
+    oneOf:
+      - $ref: '#/$defs/keyedText'
+      - $ref: '#/$defs/stringTableText'
+  stringTableText:
+    type: object
+    additionalProperties: false
+    required: [stringTable, key]
+    properties:
+      stringTable:
+        $ref: '#/$defs/nonEmptyString'
+      key:
+        $ref: '#/$defs/nonEmptyString'
+  keyedText:
+    type: object
+    additionalProperties: false
+    required: [key]
+    properties:
+      key:
+        $ref: '#/$defs/nonEmptyString'
+      ns:
+        type: string
+      source:
+        type: string
+  textValue:
+    oneOf:
+      - $ref: '#/$defs/nonEmptyString'
+      - $ref: '#/$defs/localizedText'
+  configExpression:
+    type: string
+    minLength: 1
+  # One `where:` filter clause: a property path (may contain `[*]`) plus exactly one operator.
+  whereClause:
+    type: object
+    additionalProperties: false
+    required: [path]
+    properties:
+      path:
+        $ref: '#/$defs/nonEmptyString'
+      equals: {}
+      notEquals: {}
+      lessThan:
+        anyOf: [{ type: number }, { $ref: '#/$defs/typedRef' }]
+      lessOrEqual:
+        anyOf: [{ type: number }, { $ref: '#/$defs/typedRef' }]
+      greaterThan:
+        anyOf: [{ type: number }, { $ref: '#/$defs/typedRef' }]
+      greaterOrEqual:
+        anyOf: [{ type: number }, { $ref: '#/$defs/typedRef' }]
+      contains: {}
+      notContains: {}
+      in:
+        oneOf:
+          - $ref: '#/$defs/nonEmptyString'
+          - type: number
+          - type: boolean
+          - type: array
+            minItems: 1
+      notIn:
+        oneOf:
+          - $ref: '#/$defs/nonEmptyString'
+          - type: number
+          - type: boolean
+          - type: array
+            minItems: 1
+      matches:
+        $ref: '#/$defs/nonEmptyString'
+      isEmpty: { type: boolean }
+    oneOf:
+      - required: [equals]
+      - required: [notEquals]
+      - required: [lessThan]
+      - required: [lessOrEqual]
+      - required: [greaterThan]
+      - required: [greaterOrEqual]
+      - required: [contains]
+      - required: [notContains]
+      - required: [in]
+      - required: [notIn]
+      - required: [matches]
+      - required: [isEmpty]
+  whereMode:
+    type: string
+    pattern: '^(?:[Aa][Nn][Dd]|[Oo][Rr])$'
+  # The scope-filter keys every selecting document type shares (cdo patches, remove: entries,
+  # sublevel block: entries, sinkpoints entries). Whether ofClass is required depends on the
+  # document type — see scopeNeedsOfClass.
+  scopeFilters:
+    type: object
+    properties:
+      ofClass:
+        $ref: '#/$defs/nonEmptyString'
+      matchTag:
+        $ref: '#/$defs/stringOrList'
+      tagProperty:
+        $ref: '#/$defs/nonEmptyString'
+      matchAssets: { type: boolean, default: true }
+      classType:
+        type: string
+        enum: [any, blueprint, native]
+        default: any
+      excludeClasses:
+        $ref: '#/$defs/classExclusions'
+      matchName:
+        $ref: '#/$defs/stringOrList'
+      producedIn:
+        $ref: '#/$defs/stringOrList'
+      ingredient:
+        $ref: '#/$defs/stringOrList'
+      product:
+        $ref: '#/$defs/stringOrList'
+      where:
+        oneOf:
+          - $ref: '#/$defs/whereClause'
+          - type: array
+            minItems: 1
+            items:
+              $ref: '#/$defs/whereClause'
+      whereMode:
+        $ref: '#/$defs/whereMode'
+    dependentRequired:
+      whereMode: [where]
+  # CDO patches may use a recipe shortcut instead of an explicit ofClass scope.
+  # Other removal/filter entries default their own scope.
+  scopeNeedsOfClass:
+    if:
+      anyOf:
+        - required: [matchTag]
+        - required: [matchName]
+        - required: [where]
+        - required: [classType]
+        - required: [excludeClasses]
+    then:
+      anyOf:
+        - required: [ofClass]
+        - required: [producedIn]
+        - required: [ingredient]
+        - required: [product]
+  hasScopeFilter:
+    anyOf:
+      - required: [matchTag]
+      - required: [matchName]
+      - required: [where]
+      - required: [producedIn]
+      - required: [ingredient]
+      - required: [product]
+      - required: [classType]
+      - required: [excludeClasses]
+  sublevelScopeNeedsOfClass:
+    if:
+      $ref: '#/$defs/hasScopeFilter'
+    then:
+      required: [ofClass]
+  # `remove:` entry of recipe / schematic / research documents: one class reference, or a filter
+  # map selecting every class of the type that passes.
+  contentRemoval:
+    type: array
+    minItems: 1
+    items:
+      oneOf:
+        - $ref: '#/$defs/nonEmptyString'
+        - allOf:
+            - $ref: '#/$defs/scopeFilters'
+            - $ref: '#/$defs/hasScopeFilter'
+          unevaluatedProperties: false
+  schemaReference:
+    $ref: '#/$defs/nonEmptyString'
+  conditionBehavior:
+    type: string
+    pattern: '^(?:[Aa][Nn][Dd]|[Oo][Rr])$'
+  conditionObject:
+    type: object
+    additionalProperties: false
+    properties:
+      gameVersion:
+        $ref: '#/$defs/nonEmptyString'
+      hasMod:
+        $ref: '#/$defs/stringOrList'
+      modVersion:
+        type: object
+        minProperties: 1
+        additionalProperties:
+          $ref: '#/$defs/nonEmptyString'
+      hasClass:
+        $ref: '#/$defs/stringOrList'
+      # Pack configuration expression(s); a list is AND-combined. Parsed by the semantic rules.
+      config:
+        oneOf:
+          - $ref: '#/$defs/configExpression'
+          - type: array
+            minItems: 1
+            items:
+              $ref: '#/$defs/configExpression'
+      ifNotMatch:
+        type: boolean
+        default: false
+  conditions:
+    if:
+      type: array
+    then:
+      items:
+        $ref: '#/$defs/conditionObject'
+    else:
+      $ref: '#/$defs/conditionObject'
+  # Condition keys lifted from a list element (element-level conditions) before kind schema validation.
+  conditionHolder:
+    type: object
+    additionalProperties: false
+    properties:
+      conditions:
+        $ref: '#/$defs/conditions'
+      conditionBehaivor:
+        $ref: '#/$defs/conditionBehavior'
+      conditionBehavior:
+        $ref: '#/$defs/conditionBehavior'
+  documentBase:
+    type: object
+    properties:
+      $schema:
+        $ref: '#/$defs/schemaReference'
+      type:
+        $ref: '#/$defs/nonEmptyString'
+      debug:
+        type: boolean
+      conditionBehaivor:
+        $ref: '#/$defs/conditionBehavior'
+      conditionBehavior:
+        $ref: '#/$defs/conditionBehavior'
+      conditions:
+        $ref: '#/$defs/conditions'
+      include:
+        $ref: '#/$defs/stringOrList'
+  propertyPath:
+    type: string
+    pattern: '^[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*|\[(?:[^\[\]"''*]+|\*|"(?:\\.|[^"\\])*"|''(?:\\.|[^''\\])*'')\])*$'
+  operation:
+    type: object
+    additionalProperties: false
+    required: [path]
+    properties:
+      path:
+        description: Concrete property path, or quoted '@tagContainers' for every top-level gameplay tag container.
+        oneOf:
+          - $ref: '#/$defs/propertyPath'
+          - const: '@tagContainers'
+      op:
+        enum:
+          - add
+          - append
+          - append_unique
+          - clamp
+          - clear
+          - copy
+          - divide
+          - duplicate
+          - insert
+          - max
+          - min
+          - move
+          - multiply
+          - prepend
+          - remove
+          - remove_at
+          - replace_refs
+          - replace
+          - reverse
+          - set
+          - sort
+          - subtract
+          - swap
+          - unique
+          - update_where
+      value: {}
+      where:
+        oneOf:
+          - $ref: '#/$defs/whereClause'
+          - type: array
+            minItems: 1
+            items:
+              $ref: '#/$defs/whereClause'
+      whereMode:
+        $ref: '#/$defs/whereMode'
+      min:
+        anyOf: [{ type: number }, { $ref: '#/$defs/typedRef' }]
+      max:
+        anyOf: [{ type: number }, { $ref: '#/$defs/typedRef' }]
+      index:
+        anyOf: [{ type: integer }, { $ref: '#/$defs/typedRef' }]
+      with:
+        anyOf: [{ type: integer }, { $ref: '#/$defs/typedRef' }]
+      from:
+        $ref: '#/$defs/nonEmptyString'
+    allOf:
+      - if:
+          properties:
+            path: { const: '@tagContainers' }
+          required: [path]
+        then:
+          properties:
+            op: { enum: [set, append, prepend, remove, clear] }
+      - if:
+          properties:
+            op: { enum: [copy, move] }
+          required: [op]
+        then:
+          properties:
+            from:
+              $ref: '#/$defs/propertyPath'
+      - if:
+          required: [whereMode]
+        then:
+          required: [op, where]
+          properties:
+            op: { const: update_where }
+  properties:
+    type: array
+    minItems: 1
+    items:
+      $ref: '#/$defs/operation'
+  generatedEntry:
+    type: object
+    additionalProperties: false
+    required: [id]
+    properties:
+      id:
+        $ref: '#/$defs/token'
+      parent:
+        $ref: '#/$defs/nonEmptyString'
+      register:
+        type: boolean
+      properties:
+        $ref: '#/$defs/properties'
+  registerableEntry:
+    type: object
+    additionalProperties: false
+    properties:
+      id:
+        $ref: '#/$defs/token'
+      class:
+        $ref: '#/$defs/nonEmptyString'
+      parent:
+        $ref: '#/$defs/nonEmptyString'
+      register:
+        type: boolean
+      properties:
+        $ref: '#/$defs/properties'
+    oneOf:
+      - required: [id]
+        not:
+          required: [class]
+      - required: [class]
+        not:
+          required: [id]
+  instancedObject:
+    type: object
+    additionalProperties: false
+    required: [class]
+    properties:
+      class:
+        $ref: '#/$defs/nonEmptyString'
+      properties:
+        $ref: '#/$defs/properties'
+  coordinate:
+    type: object
+    additionalProperties: false
+    required: [X, Y]
+    properties:
+      X:
+        type: integer
+        minimum: -2147483648
+        maximum: 2147483647
+      Y:
+        type: integer
+        minimum: -2147483648
+        maximum: 2147483647
+  nodeReference:
+    oneOf:
+      - $ref: '#/$defs/coordinate'
+      - type: object
+        additionalProperties: false
+        required: [schematic]
+        properties:
+          schematic:
+            $ref: '#/$defs/nonEmptyString'
+  road:
+    type: object
+    additionalProperties: false
+    required: [key, points]
+    properties:
+      key:
+        $ref: '#/$defs/nodeReference'
+      points:
+        type: array
+        minItems: 2
+        items:
+          $ref: '#/$defs/coordinate'
+  researchNode:
+    type: object
+    additionalProperties: false
+    required: [schematic]
+    properties:
+      schematic:
+        $ref: '#/$defs/nonEmptyString'
+      class:
+        $ref: '#/$defs/nonEmptyString'
+      coordinate:
+        $ref: '#/$defs/coordinate'
+      parents:
+        type: array
+        items:
+          $ref: '#/$defs/nodeReference'
+      nodesToUnhide:
+        type: array
+        items:
+          $ref: '#/$defs/nodeReference'
+      unhiddenBy:
+        type: array
+        items:
+          $ref: '#/$defs/nodeReference'
+      childrenAndRoads:
+        oneOf:
+          - $ref: '#/$defs/road'
+          - type: array
+            minItems: 1
+            items:
+              $ref: '#/$defs/road'
+      properties:
+        $ref: '#/$defs/properties'
+  numericScalar:
+    oneOf:
+      - type: number
+      - type: string
+        pattern: '^[+-]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)$'
+  numberOrVector:
+    oneOf:
+      - $ref: '#/$defs/numericScalar'
+      - type: array
+        minItems: 3
+        maxItems: 3
+        items:
+          $ref: '#/$defs/numericScalar'
+      - type: object
+        additionalProperties: false
+        minProperties: 3
+        maxProperties: 3
+        properties:
+          X: { $ref: '#/$defs/numericScalar' }
+          x: { $ref: '#/$defs/numericScalar' }
+          Y: { $ref: '#/$defs/numericScalar' }
+          y: { $ref: '#/$defs/numericScalar' }
+          Z: { $ref: '#/$defs/numericScalar' }
+          z: { $ref: '#/$defs/numericScalar' }
+        allOf:
+          - anyOf:
+              - required: [X]
+              - required: [x]
+          - anyOf:
+              - required: [Y]
+              - required: [y]
+          - anyOf:
+              - required: [Z]
+              - required: [z]
+  sublevelBlockEntry:
+    oneOf:
+      - $ref: '#/$defs/nonEmptyString'
+      - type: object
+        allOf:
+          - $ref: '#/$defs/scopeFilters'
+          - $ref: '#/$defs/sublevelScopeNeedsOfClass'
+        properties:
+          target:
+            $ref: '#/$defs/stringOrList'
+          allAssetsOfClass:
+            $ref: '#/$defs/nonEmptyString'
+        anyOf:
+          - required: [target]
+          - required: [allAssetsOfClass]
+          - $ref: '#/$defs/hasScopeFilter'
+        unevaluatedProperties: false
+  resourceNodeType:
+    type: string
+    pattern: '^(?:EResourceNodeType::)?(?:Node|FrackingSatellite|FrackingCore|Geyser|Deposit)$'
+  resourceNodeRemoval:
+    oneOf:
+      - $ref: '#/$defs/nonEmptyString'
+      - type: object
+        allOf:
+          - $ref: '#/$defs/scopeFilters'
+        anyOf:
+          - required: [resource]
+          - $ref: '#/$defs/hasScopeFilter'
+        properties:
+          resource:
+            $ref: '#/$defs/nonEmptyString'
+          nodeTypes:
+            type: array
+            items:
+              $ref: '#/$defs/resourceNodeType'
+          allowOccupied:
+            type: boolean
+            default: false
+          removeFromScanner:
+            type: boolean
+            default: true
+        unevaluatedProperties: false

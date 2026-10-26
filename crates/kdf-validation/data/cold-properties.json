@@ -1,0 +1,34 @@
+{
+  "version": 1,
+  "description": "Reload classification for UPROPERTYs that do not update live through /kdf reload or hot pack configuration. Matching: class includes subclasses, property name is case-insensitive. reload: cold = needs a restart (or does not affect existing state), newActors = only affects newly spawned actors, hot = explicit whitelist that overrides other rules. Properties of AActor/UActorComponent class defaults are classified newActors by rule unless the patch sets applyToSpawnedActors: true or an entry here says otherwise. Entries with verified: false are reasonable assumptions that still need an in-game reload check.",
+  "entries": [
+    {
+      "class": "/Script/FactoryGame.FGSchematic",
+      "property": "mUnlocks",
+      "reload": "cold",
+      "reason": "Unlocks are granted when a schematic is purchased. Schematics purchased before the change keep the unlocks they granted.",
+      "verified": true
+    },
+    {
+      "class": "/Script/FactoryGame.FGItemDescriptor",
+      "property": "mStackSize",
+      "reload": "hot",
+      "reason": "KDataForge resets the cached stack size after every write, so the change applies live.",
+      "verified": true
+    },
+    {
+      "class": "/Script/FactoryGame.FGItemDescriptor",
+      "property": "mForm",
+      "reload": "cold",
+      "reason": "Item form is read when inventories, conveyors and pipes are set up for an item; existing logistics keep the old form until a restart.",
+      "verified": false
+    },
+    {
+      "class": "/Script/FactoryGame.FGRecipe",
+      "property": "mProducedIn",
+      "reload": "cold",
+      "reason": "Machines keep their old recipe list until a restart.",
+      "verified": false
+    }
+  ]
+}

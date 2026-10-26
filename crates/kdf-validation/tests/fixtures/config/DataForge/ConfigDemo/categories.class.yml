@@ -1,0 +1,4 @@
+type: class
+classes:
+  - id: DemoCategory
+    parent: /Script/FactoryGame.FGCategory

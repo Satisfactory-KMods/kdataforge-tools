@@ -1,0 +1,11 @@
+type: cdo
+patches:
+  - target: /Script/FactoryGame.FGResourceDescriptor
+    applyToSubclasses: true
+    properties:
+      - path: '@tagContainers'
+        op: append
+        value: [KMods.PlannerResource]
+      - path: '@tagContainers'
+        op: remove
+        value: [KMods.ObsoleteResource]
