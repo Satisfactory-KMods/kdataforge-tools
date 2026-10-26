@@ -116,7 +116,7 @@ jobs:
 
   publish-extension:
     if: inputs.publish
-    needs: [version, package-extension]
+    needs: [version, package-extension, package-npm]
     runs-on: arc-runner-set
     environment: kdataforge-marketplace-release
     steps:
@@ -139,7 +139,7 @@ jobs:
 
   publish-npm:
     if: inputs.publish
-    needs: [version, package-npm]
+    needs: [version, package-extension, package-npm]
     runs-on: arc-runner-set
     environment: npm-publish
     steps:
