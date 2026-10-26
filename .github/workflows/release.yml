@@ -19,7 +19,7 @@ concurrency:
 jobs:
   version:
     name: Resolve branch channel
-    runs-on: ubuntu-24.04
+    runs-on: arc-runner-set
     outputs:
       channel: ${{ steps.channel.outputs.value }}
       package_version: ${{ steps.version.outputs.package }}
@@ -54,7 +54,7 @@ jobs:
           - target: win32-x64
             runner: '["self-hosted","Windows","X64"]'
           - target: linux-x64
-            runner: '"ubuntu-24.04"'
+            runner: '["arc-runner-set"]'
     runs-on: ${{ fromJSON(matrix.runner) }}
     timeout-minutes: 60
     steps:
@@ -92,7 +92,7 @@ jobs:
 
   package-npm:
     needs: version
-    runs-on: ubuntu-24.04
+    runs-on: arc-runner-set
     steps:
       - uses: actions/checkout@v7.0.1
         with: { fetch-depth: 0 }
@@ -117,7 +117,7 @@ jobs:
   publish-extension:
     if: inputs.publish
     needs: [version, package-extension]
-    runs-on: ubuntu-24.04
+    runs-on: arc-runner-set
     environment: kdataforge-marketplace-release
     steps:
       - uses: actions/download-artifact@v5
@@ -140,7 +140,7 @@ jobs:
   publish-npm:
     if: inputs.publish
     needs: [version, package-npm]
-    runs-on: ubuntu-24.04
+    runs-on: arc-runner-set
     environment: npm-publish
     steps:
       - uses: actions/download-artifact@v5
