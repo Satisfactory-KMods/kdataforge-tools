@@ -28,7 +28,7 @@ pub(crate) fn runtime_authored_entry(entry: &walkdir::DirEntry) -> bool {
         || !entry
             .file_name()
             .to_str()
-            .is_some_and(|name| runtime_ignored_directory(name))
+            .is_some_and(runtime_ignored_directory)
 }
 
 mod affected;

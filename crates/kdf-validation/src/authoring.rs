@@ -291,6 +291,9 @@ impl SemanticSnapshot {
         let mut manifests = BTreeMap::new();
         let mut pack_names = BTreeSet::new();
         let mut total = 0;
+        static ALIASES: std::sync::OnceLock<regex::Regex> = std::sync::OnceLock::new();
+        let aliases =
+            ALIASES.get_or_init(|| regex::Regex::new(r"(?:^|[\s\[,{:])[*&][A-Za-z0-9_-]").unwrap());
         for input in inputs {
             total += input.text.len();
             if result.documents.len() >= MAX_FILES || total > MAX_BYTES {
@@ -306,11 +309,7 @@ impl SemanticSnapshot {
                 continue;
             }
             // Aliases and anchors can share source ranges or hide generated references.
-            static ALIASES: std::sync::OnceLock<regex::Regex> = std::sync::OnceLock::new();
-            if ALIASES
-                .get_or_init(|| regex::Regex::new(r"(?:^|[\s\[,{:])[*&][A-Za-z0-9_-]").unwrap())
-                .is_match(&input.text)
-            {
+            if aliases.is_match(&input.text) {
                 result
                     .rename_blockers
                     .push("YAML anchors/aliases require manual reference review".into());
