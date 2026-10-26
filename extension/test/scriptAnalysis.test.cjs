@@ -68,6 +68,21 @@ test('graph refuses escapes, encoded/absolute/bare imports and dynamic loading w
   assert.ok(graph.issues.some(issue => issue.code === 'dynamic-code'));
 });
 
+test('graph path semantics follow the pack root rather than the runner platform', async () => {
+  const root = 'C:\\pack';
+  const files = { 'C:\\pack\\main.ts': `import './child';`, 'C:\\pack\\child.ts': 'export const value = 1;' };
+  const host = {
+    async realpath(name) {
+      if (name === root || Object.hasOwn(files, name)) return name;
+      throw new Error('missing');
+    },
+    async read(name) { return { fileName: name, text: files[name], version: 1 }; },
+  };
+  const graph = await api.buildScriptGraph({ packRoot: root, entrypoints: ['main.ts'], host });
+  assert.equal(graph.complete, true, JSON.stringify(graph.issues));
+  assert.deepEqual(new Set(graph.modules.keys()), new Set(Object.keys(files)));
+});
+
 test('filesystem host rejects symlinks outside pack and invalid UTF-8', async t => {
   const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'kdf-analysis-'));
   t.after(() => fs.rm(directory, { recursive: true, force: true }));

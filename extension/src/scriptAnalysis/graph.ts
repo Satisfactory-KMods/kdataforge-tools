@@ -141,10 +141,16 @@ export function moduleEdge(graph: ScriptGraph, from: string, specifier: string):
   return index.get(JSON.stringify([from, specifier]));
 }
 
-function contained(root: string, fileName: string): boolean {
-  const relative = path.relative(root, fileName);
-  return relative !== '' && relative !== '..' && !relative.startsWith(`..${path.sep}`) && !path.isAbsolute(relative)
-    && !relative.split(path.sep).includes('node_modules');
+function pathOperations(root: string): typeof path.posix {
+  if (/^(?:[A-Za-z]:[\\/]|\\\\)/u.test(root)) return path.win32;
+  if (root.startsWith('/')) return path.posix;
+  return path;
+}
+
+function contained(paths: typeof path.posix, root: string, fileName: string): boolean {
+  const relative = paths.relative(root, fileName);
+  return relative !== '' && relative !== '..' && !relative.startsWith(`..${paths.sep}`) && !paths.isAbsolute(relative)
+    && !relative.split(paths.sep).includes('node_modules');
 }
 
 /** Iterative traversal also bounds deeply nested hostile syntax before checker use. */
@@ -160,13 +166,13 @@ export function syntaxNodes(sourceFile: ts.SourceFile): ts.Node[] {
   return result;
 }
 
-function candidates(from: string, specifier: string): string[] {
-  const base = path.resolve(path.dirname(from), specifier);
+function candidates(paths: typeof path.posix, from: string, specifier: string): string[] {
+  const base = paths.resolve(paths.dirname(from), specifier);
   if (/\.[cm]?tsx?$/.test(base)) return [base];
   if (/\.js$/.test(base)) return [base.slice(0, -3) + '.ts', base.slice(0, -3) + '.tsx'];
   if (/\.[cm]js$/.test(base)) return [base.slice(0, -2) + 'ts'];
-  if (path.extname(base)) return [];
-  return [base + '.ts', base + '.tsx', path.join(base, 'index.ts'), path.join(base, 'index.tsx')];
+  if (paths.extname(base)) return [];
+  return [base + '.ts', base + '.tsx', paths.join(base, 'index.ts'), paths.join(base, 'index.tsx')];
 }
 
 export async function buildScriptGraph(options: ScriptGraphOptions): Promise<ScriptGraph> {
@@ -177,7 +183,8 @@ export async function buildScriptGraph(options: ScriptGraphOptions): Promise<Scr
   const issues: AnalysisIssue[] = [];
   const entrypoints: string[] = [];
   const packFiles = new Map<string, PackFileAuthority>();
-  let root = path.resolve(options.packRoot), bytes = 0, resolutions = 0, nodes = 0;
+  const paths = pathOperations(options.packRoot);
+  let root = paths.resolve(options.packRoot), bytes = 0, resolutions = 0, nodes = 0;
   const issue = (code: string, fileName?: string, start?: number) => { issues.push({ code, fileName, start }); };
   const result = (): ScriptGraph => ({ root, entrypoints, modules, edges, issues,
     complete: !issues.length && ticket.isCurrent(), allPackScriptsProvided: options.allPackScriptsProvided === true,
@@ -188,7 +195,7 @@ export async function buildScriptGraph(options: ScriptGraphOptions): Promise<Scr
     return false;
   };
   if (!current()) return result();
-  try { root = path.resolve(await cancellable(ticket, () => host.realpath(root))); }
+  try { root = paths.resolve(await cancellable(ticket, () => host.realpath(root))); }
   catch { issue('unreadable-root'); return result(); }
   const queue: { fileName: string; depth: number }[] = [];
   const scheduled = new Set<string>();
@@ -197,11 +204,11 @@ export async function buildScriptGraph(options: ScriptGraphOptions): Promise<Scr
     for (const fileName of fileNames) {
       if (!current()) return;
       if (++resolutions > SCRIPT_LIMITS.resolutions) { issue('resolution-limit'); return; }
-      if (!contained(root, fileName)) { issue('import-escape', fileName); return; }
+      if (!contained(paths, root, fileName)) { issue('import-escape', fileName); return; }
       try {
-        const canonical = path.resolve(await cancellable(ticket, () => host.realpath(fileName)));
+        const canonical = paths.resolve(await cancellable(ticket, () => host.realpath(fileName)));
         if (!current()) return;
-        if (!contained(root, canonical)) { issue('import-escape', fileName); return; }
+        if (!contained(paths, root, canonical)) { issue('import-escape', fileName); return; }
         matches.add(canonical);
       } catch { /* Missing candidates are expected; no package or directory configuration is read. */ }
     }
@@ -221,7 +228,7 @@ export async function buildScriptGraph(options: ScriptGraphOptions): Promise<Scr
     if (!isPackRelativePath(declaration.path) || declaration.provenance.authority !== 'authoritative'
       || !declaration.provenance.source || !declaration.provenance.version) { issue('invalid-pack-file-declaration'); continue; }
     if (packFiles.has(declaration.path)) { issue('ambiguous-pack-file-declaration'); continue; }
-    const fileName = await resolve([path.resolve(root, declaration.path)]);
+    const fileName = await resolve([paths.resolve(root, declaration.path)]);
     if (fileName) packFiles.set(declaration.path, { ...declaration, fileName });
     else issue('unresolved-pack-file', declaration.path);
   }
@@ -229,7 +236,7 @@ export async function buildScriptGraph(options: ScriptGraphOptions): Promise<Scr
   for (const entry of options.entrypoints.slice(0, SCRIPT_LIMITS.modules)) {
     if (!current()) return result();
     if (!/\.[cm]?tsx?$/.test(entry)) { issue('unsupported-entry', entry); continue; }
-    const fileName = await resolve([path.resolve(root, entry)]);
+    const fileName = await resolve([paths.resolve(root, entry)]);
     if (!fileName) { issue('unresolved-entry', entry); continue; }
     entrypoints.push(fileName);
     schedule(fileName, 0);
@@ -244,7 +251,7 @@ export async function buildScriptGraph(options: ScriptGraphOptions): Promise<Scr
       if (snapshot.fileName !== fileName || typeof snapshot.text !== 'string'
         || !['string', 'number'].includes(typeof snapshot.version)) { issue('invalid-snapshot', fileName); continue; }
       // Recheck canonical identity after asynchronous reads, including editor-host reads.
-      if (path.resolve(await cancellable(ticket, () => host.realpath(fileName))) !== fileName) { issue('changed-path', fileName); continue; }
+      if (paths.resolve(await cancellable(ticket, () => host.realpath(fileName))) !== fileName) { issue('changed-path', fileName); continue; }
       if (!current()) break;
       const size = Buffer.byteLength(snapshot.text, 'utf8');
       if (size > SCRIPT_LIMITS.fileBytes) { issue('file-limit', fileName); continue; }
@@ -278,7 +285,7 @@ export async function buildScriptGraph(options: ScriptGraphOptions): Promise<Scr
         if (!/^\.\.?\//.test(specifier) || /[\\%\x00-\x1f:#?]/.test(specifier)) {
           issue('unsupported-import', fileName, literal.getStart(sourceFile)); continue;
         }
-        const to = await resolve(candidates(fileName, specifier));
+        const to = await resolve(candidates(paths, fileName, specifier));
         edges.push({ from: fileName, specifier, to });
         if (!to) { issue('unresolved-import', fileName, literal.getStart(sourceFile)); continue; }
         schedule(to, depth + 1);
