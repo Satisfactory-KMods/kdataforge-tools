@@ -40,6 +40,9 @@ pub struct ContentIdentity {
 
 impl ContentIdentity {
     pub fn new(pack: &str, kind: &str, id: &str) -> Option<Self> {
+        if entries(kind).is_empty() {
+            return None;
+        }
         let (namespace, id) = generated_identity(kind, id)?;
         Some(Self {
             pack: crate::rules::runtime_identity(pack),
@@ -133,29 +136,31 @@ fn generated_path(pack: &str, id: &str, namespace: GeneratedNamespace) -> Option
     ))
 }
 
-fn entries(kind: &str) -> Option<&str> {
-    Some(match kind {
-        "asset" | "dataasset" => "assets",
-        "curve" => "curves",
-        "sound" => "sounds",
-        "item" => "items",
-        "building" => "buildings",
-        "resource" => "resources",
-        "unlock" => "unlocks",
-        "recipe" => "recipes",
-        "schematic" => "schematics",
-        "research" => "research",
-        "class" => "classes",
-        "eventrule" => "rules",
-        "resourcenode" => "nodes",
-        _ => return None,
-    })
+fn entries(kind: &str) -> &'static [&'static str] {
+    match kind {
+        "asset" | "dataasset" => &["assets"],
+        "curve" => &["curves"],
+        "sound" => &["sounds"],
+        "item" => &["items"],
+        "building" => &["buildings"],
+        "resource" => &["resources"],
+        "unlock" => &["unlocks"],
+        "recipe" => &["recipes"],
+        "schematic" => &["schematics"],
+        "research" => &["research"],
+        "class" => &["classes"],
+        "eventrule" => &["rules"],
+        "resourcenode" => &["add", "replace"],
+        _ => &[],
+    }
 }
 
 fn yaml(path: &Path) -> bool {
     path.extension()
         .and_then(|extension| extension.to_str())
-        .is_some_and(|extension| matches!(extension, "yml" | "yaml"))
+        .is_some_and(|extension| {
+            extension.eq_ignore_ascii_case("yml") || extension.eq_ignore_ascii_case("yaml")
+        })
 }
 
 fn parsed(text: &str) -> Result<Vec<Value>, String> {
@@ -291,9 +296,6 @@ impl SemanticSnapshot {
         let mut manifests = BTreeMap::new();
         let mut pack_names = BTreeSet::new();
         let mut total = 0;
-        static ALIASES: std::sync::OnceLock<regex::Regex> = std::sync::OnceLock::new();
-        let aliases =
-            ALIASES.get_or_init(|| regex::Regex::new(r"(?:^|[\s\[,{:])[*&][A-Za-z0-9_-]").unwrap());
         for input in inputs {
             total += input.text.len();
             if result.documents.len() >= MAX_FILES || total > MAX_BYTES {
@@ -309,7 +311,11 @@ impl SemanticSnapshot {
                 continue;
             }
             // Aliases and anchors can share source ranges or hide generated references.
-            if aliases.is_match(&input.text) {
+            static ALIASES: std::sync::OnceLock<regex::Regex> = std::sync::OnceLock::new();
+            if ALIASES
+                .get_or_init(|| regex::Regex::new(r"(?:^|[\s\[,{:])[*&][A-Za-z0-9_-]").unwrap())
+                .is_match(&input.text)
+            {
                 result
                     .rename_blockers
                     .push("YAML anchors/aliases require manual reference review".into());
@@ -410,49 +416,75 @@ impl SemanticSnapshot {
                         .push("unknown or malformed document type".into());
                     continue;
                 }
-                let Some(key) = entries(&kind) else {
-                    continue;
-                };
-                for (offset, entry) in value
-                    .get(key)
-                    .and_then(Value::as_array)
-                    .into_iter()
-                    .flatten()
-                    .enumerate()
-                {
-                    let Some(id) = entry.get("id").and_then(Value::as_str) else {
-                        continue;
-                    };
-                    let pointer = format!("/{key}/{offset}/id");
-                    let Some(range) = source
-                        .scalar_value_range(document, &pointer, id)
-                        .filter(|_| token(id))
-                    else {
-                        result.limitations.push(format!(
-                            "nonliteral content declaration: {}",
-                            input.path.display()
-                        ));
-                        continue;
-                    };
-                    let identity = ContentIdentity::new(pack, &kind, id).unwrap();
-                    result.symbols.push(ContentSymbol {
-                        generated_path: generated_path(pack, id, identity.namespace),
-                        identity,
-                        pack_ref: pack.clone(),
-                        id: id.into(),
-                        kind: kind.clone(),
-                        path: input.path.clone(),
-                        document,
-                        range,
-                        parent: entry
-                            .get("parent")
-                            .and_then(Value::as_str)
-                            .or_else(|| crate::slots::default_base_class(key))
-                            .map(str::to_owned),
-                    });
+                for key in entries(&kind) {
+                    for (offset, entry) in value
+                        .get(*key)
+                        .and_then(Value::as_array)
+                        .into_iter()
+                        .flatten()
+                        .enumerate()
+                    {
+                        let Some(id) = entry.get("id").and_then(Value::as_str) else {
+                            continue;
+                        };
+                        let pointer = format!("/{key}/{offset}/id");
+                        let Some(range) = source.scalar_value_range(document, &pointer, id).filter(
+                            |_| match kind.as_str() {
+                                "eventrule" => {
+                                    !id.is_empty()
+                                        && id.len() <= 128
+                                        && id.chars().all(|ch| {
+                                            ch.is_ascii_alphanumeric()
+                                                || matches!(ch, '_' | '.' | '-')
+                                        })
+                                }
+                                "resourcenode" => !id.trim().is_empty() && !id.contains(['{', '}']),
+                                _ => token(id),
+                            },
+                        ) else {
+                            result.limitations.push(format!(
+                                "nonliteral content declaration: {}",
+                                input.path.display()
+                            ));
+                            continue;
+                        };
+                        let identity = ContentIdentity::new(pack, &kind, id).unwrap();
+                        result.symbols.push(ContentSymbol {
+                            generated_path: generated_path(pack, id, identity.namespace),
+                            identity,
+                            pack_ref: pack.clone(),
+                            id: id.into(),
+                            kind: kind.clone(),
+                            path: input.path.clone(),
+                            document,
+                            range,
+                            parent: entry
+                                .get("parent")
+                                .and_then(Value::as_str)
+                                .or_else(|| crate::slots::default_base_class(key))
+                                .map(str::to_owned),
+                        });
+                    }
                 }
             }
         }
+        let reference_index = ReferenceIndex {
+            full: result
+                .symbols
+                .iter()
+                .filter_map(|symbol| {
+                    symbol
+                        .generated_path
+                        .as_ref()
+                        .map(|path| (path.to_lowercase(), symbol.identity.clone()))
+                })
+                .collect(),
+            local: result
+                .symbols
+                .iter()
+                .map(|symbol| symbol.identity.clone())
+                .collect(),
+        };
         for (file, docs) in &parsed_files {
             let input = &result.documents[*file];
             if crate::project::is_pack_manifest(&input.path) {
@@ -484,7 +516,7 @@ impl SemanticSnapshot {
                     document,
                     &source,
                     reflection,
-                    &result.symbols,
+                    &reference_index,
                     &mut references,
                     &mut blockers,
                 );
@@ -779,6 +811,11 @@ fn namespaces(
     result
 }
 
+struct ReferenceIndex {
+    full: BTreeMap<String, ContentIdentity>,
+    local: BTreeSet<ContentIdentity>,
+}
+
 #[allow(clippy::too_many_arguments)]
 fn walk_references(
     value: &Value,
@@ -790,7 +827,7 @@ fn walk_references(
     document: usize,
     source: &SourceMap<'_>,
     reflection: &ReflectionIndex,
-    symbols: &[ContentSymbol],
+    reference_index: &ReferenceIndex,
     references: &mut Vec<ContentReference>,
     blockers: &mut Vec<String>,
 ) {
@@ -807,7 +844,7 @@ fn walk_references(
                     document,
                     source,
                     reflection,
-                    symbols,
+                    reference_index,
                     references,
                     blockers,
                 );
@@ -825,7 +862,7 @@ fn walk_references(
                     document,
                     source,
                     reflection,
-                    symbols,
+                    reference_index,
                     references,
                     blockers,
                 );
@@ -852,24 +889,44 @@ fn walk_references(
                 ));
             }
             let bare = unwrap_object_path(value);
-            let mut candidates: Vec<_> = symbols
-                .iter()
-                .filter(|symbol| {
-                    let full = symbol.generated_path.as_deref().is_some_and(|path| {
-                        bare.eq_ignore_ascii_case(path)
-                            || (!typed && value.to_lowercase().contains(&path.to_lowercase()))
-                    });
-                    let local = (typed || unknown_operand)
-                        && token(bare)
-                        && symbol.identity.pack == crate::rules::runtime_identity(pack)
-                        && ContentIdentity::new(pack, &symbol.kind, bare).as_ref()
-                            == Some(&symbol.identity);
-                    (full || local) && (!typed || types.contains(&symbol.identity.namespace))
-                })
-                .map(|symbol| symbol.identity.clone())
-                .collect();
-            candidates.sort();
-            candidates.dedup();
+            let mut candidates = BTreeSet::new();
+            if let Some(identity) = reference_index.full.get(&bare.to_lowercase()) {
+                if !typed || types.contains(&identity.namespace) {
+                    candidates.insert(identity.clone());
+                }
+            } else if !typed && value.to_ascii_lowercase().contains("/kdataforge/gen") {
+                static PATHS: std::sync::OnceLock<regex::Regex> = std::sync::OnceLock::new();
+                for found in PATHS
+                    .get_or_init(|| {
+                        regex::Regex::new(
+                            r"(?i)/KDataForge/(?:Gen|GenAssets)/[A-Za-z0-9_]+\.[A-Za-z0-9_]+",
+                        )
+                        .unwrap()
+                    })
+                    .find_iter(value)
+                {
+                    if let Some(identity) = reference_index.full.get(&found.as_str().to_lowercase())
+                    {
+                        candidates.insert(identity.clone());
+                    }
+                }
+            }
+            if (typed || unknown_operand) && token(bare) {
+                for namespace in [GeneratedNamespace::Class, GeneratedNamespace::Asset] {
+                    if typed && !types.contains(&namespace) {
+                        continue;
+                    }
+                    let identity = ContentIdentity {
+                        pack: crate::rules::runtime_identity(pack),
+                        namespace,
+                        id: crate::rules::runtime_identity(bare),
+                    };
+                    if reference_index.local.contains(&identity) {
+                        candidates.insert(identity);
+                    }
+                }
+            }
+            let candidates: Vec<_> = candidates.into_iter().collect();
             if !candidates.is_empty() {
                 references.push(ContentReference {
                     path: input.path.clone(),
@@ -946,6 +1003,9 @@ pub fn complete(
     reflection: &ReflectionIndex,
     query: &CompletionQuery,
 ) -> Result<CompletionPage, String> {
+    if snapshot.snapshot.reflection_digest != reflection.digest {
+        return Err("stale reflection snapshot".into());
+    }
     if query.query.len() > 1024 {
         return Err("completion query exceeds 1024 bytes".into());
     }

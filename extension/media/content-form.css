@@ -1,0 +1,5 @@
+body { color: var(--vscode-foreground); background: var(--vscode-editor-background); font: var(--vscode-font-size) var(--vscode-font-family); padding: 1rem; }
+main { max-width: 42rem; margin: auto; }
+.field { display: grid; gap: .35rem; margin: 1rem 0; }
+input, select { color: var(--vscode-input-foreground); background: var(--vscode-input-background); border: 1px solid var(--vscode-input-border); padding: .4rem; }
+input:focus, select:focus { outline: 1px solid var(--vscode-focusBorder); }

@@ -43,6 +43,12 @@ pub(crate) fn client_caps(capabilities: &ClientCapabilities) -> ClientCaps {
         .and_then(|document| document.signature_help.as_ref())
         .and_then(|help| help.signature_information.as_ref());
     ClientCaps {
+        versioned_edits: capabilities
+            .workspace
+            .as_ref()
+            .and_then(|workspace| workspace.workspace_edit.as_ref())
+            .and_then(|edit| edit.document_changes)
+            .unwrap_or(false),
         snippets: completion_item
             .and_then(|item| item.snippet_support)
             .unwrap_or(false),
@@ -692,6 +698,9 @@ impl LanguageServer for Backend {
         &self,
         params: TextDocumentPositionParams,
     ) -> Result<Option<PrepareRenameResponse>> {
+        if !self.caps().versioned_edits {
+            return Ok(None);
+        }
         let Some(path) =
             docs::path_of(&params.text_document.uri).map(|path| docs::canonical(&path))
         else {
@@ -730,6 +739,9 @@ impl LanguageServer for Backend {
     }
 
     async fn rename(&self, params: RenameParams) -> Result<Option<WorkspaceEdit>> {
+        if !self.caps().versioned_edits {
+            return Err(RpcError::invalid_params("safe rename requires workspace.workspaceEdit.documentChanges; custom clients can use kdf/renameContent"));
+        }
         let uri = params.text_document_position.text_document.uri;
         let path = docs::path_of(&uri)
             .map(|path| docs::canonical(&path))

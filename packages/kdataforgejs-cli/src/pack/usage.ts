@@ -38,6 +38,18 @@ export function discoverPackUsage(packRoot: string, entry: string): PackUsage {
 				const target = resolveModule(scriptsRoot, file, specifier);
 				if (target !== undefined) queue.push(target);
 			}
+			if (ts.isNewExpression(node) && ts.isIdentifier(node.expression) &&
+				(node.expression.text === "YMLFile" || node.expression.text === "JSONFile")) {
+				if (declaresName(source, node.expression.text)) {
+					throw new Error(`${shownPath(packRoot, file)}: ${node.expression.text} cannot be shadowed.`);
+				}
+				const path = stringLiteral(node.arguments?.[0]);
+				const validExtension = node.expression.text === "JSONFile" ? path?.endsWith(".json") : /\.ya?ml$/.test(path ?? "");
+				if (node.arguments?.length !== 1 || path === undefined || !validExtension) {
+					throw new Error(`${shownPath(packRoot, file)}: ${node.expression.text} requires one literal pack-relative path with the matching extension.`);
+				}
+				imports.set(`yaml\n${path}`, { kind: "yaml", path });
+			}
 			if (!ts.isCallExpression(node) || !ts.isPropertyAccessExpression(node.expression)) return;
 			const method = node.expression.name.text;
 			if (method === "import") {
@@ -65,6 +77,18 @@ export function discoverPackUsage(packRoot: string, entry: string): PackUsage {
 		imports: [...imports.values()].sort((left, right) => left.path.localeCompare(right.path) || left.kind.localeCompare(right.kind)),
 		reflectionClasses: [...reflectionClasses].sort((left, right) => left.localeCompare(right)),
 	};
+}
+
+function declaresName(source: ts.SourceFile, name: string): boolean {
+	let declared = false;
+	visit(source, (node) => {
+		if (declared) return;
+		if ((ts.isVariableDeclaration(node) || ts.isFunctionDeclaration(node) || ts.isClassDeclaration(node) ||
+			ts.isParameter(node)) && node.name && ts.isIdentifier(node.name) && node.name.text === name) declared = true;
+		if (ts.isImportSpecifier(node) && node.name.text === name) declared = true;
+		if (ts.isImportClause(node) && node.name?.text === name) declared = true;
+	});
+	return declared;
 }
 
 function visit(node: ts.Node, callback: (node: ts.Node) => void): void {

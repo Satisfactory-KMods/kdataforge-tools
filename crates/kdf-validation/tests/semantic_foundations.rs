@@ -37,6 +37,12 @@ fn current_runtime_script_manifest_and_sdk_starter_validate() {
     let result =
         validate_document(Path::new("pack.yml"), starter, &LintOptions::default()).unwrap();
     assert!(result.ok, "{:?}", result.diagnostics);
+    let sdk = include_str!(
+        "../../../apps/code-oss/extension/sdk/kdataforgejs/template/DataForge/pack.yml"
+    )
+    .replace("{{ref}}", "SdkStarter");
+    let result = validate_document(Path::new("pack.yml"), &sdk, &LintOptions::default()).unwrap();
+    assert!(result.ok, "{:?}", result.diagnostics);
     for aliases in [
         "classes: [/Script/Engine.Actor]",
         "reflectionClasses: [/Script/Engine.Actor]",
@@ -97,6 +103,25 @@ fn identities_and_versions_are_separate_and_stale_snapshots_refuse() {
         .rename(&token, Path::new("/workspace/items.item.yml"), at(), "New")
         .unwrap_err()
         .contains("stale"));
+}
+
+#[test]
+fn loaded_snapshot_matches_runtime_case_insensitive_yaml_extensions() {
+    let root = tempfile::tempdir().unwrap();
+    std::fs::write(
+        root.path().join("pack.yml"),
+        "ref: Test\nname: Test\nversion: 1.0.0\n",
+    )
+    .unwrap();
+    std::fs::write(
+        root.path().join("items.item.YML"),
+        "type: item\nitems: [{id: Upper}]\n",
+    )
+    .unwrap();
+    let data =
+        SemanticSnapshot::load(root.path(), &[], &ReflectionIndex::unavailable("none"), 1).unwrap();
+    assert!(data.complete, "{:?}", data.limitations);
+    assert!(data.symbols.iter().any(|symbol| symbol.id == "Upper"));
 }
 
 #[test]
@@ -306,10 +331,191 @@ fn replacement_requires_verified_authoritative_unique_metadata_and_same_evidence
             json!({"schemaVersion":1,"replacements":[unverified]}),
             false,
         ),
+        (
+            json!({"schemaVersion":1,"replacements":[{
+                "kind":"class","oldName":"/Script/Test.Old","newName":"/Script/Test.New",
+                "owner":7,"authority":"unreal-core-redirects","verified":true
+            }]}),
+            false,
+        ),
     ] {
         let (_file, index) = reflection(metadata, limited);
         assert!(index
             .replacement_evidence("class", None, "/Script/Test.Old")
+            .replacement
+            .is_none());
+    }
+}
+
+#[test]
+fn rename_assets_in_multidoc_yaml_and_typed_audio_refs_preserves_class_namespace() {
+    let data = snapshot(vec![
+        input("mixed.yml", "type: sound\nsounds:\n  - id: Voice\n    file: voice.wav\n---\ntype: item\nitems:\n  - id: Voice\n"),
+        input("audio.cdo.yml", "type: cdo\npatches:\n  - target: /Script/Test.Message\n    properties:\n      - path: mAudioEvent\n        value: Voice # keep comment\n"),
+    ]);
+    let plan = data
+        .rename(
+            &data.snapshot,
+            Path::new("/workspace/mixed.yml"),
+            Position {
+                line: 2,
+                character: 9,
+            },
+            "VoiceNew",
+        )
+        .unwrap();
+    assert_eq!(plan.identity.namespace, GeneratedNamespace::Asset);
+    assert_eq!(plan.documents.len(), 2);
+    let edits = plan
+        .documents
+        .iter()
+        .find(|document| document.path.ends_with("mixed.yml"))
+        .unwrap();
+    assert_eq!(edits.edits.len(), 1);
+    assert_eq!(edits.edits[0].range.start.line, 2);
+    let audio = plan
+        .documents
+        .iter()
+        .find(|document| document.path.ends_with("audio.cdo.yml"))
+        .unwrap();
+    assert_eq!(audio.edits[0].expected_text, "Voice");
+}
+
+#[test]
+fn unresolved_operands_aliases_and_plain_config_targets_block_rename() {
+    for extra in [
+        input("operand.cdo.yml","type: cdo\npatches: [{target: /Script/Test.Unknown, properties: [{path: mUnknown, value: Item-A}]}]\n"),
+        input("alias.cdo.yml","type: cdo\npatches: [{target: &old /KDataForge/Gen/Pack_Test.Gen_Pack_Test_Item_A, properties: []}, {target: *old, properties: []}]\n"),
+        input("cfg.cdo.yml","type: cdo\npatches: [{target: cfg:chosenClass, properties: []}]\n"),
+        input("other/pack.yml","ref: pack.test\nname: Collision\nversion: 1.0.0\n"),
+    ] {
+        let data=snapshot(vec![extra]);
+        assert!(data.rename(&data.snapshot,Path::new("/workspace/items.item.yml"),at(),"New").is_err());
+    }
+}
+
+#[test]
+fn snapshot_keeps_event_rule_and_resource_placement_identity_rules() {
+    let data = snapshot(vec![
+        input(
+            "event.eventrule.yml",
+            "type: eventrule\nrules: [{id: 1-Event, event: worldReady, actions: []}]\n",
+        ),
+        input(
+            "placements.resourcenode.yml",
+            "type: resourcenode\nadd: [{id: Node-A}]\nreplace: [{id: node-a}]\n",
+        ),
+    ]);
+    assert!(data.complete, "{:?}", data.limitations);
+    let events: Vec<_> = data
+        .symbols
+        .iter()
+        .filter(|symbol| symbol.identity.namespace == GeneratedNamespace::EventRule)
+        .collect();
+    assert_eq!(events[0].identity.id, "1-event");
+    let placements: Vec<_> = data
+        .symbols
+        .iter()
+        .filter(|symbol| symbol.identity.namespace == GeneratedNamespace::ResourcePlacement)
+        .collect();
+    assert_eq!(placements.len(), 2);
+    assert_ne!(placements[0].identity, placements[1].identity);
+}
+
+#[test]
+fn reflected_classes_and_assets_have_hard_completion_caps_and_digest_guards() {
+    let file = tempfile::Builder::new()
+        .suffix(".kdfdata")
+        .tempfile()
+        .unwrap();
+    let mut zip = zip::ZipWriter::new(file.reopen().unwrap());
+    zip.start_file("manifest.json", zip::write::SimpleFileOptions::default())
+        .unwrap();
+    write!(
+        zip,
+        "{}",
+        json!({"schemaVersion":1,"counts":{"classes":241},"failedLoads":[]})
+    )
+    .unwrap();
+    zip.start_file("classes.ndjson", zip::write::SimpleFileOptions::default())
+        .unwrap();
+    writeln!(
+        zip,
+        "{}",
+        json!({"path":"/Script/Test.Base","properties":[]})
+    )
+    .unwrap();
+    for index in 0..240 {
+        writeln!(zip,"{}",json!({"path":format!("/Script/Test.Class{index:03}"),"super":"/Script/Test.Base","properties":[]})).unwrap();
+    }
+    zip.start_file(
+        "indexes/assets.json",
+        zip::write::SimpleFileOptions::default(),
+    )
+    .unwrap();
+    let assets:Vec<_>=(0..240).map(|index|json!({"path":format!("/Game/Assets/A{index:03}.A{index:03}"),"assetClass":"/Script/Test.Base"})).collect();
+    write!(zip,"{}",json!({"/Script/Test.Base":{"class":"/Script/Test.Base","total":240,"truncated":false,"assets":assets}})).unwrap();
+    zip.finish().unwrap();
+    let reflection = ReflectionIndex::load(file.path());
+    assert!(reflection.archive_is_current());
+    let data = SemanticSnapshot::from_inputs(Path::new("/workspace"), vec![], &reflection, 1);
+    for kind in ["classes", "assets"] {
+        let query: CompletionQuery = serde_json::from_value(
+            json!({"kind":kind,"baseClass":"/Script/Test.Base","limit":20000}),
+        )
+        .unwrap();
+        let page = complete(&data, &reflection, &query).unwrap();
+        assert_eq!(page.items.len(), 200);
+        assert!(page.complete && page.is_incomplete, "{page:?}");
+        assert!(complete(&snapshot(vec![]), &reflection, &query).is_err());
+    }
+    std::fs::write(file.path(), b"changed").unwrap();
+    assert!(!reflection.archive_is_current());
+}
+
+#[test]
+fn property_replacement_metadata_is_exact_and_rejects_missing_targets_or_authority() {
+    let record = json!({"kind":"property","owner":"/Script/Test.New","oldName":"mOld","newName":"mNew","verified":true,"authority":"unreal-core-redirects"});
+    let (_file, index) = reflection(
+        json!({"schemaVersion":1,"replacements":[record.clone()]}),
+        false,
+    );
+    let lint = validate_document(
+        Path::new("patch.cdo.yml"),
+        "type: cdo\npatches: [{target: /Script/Test.New, properties: [{path: mOld, value: 1}]}]\n",
+        &LintOptions {
+            datapack_index: Some(std::sync::Arc::new(index)),
+            ..Default::default()
+        },
+    )
+    .unwrap();
+    let diagnostic = lint
+        .diagnostics
+        .iter()
+        .find(|item| item.code == "datapack.unknown-property")
+        .unwrap();
+    assert_eq!(
+        diagnostic
+            .evidence
+            .as_ref()
+            .unwrap()
+            .replacement
+            .as_ref()
+            .unwrap()
+            .new_name,
+        "mNew"
+    );
+    for (key, value) in [
+        ("newName", json!("missing")),
+        ("authority", json!("similarity")),
+        ("owner", json!("/Script/Test.Other")),
+        ("verified", json!(false)),
+    ] {
+        let mut invalid = record.clone();
+        invalid[key] = value;
+        let (_file, index) = reflection(json!({"schemaVersion":1,"replacements":[invalid]}), false);
+        assert!(index
+            .replacement_evidence("property", Some("/Script/Test.New"), "mOld")
             .replacement
             .is_none());
     }

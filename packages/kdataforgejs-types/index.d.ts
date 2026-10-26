@@ -3,6 +3,11 @@
 declare module "@sf-kmods/kdataforgejs" {
     /** Capability ids for `defineMeta`. Reading and writing reflected values is always granted. */
     export interface CapabilityMap {
+        readonly "kdf.schematics.read": true;
+        readonly "kdf.overrides.temporary": true;
+        readonly "kdf.files.write": true;
+        readonly "kdf.datatables.write": true;
+        readonly "kdf.datatables.read": true;
         readonly "kdf.behavior.runtime": true;
         readonly "kdf.classes.define": true;
         readonly "kdf.config.read": true;
@@ -486,10 +491,10 @@ declare module "@sf-kmods/kdataforgejs" {
         readonly now: () => number;
         readonly random: (seed: string) => SeededRandom;
         readonly defineEvent: <const S extends EventSchema>(id: string, schema: S) => CustomEvent<S>;
-        readonly onCustom: <S extends EventSchema>(event: CustomEvent<S>, key: string, callback: (payload: EventPayload<NoInfer<S>>) => void) => Subscription;
+        readonly onCustom: <S extends EventSchema>(event: CustomEvent<S>, key: string, callback: (payload: EventPayload<NoInfer<S>>) => void, options?: EventOptions<EventPayload<NoInfer<S>>>) => Subscription;
         readonly emit: <S extends EventSchema>(event: CustomEvent<S>, payload: EventPayload<NoInfer<S>>) => void;
         /** Atomic, bounded property transaction. Tracked refs and function calls are rejected. */
-        readonly batch: <T extends readonly InputValue[]>(writes: {
+        readonly batch: <T extends readonly unknown[]>(writes: {
             readonly [K in keyof T]: { readonly property: WritableValueRef<T[K]>; readonly value: NoInfer<T[K]> };
         }) => void;
         readonly lookupItem: (id: string, pack?: string) => Class<UObject> | null;
@@ -556,24 +561,24 @@ declare module "@sf-kmods/kdataforgejs" {
         readonly on: {
             (target: Target, eventId: string, callback: PositionalEventCallback): Subscription;
             (target: Target, eventId: string, callback: NamedEventCallback): Subscription;
-            <K extends string>(target: Target, eventId: string, key: K, callback: PositionalEventCallback): Subscription;
-            <K extends string>(target: Target, eventId: string, key: K, callback: NamedEventCallback): Subscription;
-            <K extends string, TKey extends string>(eventId: K, key: TKey, callback: PositionalEventCallback | NamedEventCallback): Subscription;
+            <K extends string>(target: Target, eventId: string, key: K, callback: PositionalEventCallback, options?: EventOptions): Subscription;
+            <K extends string>(target: Target, eventId: string, key: K, callback: NamedEventCallback, options?: EventOptions): Subscription;
+            <K extends string, TKey extends string>(eventId: K, key: TKey, callback: PositionalEventCallback | NamedEventCallback, options?: EventOptions): Subscription;
         };
         readonly off: (subscription: Subscription) => void;
         readonly unregisterEvent: (key: string) => void;
         readonly hook: {
-            <T extends UObject, A extends readonly Value[], R>(target: Class<T>, hook: Hook<T, A, R>, callback: (call: HookCall<T, A, R>) => void): Subscription;
-            <T extends UObject, A extends readonly Value[], R>(target: Class<T>, hook: Hook<T, A, R>, phase: "before" | "after", callback: (call: HookCall<T, A, R>) => void): Subscription;
+            <T extends UObject, A extends readonly Value[], R>(target: Class<T>, hook: Hook<T, A, R>, callback: (call: HookCall<T, A, R>) => void, options?: HookOptions<A>): Subscription;
+            <T extends UObject, A extends readonly Value[], R>(target: Class<T>, hook: Hook<T, A, R>, phase: "before" | "after", callback: (call: HookCall<T, A, R>) => void, options?: HookOptions<A>): Subscription;
             <T extends UObject, A extends readonly Value[], R>(target: Class<T>, hook: Hook<T, A, R>, phase: "replace", callback: (call: HookCall<T, A, R>) => R | void): Subscription;
         };
         readonly unhook: (subscription: Subscription) => void;
         readonly onTyped: {
             (target: Target, eventId: string, callback: PositionalEventCallback): Subscription;
             (target: Target, eventId: string, callback: NamedEventCallback): Subscription;
-            <K extends string>(target: Target, eventId: string, key: K, callback: PositionalEventCallback): Subscription;
-            <K extends string>(target: Target, eventId: string, key: K, callback: NamedEventCallback): Subscription;
-            <K extends string, TKey extends string>(eventId: K, key: TKey, callback: PositionalEventCallback | NamedEventCallback): Subscription;
+            <K extends string>(target: Target, eventId: string, key: K, callback: PositionalEventCallback, options?: EventOptions): Subscription;
+            <K extends string>(target: Target, eventId: string, key: K, callback: NamedEventCallback, options?: EventOptions): Subscription;
+            <K extends string, TKey extends string>(eventId: K, key: TKey, callback: PositionalEventCallback | NamedEventCallback, options?: EventOptions): Subscription;
         };
         readonly spawnActor: <K extends ActorClassKey>(classDescriptorId: K, initialWrites?: ActorInitialWrites<K>) => CatalogActor<K>;
         /** Explicit untyped escape hatch for tools operating on runtime-discovered catalogs. */
@@ -602,4 +607,85 @@ declare module "@sf-kmods/kdataforgejs" {
         readonly add: (cleanup: () => void) => void;
         readonly dispose: () => void;
     }
+}
+
+/** ABI 13 / declaration format 10 authoring extensions. Native limits and phase checks apply at every use. */
+declare module "@sf-kmods/kdataforgejs" {
+    export type Delivery = { readonly mode: "immediate" } | { readonly mode: "debounce" | "throttle"; readonly seconds: number };
+    export interface EventOptions<P = Readonly<Record<string, Value>>> {
+        readonly priority?: number;
+        readonly once?: boolean;
+        readonly filter?: Partial<P>;
+        readonly delivery?: Delivery;
+    }
+    export type HookFilter<A extends readonly Value[]> = { readonly [I in Extract<keyof A, `${number}`>]?: A[I] };
+    export interface HookOptions<A extends readonly Value[]> { readonly priority?: number; readonly once?: boolean; readonly filter?: HookFilter<A>; }
+    export interface HookObservation<A extends readonly Value[], R> { readonly args: A; readonly returnValue?: R; }
+    export interface SpatialQuery {
+        readonly limit?: number;
+        readonly tags?: readonly string[];
+        readonly sphere?: { readonly center: readonly [number, number, number]; readonly radius: number };
+        readonly box?: { readonly min: readonly [number, number, number]; readonly max: readonly [number, number, number] };
+    }
+    /** A next/close call invalidates this cursor's preceding page handles. Eight cursors, 30-second idle expiry. */
+    export interface ActorCursor<T extends UObject> {
+        next(): { readonly items: readonly T[]; readonly visited: number; readonly done: boolean };
+        close(): void;
+    }
+    export interface WorldAccess {
+        findActors<C extends Class<UObject>>(type: C, query: SpatialQuery): WorldQueryResult<ClassValue<C>>;
+        openQuery<C extends Class<UObject>>(type: C, query?: SpatialQuery): ActorCursor<ClassValue<C>>;
+    }
+    export interface ContentGraphResult<T extends UObject> extends WorldQueryResult<T> { readonly coverage: "loadedAuthorized"; }
+    export interface ContentGraph {
+        recipes<C extends Class<UObject>>(type: C, filter?: { readonly ingredient?: Class<UObject>; readonly product?: Class<UObject>; readonly producedIn?: Class<UObject> }, limit?: number): ContentGraphResult<ClassValue<C>>;
+        schematicsUnlocking<C extends Class<UObject>>(type: C, recipe: Class<UObject>, limit?: number): ContentGraphResult<ClassValue<C>>;
+    }
+    const rowSchemaBrand: unique symbol;
+    export interface StructType<T> { readonly [rowSchemaBrand]: (value: T) => T; }
+    export interface DataTable<T> { get(rowName: string): T | null; set(rowName: string, value: NoInfer<T>): void; }
+    const valuePropertiesBrand: unique symbol;
+    export interface ValuePropertyTag<T> { readonly [valuePropertiesBrand]: T; }
+    export type ValueProperties<T> = T extends ValuePropertyTag<infer P> ? P : { readonly [K in keyof T as T[K] extends ReadonlyValueRef<unknown> ? K : never]: T[K] };
+    /** Explicit initialization-only scalar CDO sets. No selectors, insertion, generation or registration. */
+    export interface ReversibleCdoDocument {
+        readonly type: "cdo";
+        readonly patches: readonly { readonly target: string; readonly properties: readonly { readonly path: string; readonly op?: "set"; readonly value: Exclude<InputValue, null | undefined> }[] }[];
+    }
+    export interface LifecyclePayloads {
+        readonly worldReady: { readonly worldGeneration: bigint };
+        readonly travel: { readonly worldGeneration: bigint };
+        readonly shutdown: { readonly worldGeneration: bigint; readonly reason: "shutdown" };
+    }
+    export interface TemporaryOverride extends Subscription { restore(): void; }
+    export interface Context {
+        readonly hookOnce: {
+            <T extends UObject, A extends readonly Value[], R>(target: Class<T>, hook: Hook<T,A,R>, callback: (call: HookCall<T,A,R>) => void, options?: Omit<HookOptions<A>,"once">): Subscription;
+            <T extends UObject, A extends readonly Value[], R>(target: Class<T>, hook: Hook<T,A,R>, phase: "before" | "after", callback: (call: HookCall<T,A,R>) => void, options?: Omit<HookOptions<A>,"once">): Subscription;
+        };
+        readonly observeHook: <T extends UObject, A extends readonly Value[], R>(target: Class<T>, hook: Hook<T,A,R>, key: string, callback: (call: HookObservation<A,R>) => void, options?: HookOptions<A> & { readonly delivery?: Delivery }) => Subscription;
+        readonly lifecycle: { on<K extends keyof LifecyclePayloads>(event: K, key: string, callback: (event: LifecyclePayloads[K]) => void): Subscription };
+        readonly applyDocuments: (documents: readonly ReversibleCdoDocument[]) => void;
+        readonly dataTables: { open<T>(table: UObject, rowType: StructType<T>): DataTable<T> };
+        readonly values: <T extends UObject>(object: T) => ValueProperties<T>;
+        readonly graph: ContentGraph;
+        /** Scalar actor properties only; 0.001..3600 seconds. Later KDF writes supersede restoration. */
+        readonly overrideFor: <T extends Value>(property: WritableValueRef<T>, value: NoInfer<T>, seconds: number) => TemporaryOverride;
+    }
+}
+/** Bounded YAML/JSON data; both codecs preserve quoted strings and decode unquoted booleans/numbers. */
+type KDFFileData = null | boolean | number | string | readonly KDFFileData[] | { readonly [key: string]: KDFFileData };
+declare const YML: Readonly<{ parse(text: string): KDFFileData; stringify(value: KDFFileData): string }>;
+/** Server runtime only. Compiler requires direct static string literal. Reads sandbox override, otherwise immutable attested pack input. */
+declare class YMLFile {
+    constructor(path: string);
+    json(): Promise<KDFFileData>;
+    /** Server runtime only, requires kdf.files.write. */
+    save(value: KDFFileData): Promise<void>;
+}
+declare class JSONFile {
+    constructor(path: string);
+    json(): Promise<KDFFileData>;
+    /** Server runtime only, requires kdf.files.write. */
+    save(value: KDFFileData): Promise<void>;
 }

@@ -85,3 +85,6 @@ interface Performance { readonly timeOrigin: number; now(): number; } declare co
 /** Bounded KDataForgeJS logging. No grouping, timing, or trace APIs; table output is safely summarized. */
 interface Console { log(...data: readonly unknown[]): void; info(...data: readonly unknown[]): void; warn(...data: readonly unknown[]): void; error(...data: readonly unknown[]): void; debug(...data: readonly unknown[]): void; table(data: unknown): void; }
 declare const console: Console;
+
+/** Standard key exclusion utility used by observational hook options. */
+type Omit<T, K extends PropertyKey> = Pick<T, Exclude<keyof T, K>>;
