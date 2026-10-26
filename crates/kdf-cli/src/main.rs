@@ -217,6 +217,10 @@ fn run_lint(args: LintArgs, why: Option<(Option<String>, Option<u32>)>) -> i32 {
         profile,
         no_color: _,
     } = args;
+    if why.is_some() && matches!(format, Some(Format::Github | Format::Sarif)) {
+        eprintln!("why supports --format json or text");
+        return 2;
+    }
 
     let settings = match LintSettings::load(&path, user_settings.as_deref()) {
         Ok(settings) => settings,

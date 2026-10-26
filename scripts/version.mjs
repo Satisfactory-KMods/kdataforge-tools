@@ -10,6 +10,7 @@ const jsonManifests = [
   'packages/kdataforgejs-types/package.json',
   'packages/kdataforgejs-cli/package.json',
 ];
+const cargoPackages = ['kdf-cli', 'kdf-language-server', 'kdf-validation'];
 
 export function getQuarter(month) {
   if (!Number.isInteger(month) || month < 0 || month > 11) throw new Error(`Invalid month ${month}`);
@@ -21,6 +22,16 @@ export function computeVersion(build, channel, date = new Date()) {
   if (!['beta', 'stable'].includes(channel)) throw new Error(`Invalid channel ${channel}`);
   const base = `${date.getFullYear()}.${getQuarter(date.getMonth())}.${build}`;
   return channel === 'beta' ? `${base}-beta.0` : base;
+}
+
+export function versionCargoLock(source, version) {
+  let result = source;
+  for (const name of cargoPackages) {
+    const pattern = new RegExp(`(\\[\\[package\\]\\]\\nname = "${name}"\\nversion = ")[^"]+("\\n)`);
+    if (!pattern.test(result)) throw new Error(`Cargo.lock package ${name} not found`);
+    result = result.replace(pattern, `$1${version}$2`);
+  }
+  return result;
 }
 
 function buildNumber() {
@@ -49,6 +60,8 @@ export function applyVersion(version) {
   const cargo = join(root, 'Cargo.toml');
   const source = readFileSync(cargo, 'utf8');
   writeFileSync(cargo, source.replace(/(\[workspace\.package\][\s\S]*?\nversion = ")[^"]+("\n)/, `$1${version}$2`));
+  const cargoLock = join(root, 'Cargo.lock');
+  writeFileSync(cargoLock, versionCargoLock(readFileSync(cargoLock, 'utf8'), version));
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {

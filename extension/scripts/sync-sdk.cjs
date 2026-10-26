@@ -15,6 +15,7 @@ for (const [from, to] of [
   ['index.d.ts', 'types/index.d.ts'],
   ['lib/kdfjs-es2020.d.ts', 'types/lib/kdfjs-es2020.d.ts'],
   ['tsconfig.base.json', 'types/tsconfig.base.json'],
+  ['authoring.kdfjs.json', 'authoring-metadata.json'],
 ]) fs.copyFileSync(path.join(types, from), path.join(target, to));
 fs.writeFileSync(path.join(target, 'types/package.json'), JSON.stringify({
   name: '@sf-kmods/kdataforgejs', version: manifest.version, private: true, types: 'index.d.ts',

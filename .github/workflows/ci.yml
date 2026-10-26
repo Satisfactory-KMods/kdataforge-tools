@@ -3,8 +3,6 @@ name: KDataForge Tools CI
 on:
   push:
     branches: [dev, main]
-  pull_request:
-    branches: [dev, main]
   workflow_dispatch:
 
 permissions:
@@ -23,7 +21,7 @@ jobs:
           - os: Windows x64
             runner: '["self-hosted","Windows","X64"]'
           - os: Linux x64
-            runner: '"ubuntu-24.04"'
+            runner: '["arc-runner-set"]'
     name: ${{ matrix.os }}
     runs-on: ${{ fromJSON(matrix.runner) }}
     timeout-minutes: 60
