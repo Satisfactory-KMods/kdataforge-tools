@@ -37,7 +37,7 @@
 	"scripts": {
 		"sync:schemas": "node scripts/sync-content-schemas.mjs",
 		"build": "tsc -p tsconfig.build.json",
-		"test": "tsc -p tsconfig.test.json && node --test \"dist-test/test/*.test.js\""
+		"test": "tsc -p tsconfig.test.json && node --test --test-timeout=15000 --test-force-exit \"dist-test/test/*.test.js\""
 	},
 	"dependencies": {
 		"@biomejs/js-api": "6.1.0",
