@@ -157,8 +157,17 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           set -euo pipefail
-          tag='${{ needs.version.outputs.channel }}'
+          channel='${{ needs.version.outputs.channel }}'
+          tag="$channel"
           if [ "$tag" = stable ]; then tag=latest; fi
           mapfile -t files < <(find "$RUNNER_TEMP/npm" -type f -name '*.tgz' -print | sort)
           test "${#files[@]}" -eq 2
-          for file in "${files[@]}"; do npm publish "$file" --access public --tag "$tag"; done
+          for file in "${files[@]}"; do
+            npm publish "$file" --access public --tag "$tag"
+            if [ "$channel" = beta ]; then
+              metadata="$(tar -xOf "$file" package/package.json)"
+              name="$(node -e 'process.stdout.write(JSON.parse(process.argv[1]).name)' "$metadata")"
+              version="$(node -e 'process.stdout.write(JSON.parse(process.argv[1]).version)' "$metadata")"
+              npm dist-tag add "$name@$version" nightly
+            fi
+          done
