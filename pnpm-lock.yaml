@@ -38,10 +38,10 @@ importers:
     dependencies:
       '@biomejs/js-api':
         specifier: 6.1.0
-        version: 6.1.0(@biomejs/wasm-nodejs@2.6.3)
+        version: 6.1.0(@biomejs/wasm-nodejs@2.6.4)
       '@biomejs/wasm-nodejs':
-        specifier: 2.6.3
-        version: 2.6.3
+        specifier: 2.6.4
+        version: 2.6.4
       '@sf-kmods/kdataforgejs':
         specifier: workspace:^
         version: link:../kdataforgejs-types
@@ -74,8 +74,8 @@ packages:
       '@biomejs/wasm-web':
         optional: true
 
-  '@biomejs/wasm-nodejs@2.6.3':
-    resolution: {integrity: sha512-DPI9t7DcsR+FPEUrhCIXfejI2j6dJ1NuKW8ke6tBVnCunTzDPvQpsuSvGJhaqsuOHc0U413MrB0/DDGM/+fiKw==}
+  '@biomejs/wasm-nodejs@2.6.4':
+    resolution: {integrity: sha512-Mm/tlBKGyrG4znIxNhwVP9qiaYGKyGcOmlnYe/y2gQdO3HIThWMnW5+G4pATZTbIKxfy82gSy9ryO1Q2LZ4cGw==}
 
   '@esbuild/aix-ppc64@0.25.12':
     resolution: {integrity: sha512-Hhmwd6CInZ3dwpuGTF8fJG6yoWmsToE+vYgD4nytZVxcu1ulHpUQRAB1UJ8+N1Am3Mz4+xOByoQoSZf4D+CpkA==}
@@ -288,11 +288,11 @@ packages:
 
 snapshots:
 
-  '@biomejs/js-api@6.1.0(@biomejs/wasm-nodejs@2.6.3)':
+  '@biomejs/js-api@6.1.0(@biomejs/wasm-nodejs@2.6.4)':
     optionalDependencies:
-      '@biomejs/wasm-nodejs': 2.6.3
+      '@biomejs/wasm-nodejs': 2.6.4
 
-  '@biomejs/wasm-nodejs@2.6.3': {}
+  '@biomejs/wasm-nodejs@2.6.4': {}
 
   '@esbuild/aix-ppc64@0.25.12':
     optional: true

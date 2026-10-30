@@ -41,7 +41,7 @@
 	},
 	"dependencies": {
 		"@biomejs/js-api": "6.1.0",
-		"@biomejs/wasm-nodejs": "2.6.3",
+		"@biomejs/wasm-nodejs": "2.6.4",
 		"@sf-kmods/kdataforgejs": "workspace:^",
 		"typescript": ">=5.7.3 <6",
 		"yaml": "^2.6.1"
