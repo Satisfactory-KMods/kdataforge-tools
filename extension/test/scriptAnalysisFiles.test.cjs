@@ -2,6 +2,8 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const path = require('node:path');
+const PACK_ROOT = path.resolve(path.sep, 'pack');
+const packPath = name => path.join(PACK_ROOT, name);
 const api = require(path.join(process.env.KDF_SCRIPT_ANALYSIS_DIST || path.resolve(__dirname, '../dist'), 'scriptAnalysis'));
 const { buildSdkAuthoringMetadata } = require('../scripts/buildSdkAuthoringMetadata.cjs');
 const provenance = { source: 'file-api-contract', version: 'files-1', authority: 'authoritative' };
@@ -30,12 +32,12 @@ async function analyze(text, extra = {}) {
   const reads = [];
   const host = {
     async realpath(fileName) {
-      if (fileName === '/pack' || fileName === '/pack/main.ts' || packPaths.some(name => fileName === `/pack/${name}`)) return fileName;
+      if (fileName === PACK_ROOT || fileName === packPath('main.ts') || packPaths.some(name => fileName === packPath(`${name}`))) return fileName;
       throw new Error('missing');
     },
     async read(fileName) { reads.push(fileName); return { fileName, text, version: 7 }; },
   };
-  const result = await api.analyzeScripts({ packRoot: '/pack', entrypoints: ['main.ts'], host,
+  const result = await api.analyzeScripts({ packRoot: PACK_ROOT, entrypoints: ['main.ts'], host,
     allPackScriptsProvided: true, declaredPackFiles: packPaths.map(path => ({ path, provenance })),
     execution: { authority: 'server', lifecycle: 'Runtime', deterministicInitialization: false }, ...extra }, policy());
   return { result, reads };
@@ -50,16 +52,16 @@ test('authoritative file globals support static paths, async json hover and cano
   assert.equal(executed, false);
   delete globalThis.YMLFile;
   assert.equal(result.complete, true, JSON.stringify(result.issues));
-  assert.deepEqual(reads, ['/pack/main.ts']);
+  assert.deepEqual(reads, [packPath('main.ts')]);
   const paths = result.references.filter(reference => reference.kind === 'pack-file');
   assert.equal(paths.length, 2);
-  assert.ok(paths.every(reference => reference.status === 'static' && reference.pathAuthority.fileName.startsWith('/pack/data/')));
-  const hover = api.buildHoverModel(result, '/pack/main.ts', text.indexOf('file.json') + 5);
+  assert.ok(paths.every(reference => reference.status === 'static' && reference.pathAuthority.fileName.startsWith(packPath('data') + path.sep)));
+  const hover = api.buildHoverModel(result, packPath('main.ts'), text.indexOf('file.json') + 5);
   assert.equal(hover.symbolId, 'YMLFile.json');
   assert.equal(hover.signature.value, 'json(): Promise<unknown>');
-  const fileHover = api.buildPackFileHoverModel(result, '/pack/main.ts', text.indexOf('data/settings'));
+  const fileHover = api.buildPackFileHoverModel(result, packPath('main.ts'), text.indexOf('data/settings'));
   assert.equal(fileHover.path, 'data/settings.yml');
-  assert.equal(fileHover.authority.fileName, '/pack/data/settings.yml');
+  assert.equal(fileHover.authority.fileName, packPath('data/settings.yml'));
   assert.deepEqual(fileHover.authority.provenance, provenance);
 });
 
@@ -68,9 +70,9 @@ test('file completion offers only declared canonical paths of the authoritative 
   const { result } = await analyze(text);
   const catalog = { sdkVersion: 'sdk-files', catalogVersion: 'catalog-files',
     identifiers: [{ id: 'data/undeclared.yml', kind: 'pack-file' }, { id: '../escape.yml', kind: 'pack-file' }] };
-  const yml = api.buildCompletionCandidates(result, '/pack/main.ts', text.indexOf('data/') + 5, catalog);
+  const yml = api.buildCompletionCandidates(result, packPath('main.ts'), text.indexOf('data/') + 5, catalog);
   assert.deepEqual(yml.items.map(item => item.id), ['data/settings.yml', 'data/other.yaml']);
-  const json = api.buildCompletionCandidates(result, '/pack/main.ts', text.lastIndexOf('data/') + 5, catalog);
+  const json = api.buildCompletionCandidates(result, packPath('main.ts'), text.lastIndexOf('data/') + 5, catalog);
   assert.deepEqual(json.items.map(item => item.id), ['data/values.json']);
 });
 
@@ -116,11 +118,11 @@ test('YML.parse/stringify are policy-proven pure operations requiring no capabil
   const text = `const decoded = YML.parse('value: 1'); const encoded = YML.stringify(decoded);`;
   const { result } = await analyze(text, { execution: { authority: 'client', lifecycle: 'Initialization', deterministicInitialization: true } });
   assert.equal(result.complete, true, JSON.stringify(result.issues));
-  const lens = api.buildCapabilityLensModel(result, '/pack/main.ts');
+  const lens = api.buildCapabilityLensModel(result, packPath('main.ts'));
   assert.deepEqual(lens.used, []);
   assert.deepEqual(lens.missing, []);
   assert.equal(lens.complete, true);
-  assert.deepEqual(api.buildHoverModel(result, '/pack/main.ts', text.indexOf('parse')).capabilities.value, []);
+  assert.deepEqual(api.buildHoverModel(result, packPath('main.ts'), text.indexOf('parse')).capabilities.value, []);
 });
 
 test('both save methods require write capability and server Runtime authority', async () => {
@@ -128,11 +130,11 @@ test('both save methods require write capability and server Runtime authority', 
     await new JSONFile('data/values.json').save({}); }`;
   const { result } = await analyze(text);
   assert.equal(result.complete, true, JSON.stringify(result.issues));
-  const lens = api.buildCapabilityLensModel(result, '/pack/main.ts');
+  const lens = api.buildCapabilityLensModel(result, packPath('main.ts'));
   assert.deepEqual(lens.used, ['kdf.files.write']);
   assert.deepEqual(lens.missing, ['kdf.files.write']);
   assert.equal(lens.automaticGrant, false);
-  const hover = api.buildHoverModel(result, '/pack/main.ts', text.indexOf('y.save') + 2);
+  const hover = api.buildHoverModel(result, packPath('main.ts'), text.indexOf('y.save') + 2);
   assert.equal(hover.symbolId, 'YMLFile.save');
   assert.equal(hover.authority.value, 'server');
   assert.equal(hover.lifecycle.value, 'Runtime');
@@ -146,14 +148,14 @@ test('both save methods require write capability and server Runtime authority', 
     const { result: invalid } = await analyze(text, { execution });
     assert.equal(invalid.complete, false);
     assert.ok(invalid.issues.some(issue => issue.code === expected), JSON.stringify(invalid.issues));
-    assert.deepEqual(api.buildCapabilityLensModel(invalid, '/pack/main.ts').missing, ['kdf.files.write']);
+    assert.deepEqual(api.buildCapabilityLensModel(invalid, packPath('main.ts')).missing, ['kdf.files.write']);
   }
 });
 
 test('constructor and instance const aliases preserve identity; escaping instances prevent completeness', async () => {
   const { result } = await analyze(`const File = YMLFile; const y = new File('data/settings.yml'); const alias = y; alias.save({});`);
   assert.equal(result.complete, true, JSON.stringify(result.issues));
-  assert.deepEqual(api.buildCapabilityLensModel(result, '/pack/main.ts').used, ['kdf.files.write']);
+  assert.deepEqual(api.buildCapabilityLensModel(result, packPath('main.ts')).used, ['kdf.files.write']);
   const escaped = await analyze(`function make() { return new YMLFile('data/settings.yml'); } make().save({});`);
   assert.equal(escaped.result.complete, false);
   assert.ok(escaped.result.issues.some(issue => issue.code === 'api-instance-escape'));

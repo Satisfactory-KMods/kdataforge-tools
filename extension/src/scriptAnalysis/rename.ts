@@ -2,12 +2,12 @@ import * as ts from 'typescript';
 import { ContentEditPlan, ContentTextEdit, createContentEditPlan } from '../contentRename';
 import { analysisIsCurrent, ScriptAnalysis, SourceRange } from './analyzer';
 import { ReferenceKind } from './policy';
-import { moduleEdge, syntaxNodes } from './graph';
+import { moduleEdge, snapshotModule, syntaxNodes } from './graph';
 
 export function editForRange(analysis: ScriptAnalysis, range: SourceRange, newText: string): ContentTextEdit {
-  const document = analysis.graph.modules.get(range.fileName);
+  const document = snapshotModule(analysis.graph, range.fileName);
   if (!document) throw new Error('Edit is outside the snapshot graph');
-  return { ...range, oldText: document.text.slice(range.start, range.end), newText, version: document.version };
+  return { ...range, fileName: document.fileName, oldText: document.text.slice(range.start, range.end), newText, version: document.version };
 }
 
 export function scriptEditPlan(analysis: ScriptAnalysis, edits: readonly ContentTextEdit[],
@@ -90,13 +90,13 @@ export function planTypeScriptSymbolRename(analysis: ScriptAnalysis, fileName: s
   const service = ts.createLanguageService({
     getCompilationSettings: () => analysis.program.getCompilerOptions(),
     getScriptFileNames: () => [...graph.modules.keys()],
-    getScriptVersion: name => String(graph.modules.get(name)?.version ?? ''),
+    getScriptVersion: name => String(snapshotModule(graph, name)?.version ?? ''),
     getScriptSnapshot: name => {
-      const document = graph.modules.get(name);
+      const document = snapshotModule(graph, name);
       return document && ts.ScriptSnapshot.fromString(document.text);
     },
     getCurrentDirectory: () => graph.root, getDefaultLibFileName: () => '',
-    fileExists: name => graph.modules.has(name), readFile: name => graph.modules.get(name)?.text,
+    fileExists: name => !!snapshotModule(graph, name), readFile: name => snapshotModule(graph, name)?.text,
     useCaseSensitiveFileNames: () => true,
     resolveModuleNames: (names, containingFile) => names.map(name => {
       const to = moduleEdge(graph, containingFile, name)?.to;

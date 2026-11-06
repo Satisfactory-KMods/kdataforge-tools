@@ -132,13 +132,18 @@ export interface ScriptGraphOptions {
 }
 
 const moduleIndexes = new WeakMap<ScriptGraph, Map<string, ModuleEdge>>();
+/** TypeScript normalizes Windows filenames to forward slashes at its host boundary. */
+export function snapshotModule(graph: ScriptGraph, fileName: string): ScriptModule | undefined {
+  return graph.modules.get(path.normalize(fileName));
+}
+
 export function moduleEdge(graph: ScriptGraph, from: string, specifier: string): ModuleEdge | undefined {
   let index = moduleIndexes.get(graph);
   if (!index) {
     index = new Map(graph.edges.map(edge => [JSON.stringify([edge.from, edge.specifier]), edge]));
     moduleIndexes.set(graph, index);
   }
-  return index.get(JSON.stringify([from, specifier]));
+  return index.get(JSON.stringify([path.normalize(from), specifier]));
 }
 
 function contained(root: string, fileName: string): boolean {
@@ -300,11 +305,11 @@ export function createSnapshotProgram(graph: ScriptGraph): ts.Program {
   const compilerOptions: ts.CompilerOptions = { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ESNext,
     moduleResolution: ts.ModuleResolutionKind.Node10, noLib: true, noResolve: true, types: [], skipLibCheck: true };
   const host: ts.CompilerHost = {
-    getSourceFile: fileName => graph.modules.get(fileName)?.sourceFile,
+    getSourceFile: fileName => snapshotModule(graph, fileName)?.sourceFile,
     getDefaultLibFileName: () => '', writeFile: () => { throw new Error('Analysis cannot emit'); },
     getCurrentDirectory: () => graph.root, getDirectories: () => [],
     getCanonicalFileName: fileName => fileName, useCaseSensitiveFileNames: () => true, getNewLine: () => '\n',
-    fileExists: fileName => graph.modules.has(fileName), readFile: fileName => graph.modules.get(fileName)?.text,
+    fileExists: fileName => !!snapshotModule(graph, fileName), readFile: fileName => snapshotModule(graph, fileName)?.text,
     resolveModuleNames: (names, containingFile) => names.map(name => {
       const to = moduleEdge(graph, containingFile, name)?.to;
       return to && graph.modules.has(to) ? { resolvedFileName: to } : undefined;

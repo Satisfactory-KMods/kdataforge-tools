@@ -58,7 +58,7 @@ it("rejects escaping workspace symlinks, duplicate refs, and unsupported glob pa
 	const outside = mkdtempSync(join(tmpdir(), "kdf-outside-"));
 	roots.push(outside);
 	rmSync(beta, { recursive: true });
-	symlinkSync(outside, beta, "dir");
+	symlinkSync(outside, beta, process.platform === "win32" ? "junction" : "dir");
 	writeFileSync(join(root, "package.json"), JSON.stringify({ workspaces: ["packs/*"] }));
 	assert.throws(() => discoverPacks(root), /No pack.yml|escapes root/);
 });
@@ -166,7 +166,7 @@ it("fans one export into two packs and keeps prior files if a later target is un
 	rmSync(unsafe, { recursive: true });
 	const outside = mkdtempSync(join(tmpdir(), "kdf-types-outside-"));
 	roots.push(outside);
-	symlinkSync(outside, unsafe, "dir");
+	symlinkSync(outside, unsafe, process.platform === "win32" ? "junction" : "dir");
 	await assert.rejects(importGameData({ ...options, force: true }, dependencies), /symlink|escape/);
 	assert.equal(readFileSync(archive, "utf8"), "archive-1");
 	assert.ok(existsSync(join(alpha, "DataForge/typescript/kdataforgejs/index.d.ts")));

@@ -1,6 +1,7 @@
 import * as ts from 'typescript';
+import * as path from 'node:path';
 import { AnalysisIssue, buildScriptGraph, createSnapshotProgram, GLOBAL_MODULE, isPackRelativePath, moduleEdge, PackFileAuthority,
-  SDK_MODULE, ScriptGraph, ScriptGraphOptions, syntaxNodes } from './graph';
+  SDK_MODULE, ScriptGraph, ScriptGraphOptions, snapshotModule, syntaxNodes } from './graph';
 import { ApiBinding, ApiOperation, ApiPolicy, ApiPolicyMetadata, authoritative, bindingKey, PolicyFact,
   PolicyVersions, ReferenceKind, ReferenceSlot, samePolicyVersion, unknownPolicy } from './policy';
 
@@ -46,7 +47,7 @@ export interface ScriptAnalysis {
 
 export function rangeOf(node: ts.Node): SourceRange {
   const file = node.getSourceFile();
-  return { fileName: file.fileName, start: node.getStart(file), end: node.end };
+  return { fileName: path.normalize(file.fileName), start: node.getStart(file), end: node.end };
 }
 export function unwrap(expression: ts.Expression): ts.Expression {
   while (ts.isParenthesizedExpression(expression) || ts.isAsExpression(expression)
@@ -215,8 +216,10 @@ function metaCapabilities(file: ts.SourceFile, resolver: SymbolResolver): Policy
   const exportedAlias = file.statements.some(statement => ts.isExportDeclaration(statement) && statement.exportClause
     && ts.isNamedExports(statement.exportClause) && statement.exportClause.elements.some(element => element.name.text === 'meta'));
   if (exportedAlias || declarations.length > 1) return unknownPolicy('Exported meta is ambiguous');
+  const document = snapshotModule(resolver.graph, file.fileName);
+  if (!document) return unknownPolicy('Source file is outside the snapshot graph');
   const known = (value: readonly string[]): PolicyFact<readonly string[]> => ({ status: 'known', value,
-    provenance: { source: file.fileName, version: String(resolver.graph.modules.get(file.fileName)!.version), authority: 'authoritative' } });
+    provenance: { source: document.fileName, version: String(document.version), authority: 'authoritative' } });
   if (!declarations.length) return known([]);
   const declaration = declarations[0];
   const initializer = declaration.initializer && unwrap(declaration.initializer);
