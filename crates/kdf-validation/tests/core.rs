@@ -36,6 +36,28 @@ fn registry_contains_all_canonical_types_and_pack() {
 }
 
 #[test]
+fn property_mapping_supports_values_operations_and_nested_instances() {
+    let valid = "type: schematic\nschematics:\n  - id: Test\n    properties:\n      mDisplayName: Test\n      mSomeStruct: { op: literal, value: 42 }\n      mLiteralMarker: { $op: set, value: { $op: literal, data: 1 } }\n      mManufactoringDuration: { $op: multiply, value: 2 }\n    unlocks:\n      - class: /Game/Unlock.Unlock_C\n        properties:\n          mRecipes: { $op: append, value: [/Game/Recipe.Recipe_C] }\n          mNestedStruct: { X: 1, Y: 2 }\n";
+    let result = validate_document(
+        Path::new("test.schematic.yml"),
+        valid,
+        &LintOptions::default(),
+    )
+    .unwrap();
+    assert!(result.ok, "{:?}", result.diagnostics);
+
+    for invalid in [
+        "type: recipe\nrecipes:\n  - id: Test\n    properties:\n      mProduct: { $op: apend, value: [] }\n",
+        "type: recipe\nrecipes:\n  - id: Test\n    properties:\n      mProduct: { $op: append }\n",
+        "type: recipe\nrecipes:\n  - id: Test\n    properties:\n      mProduct: { $op: append, path: mIngredients, value: [] }\n",
+        "type: recipe\nrecipes:\n  - id: Test\n    properties:\n      mProduct: { $op: [append], value: [] }\n",
+    ] {
+        let result = validate_document(Path::new("test.recipe.yml"), invalid, &LintOptions::default()).unwrap();
+        assert!(!result.ok, "invalid mapping passed: {invalid}");
+    }
+}
+
+#[test]
 fn category_reorder_matches_runtime_contract() {
     let path = Path::new("logistics.category_reorder.yml");
     for text in [

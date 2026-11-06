@@ -85,16 +85,63 @@ pub(crate) fn validate(
             let Some(target) = target else {
                 continue;
             };
-            let Some(properties) = entry.get("properties").and_then(Value::as_array) else {
+            let Some(properties) = entry.get("properties") else {
                 continue;
             };
+            let changes: Vec<(&str, Option<&Value>, &str, String, String)> = match properties {
+                Value::Array(items) => items
+                    .iter()
+                    .enumerate()
+                    .filter_map(|(field_index, change)| {
+                        let path = change.get("path")?.as_str()?;
+                        let value = change.get("value");
+                        let operation = change.get("op").and_then(Value::as_str).unwrap_or("set");
+                        let field_pointer = format!("{pointer}/properties/{field_index}");
+                        Some((
+                            path,
+                            value,
+                            operation,
+                            format!("{field_pointer}/path"),
+                            format!("{field_pointer}/value"),
+                        ))
+                    })
+                    .collect(),
+                Value::Object(items) => items
+                    .iter()
+                    .map(|(path, change)| {
+                        let key = path.replace('~', "~0").replace('/', "~1");
+                        let field_pointer = format!("{pointer}/properties/{key}");
+                        let explicit = change
+                            .as_object()
+                            .filter(|fields| fields.contains_key("$op"));
+                        let operation = explicit
+                            .and_then(|fields| fields.get("$op"))
+                            .and_then(Value::as_str)
+                            .unwrap_or("set");
+                        let value = if let Some(fields) = explicit {
+                            fields.get("value")
+                        } else {
+                            Some(change)
+                        };
+                        let value_pointer = if explicit.is_some() {
+                            format!("{field_pointer}/value")
+                        } else {
+                            field_pointer.clone()
+                        };
+                        (
+                            path.as_str(),
+                            value,
+                            operation,
+                            field_pointer,
+                            value_pointer,
+                        )
+                    })
+                    .collect(),
+                _ => continue,
+            };
             let (fields, complete) = inherited_fields(index, target);
-            for (field_index, change) in properties.iter().enumerate() {
-                let Some(path) = change.get("path").and_then(Value::as_str) else {
-                    continue;
-                };
+            for (path, value, operation, path_pointer, value_pointer) in changes {
                 let name = path.split(['.', '[']).next().unwrap_or(path);
-                let field_pointer = format!("{pointer}/properties/{field_index}");
                 let evidence = index.replacement_evidence("property", Some(target), name);
                 let Some(field) = fields.iter().find(|field| {
                     field
@@ -106,7 +153,7 @@ pub(crate) fn validate(
                         emit(
                             file,
                             document_index,
-                            &format!("{field_pointer}/path"),
+                            &path_pointer,
                             Severity::Warning,
                             "datapack.unknown-property",
                             format!("property {name:?} is absent from exported fields of {target}"),
@@ -116,7 +163,7 @@ pub(crate) fn validate(
                     attach_evidence(
                         file,
                         document_index,
-                        &format!("{field_pointer}/path"),
+                        &path_pointer,
                         name,
                         evidence,
                         source,
@@ -127,7 +174,7 @@ pub(crate) fn validate(
                 attach_evidence(
                     file,
                     document_index,
-                    &format!("{field_pointer}/path"),
+                    &path_pointer,
                     name,
                     evidence,
                     source,
@@ -135,17 +182,13 @@ pub(crate) fn validate(
                 );
                 // Nested structs may not be exported. Only validate an exact field
                 // or container inner type whose metadata is actually available.
-                let Some(value) = change.get("value") else {
+                let Some(value) = value else {
                     continue;
                 };
                 if path != name {
                     continue;
                 }
-                let operation = change
-                    .get("op")
-                    .and_then(Value::as_str)
-                    .unwrap_or("set")
-                    .to_ascii_lowercase();
+                let operation = operation.to_ascii_lowercase();
                 if operation == "clear" {
                     continue;
                 }
@@ -157,7 +200,7 @@ pub(crate) fn validate(
                     field,
                     value,
                     &operation,
-                    &format!("{field_pointer}/value"),
+                    &value_pointer,
                     result,
                 );
             }

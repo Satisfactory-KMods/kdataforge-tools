@@ -738,15 +738,29 @@ fn namespaces(
 ) -> Vec<GeneratedNamespace> {
     let segments: Vec<_> = pointer.split('/').skip(1).collect();
     if let Some(offset) = segments.iter().position(|key| *key == "properties") {
-        if segments.get(offset + 2) != Some(&"value") {
+        let mapping = segments
+            .get(offset + 1)
+            .is_some_and(|segment| segment.parse::<usize>().is_err());
+        if !mapping && segments.get(offset + 2) != Some(&"value") {
+            return vec![];
+        }
+        if mapping
+            && segments
+                .get(offset + 2)
+                .is_some_and(|segment| *segment != "value")
+        {
             return vec![];
         }
         let entry = document.pointer(&format!("/{}", segments[..offset].join("/")));
-        let op = document.pointer(&format!("/{}", segments[..offset + 2].join("/")));
-        let field = op
-            .and_then(|op| op.get("path"))
-            .and_then(Value::as_str)
-            .unwrap_or("");
+        let field = if mapping {
+            segments[offset + 1]
+        } else {
+            document
+                .pointer(&format!("/{}", segments[..offset + 2].join("/")))
+                .and_then(|op| op.get("path"))
+                .and_then(Value::as_str)
+                .unwrap_or("")
+        };
         if field == "mAudioEvent" {
             return vec![GeneratedNamespace::Asset];
         }

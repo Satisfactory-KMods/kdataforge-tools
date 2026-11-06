@@ -2,7 +2,7 @@ $schema: https://json-schema.org/draft/2020-12/schema
 $id: https://raw.githubusercontent.com/Satisfactory-KMods/KDataForge-Linter/main/src/kdataforge_linter/schemas/sound.schema.yml
 x-kdf-type: sound
 title: KDataForge Wwise sounds
-description: Import pack-relative PCM16 WAV/FLAC files as Wwise audio events, including ADA voice-over. Finite 2D sounds, mono/stereo, 8000-192000 Hz, maximum 64 MiB encoded and decoded.
+description: Import pack-relative PCM16 WAV, native FLAC or Ogg Vorbis files as Wwise audio events, including ADA voice-over. Finite 2D sounds, mono/stereo, 8000-192000 Hz, maximum 64 MiB encoded and decoded.
 allOf:
   - $ref: https://raw.githubusercontent.com/Satisfactory-KMods/KDataForge-Linter/main/src/kdataforge_linter/schemas/common.schema.yml#/$defs/documentBase
   - type: object
@@ -24,8 +24,8 @@ allOf:
             file:
               type: string
               minLength: 1
-              pattern: '\.([Ww][Aa][Vv]|[Ff][Ll][Aa][Cc])$'
-              description: Path relative to pack root. PCM16 mono/stereo WAV or native FLAC, 8000-192000 Hz, at most 64 MiB encoded and decoded. FLAC requires a known nonzero frame count. Ogg FLAC and 24-bit FLAC are unsupported. Path and symbolic links must stay inside pack. MP3, OGG, float WAV, loops and spatial attenuation are unsupported.
+              pattern: '\.([Ww][Aa][Vv]|[Ff][Ll][Aa][Cc]|[Oo][Gg][Gg])$'
+              description: Path relative to pack root. PCM16 WAV, native 16-bit FLAC or Ogg Vorbis, mono/stereo, 8000-192000 Hz, at most 64 MiB encoded and decoded. FLAC requires a known nonzero frame count. Ogg FLAC, Opus, 24-bit FLAC and float WAV are unsupported. Path and symbolic links must stay inside pack.
             name:
               $ref: https://raw.githubusercontent.com/Satisfactory-KMods/KDataForge-Linter/main/src/kdataforge_linter/schemas/common.schema.yml#/$defs/nonEmptyString
               pattern: '\S'

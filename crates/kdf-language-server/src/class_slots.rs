@@ -112,6 +112,9 @@ pub(crate) fn for_completion(
             return None;
         }
         let mut ctx = intellisense::context(text, resolved.position()?);
+        if ctx.property.is_none() {
+            ctx.property = op.mapping_path.map(str::to_owned);
+        }
         let field = intellisense::property(index, &ctx)?;
         if matches!(key, "ItemClass" | "itemClass")
             && field["cppType"]
@@ -120,8 +123,15 @@ pub(crate) fn for_completion(
         {
             slots::default_base_class("items").map(str::to_owned)
         } else {
-            if !matches!(op.below.as_slice(), [key] if key == "value")
-                && !matches!(op.below.as_slice(), [key, item] if key == "value" && item == "#")
+            let relative = if op.mapping_path.is_some() {
+                &op.below[1..]
+            } else {
+                op.below.as_slice()
+            };
+            if !(relative.is_empty() && op.mapping_path.is_some())
+                && !(op.mapping_path.is_some() && matches!(relative, [item] if item == "#"))
+                && !matches!(relative, [key] if key == "value")
+                && !matches!(relative, [key, item] if key == "value" && item == "#")
             {
                 return None;
             }

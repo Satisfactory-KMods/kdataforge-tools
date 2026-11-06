@@ -825,8 +825,8 @@ type: cdo
 patches:
   - target: /Game/FactoryGame/Recipes/Smelter/Recipe_IngotIron.Recipe_IngotIron_C
     properties:
-      - path: mManufactoringDuration
-        op: multiply
+      mManufactoringDuration:
+        $op: multiply
         value: 0.5
 ```
 

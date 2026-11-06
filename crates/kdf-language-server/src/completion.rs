@@ -255,6 +255,9 @@ fn value(env: &Env<'_>, resolved: &Resolved, slot: &ValueSlot) -> Completions {
         }
     }
     if let Some(op) = resolved.op_entry() {
+        if op.mapping_path.is_some() && op.below.get(1).is_some_and(|key| key == "$op") {
+            return operation_items(env, resolved, scalar);
+        }
         match op.below.as_slice() {
             [first] if first == "path" => return path_items(env, resolved, scalar),
             [first] if first == "op" => return operation_items(env, resolved, scalar),
@@ -289,7 +292,13 @@ fn key(env: &Env<'_>, resolved: &Resolved, slot: &KeySlot) -> Completions {
     if resolved.is_config_doc() {
         return config_keys_for(env, resolved, slot);
     }
-    if resolved.op_entry().is_some_and(|op| op.below.is_empty()) {
+    if resolved.in_properties_mapping_key() {
+        return mapping_property_keys(env, resolved, slot);
+    }
+    if resolved
+        .op_entry()
+        .is_some_and(|op| op.below.is_empty() || (op.mapping_path.is_some() && op.below.len() == 1))
+    {
         return op_keys(env, resolved, slot);
     }
     if resolved.doc.kind.as_deref() == Some("category_reorder") && resolved.path().is_empty() {
@@ -934,9 +943,15 @@ fn operand_items(
 
 fn apply_provider_stubs(resolved: &Resolved, scalar: &Scalar, typed: &str) -> Vec<Entry> {
     if !resolved.op_entry().is_some_and(|op| {
-        op.below
-            .first()
-            .is_some_and(|key| matches!(key.as_str(), "value" | "min" | "max"))
+        let relative = if op.mapping_path.is_some() {
+            &op.below[1..]
+        } else {
+            op.below.as_slice()
+        };
+        (op.mapping_path.is_some() && relative.is_empty())
+            || relative
+                .first()
+                .is_some_and(|key| matches!(key.as_str(), "value" | "min" | "max"))
     }) {
         return Vec::new();
     }
@@ -1964,9 +1979,18 @@ fn config_keys(
 
 fn op_keys(env: &Env<'_>, resolved: &Resolved, slot: &KeySlot) -> Completions {
     const KEYS: [&str; 8] = ["path", "op", "value", "min", "max", "index", "with", "from"];
+    const MAPPING_KEYS: [&str; 7] = ["$op", "value", "min", "max", "index", "with", "from"];
+    let keys: &[&str] = if resolved
+        .op_entry()
+        .is_some_and(|op| op.mapping_path.is_some())
+    {
+        &MAPPING_KEYS
+    } else {
+        &KEYS
+    };
     let existing = existing_keys(resolved, slot);
     let range = crate::context::range_on(slot.line, slot.start, slot.end.max(slot.start));
-    let entries = KEYS
+    let mut entries: Vec<Entry> = keys
         .iter()
         .copied()
         .filter(|name| !existing.contains(name))
@@ -1979,6 +2003,47 @@ fn op_keys(env: &Env<'_>, resolved: &Resolved, slot: &KeySlot) -> Completions {
             )
         })
         .collect();
+    if let Some(op) = resolved.op_entry().filter(|op| op.mapping_path.is_some()) {
+        if !existing.contains(&"$op") {
+            if let (Some(path), Some(patch)) = (op.mapping_path, patch_class(env, resolved)) {
+                if let Some(property) = env.reflection.resolve_property_path(&patch.class, path) {
+                    if let Some(fields) = property
+                        .struct_path
+                        .as_deref()
+                        .and_then(|name| env.reflection.struct_properties(name))
+                    {
+                        entries.extend(
+                            fields
+                                .iter()
+                                .filter(|field| !existing.contains(&field.display_name()))
+                                .map(|field| {
+                                    key_entry(field.display_name(), None, range, slot.has_colon)
+                                        .detail(field.cpp_type.clone())
+                                }),
+                        );
+                    }
+                }
+            }
+        }
+    }
+    finish(env, entries, false)
+}
+
+fn mapping_property_keys(env: &Env<'_>, resolved: &Resolved, slot: &KeySlot) -> Completions {
+    let Some(patch) = patch_class(env, resolved) else {
+        return Completions::default();
+    };
+    let existing = existing_keys(resolved, slot);
+    let range = crate::context::range_on(slot.line, slot.start, slot.end.max(slot.start));
+    let entries = class_properties_matching(env.reflection, &patch.class, &|name| {
+        matches_typed(name, &slot.typed) && !existing.contains(&name)
+    })
+    .into_iter()
+    .map(|property| {
+        key_entry(property.display_name(), None, range, slot.has_colon)
+            .detail(property.cpp_type.clone())
+    })
+    .collect();
     finish(env, entries, false)
 }
 

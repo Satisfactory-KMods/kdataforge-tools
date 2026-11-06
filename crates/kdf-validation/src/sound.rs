@@ -1,5 +1,11 @@
-//! Same bounded PCM16 WAV/FLAC contract as KDFSoundLoader.cpp in the runtime mod.
-use std::{fs::File, io::Read, path::Path};
+//! Bounded WAV, FLAC and Ogg Vorbis checks for KDFSoundLoader.cpp in the runtime mod.
+use lewton::inside_ogg::OggStreamReader;
+use ogg::PacketReader;
+use std::{
+    fs::File,
+    io::{Cursor, Read},
+    path::Path,
+};
 
 const MAX_FILE_BYTES: u64 = 64 * 1024 * 1024;
 
@@ -7,9 +13,20 @@ pub(crate) fn validate_file(path: &Path) -> Result<(), String> {
     let flac = path
         .extension()
         .is_some_and(|ext| ext.eq_ignore_ascii_case("flac"));
+    let ogg = path
+        .extension()
+        .is_some_and(|ext| ext.eq_ignore_ascii_case("ogg"));
     let file = File::open(path).map_err(|error| format!("could not read audio: {error}"))?;
     let size = file.metadata().map_err(|error| error.to_string())?.len();
-    if !(if flac { 42 } else { 44 }..=MAX_FILE_BYTES).contains(&size) {
+    if !(if flac {
+        42
+    } else if ogg {
+        58
+    } else {
+        44
+    }..=MAX_FILE_BYTES)
+        .contains(&size)
+    {
         return Err("audio size must be at least its header size and at most 64 MiB".into());
     }
     let mut bytes = Vec::with_capacity(size as usize);
@@ -21,9 +38,57 @@ pub(crate) fn validate_file(path: &Path) -> Result<(), String> {
     }
     if flac {
         validate_flac(&bytes)
+    } else if ogg {
+        validate_ogg(&bytes)
     } else {
         validate_wave(&bytes)
     }
+}
+
+fn validate_ogg(bytes: &[u8]) -> Result<(), String> {
+    let mut reader = OggStreamReader::new(Cursor::new(bytes))
+        .map_err(|error| format!("sound must be Ogg Vorbis (not Opus or Ogg FLAC): {error}"))?;
+    let serial = reader.stream_serial();
+    let channels = u64::from(reader.ident_hdr.audio_channels);
+    let rate = reader.ident_hdr.audio_sample_rate;
+    if ![1, 2].contains(&channels) || !(8000..=192000).contains(&rate) {
+        return Err("Ogg Vorbis must be mono/stereo at 8000-192000 Hz".into());
+    }
+    if reader
+        .read_dec_packet_itl()
+        .map_err(|error| format!("corrupt or truncated Ogg Vorbis audio: {error}"))?
+        .is_none()
+    {
+        return Err("Ogg Vorbis must contain audio packets".into());
+    }
+
+    // Verify every page checksum and the final granule position without decoding the entire file.
+    // The game importer decodes every packet before accepting the sound.
+    let mut packets = PacketReader::new(Cursor::new(bytes));
+    let mut packet_count = 0usize;
+    let mut final_frames = None;
+    while let Some(packet) = packets
+        .read_packet()
+        .map_err(|error| format!("corrupt or truncated Ogg Vorbis audio: {error}"))?
+    {
+        if packet.stream_serial() != serial || final_frames.is_some() {
+            return Err("Ogg Vorbis must contain one stream, not chained audio".into());
+        }
+        packet_count += 1;
+        if packet.last_in_stream() {
+            final_frames = Some(packet.absgp_page());
+        }
+    }
+    if packet_count < 4 {
+        return Err("Ogg Vorbis must contain audio packets".into());
+    }
+    let frames = final_frames.unwrap_or(0);
+    if frames == 0 || frames > MAX_FILE_BYTES / (channels * 2) {
+        return Err(
+            "Ogg Vorbis must declare a nonzero frame count within 64 MiB decoded PCM".into(),
+        );
+    }
+    Ok(())
 }
 
 fn validate_flac(bytes: &[u8]) -> Result<(), String> {

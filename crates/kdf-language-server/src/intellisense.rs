@@ -480,7 +480,48 @@ pub(crate) fn completion_resolved(
     if byte > content.len() {
         return None;
     }
-    let ctx = context(text, position);
+    let mut ctx = context(text, position);
+    if ctx.property.is_none() {
+        ctx.property = resolved
+            .op_entry()
+            .and_then(|op| op.mapping_path.map(str::to_owned));
+    }
+    if resolved.in_properties_mapping_key() {
+        let crate::context::Place::Key(slot) = &resolved.place else {
+            return None;
+        };
+        let fragment = slot.typed.to_ascii_lowercase();
+        let range = Range::new(
+            Position::new(slot.line, slot.start),
+            Position::new(slot.line, slot.end),
+        );
+        return Some(CompletionResponse::Array(
+            context_properties(index, &ctx)
+                .into_iter()
+                .enumerate()
+                .filter_map(|(order, property)| {
+                    let name = property["name"].as_str()?;
+                    if !name.to_ascii_lowercase().contains(&fragment) {
+                        return None;
+                    }
+                    Some(CompletionItem {
+                        label: name.into(),
+                        kind: Some(CompletionItemKind::PROPERTY),
+                        detail: property["cppType"].as_str().map(str::to_owned),
+                        documentation: Some(markdown(contextual_property_markdown(
+                            index, &ctx, property,
+                        ))),
+                        sort_text: Some(format!("0:{order:05}:{name}")),
+                        text_edit: Some(CompletionTextEdit::Edit(TextEdit {
+                            range,
+                            new_text: name.into(),
+                        })),
+                        ..Default::default()
+                    })
+                })
+                .collect(),
+        ));
+    }
     let current_property = property(index, &ctx);
     let (key, value_start) = if let Some(colon) = content.find(':') {
         if byte <= colon {
@@ -528,7 +569,7 @@ pub(crate) fn completion_resolved(
         "subType" if resolved.doc.kind.as_deref() == Some("category_reorder") => {
             vec!["items", "recipe", "schematic", "settings"]
         }
-        "op" => current_property
+        "op" | "$op" => current_property
             .and_then(|field| supported_operations(index, &ctx, field))
             .unwrap_or_else(|| OPERATIONS.iter().map(|spec| spec.name).collect()),
         "conditionBehavior" | "conditionBehaivor" => vec!["AND", "OR"],
@@ -538,7 +579,7 @@ pub(crate) fn completion_resolved(
         }
         _ => Vec::new(),
     };
-    if key == "op"
+    if matches!(key, "op" | "$op")
         && resolved
             .op_entry()
             .is_some_and(|op| op.key_value("path") == Some(kdf_validation::TAG_CONTAINER_SELECTOR))
@@ -548,7 +589,7 @@ pub(crate) fn completion_resolved(
     if !values.is_empty() {
         // An invalid op still offers the verified vocabulary. It never silently edits
         // a typo, and filterText allows the native client to display those choices.
-        let recover_operation = key == "op"
+        let recover_operation = matches!(key, "op" | "$op")
             && !values
                 .iter()
                 .any(|value| value.to_lowercase().contains(&fragment));
@@ -665,6 +706,21 @@ mod tests {
             CompletionResponse::Array(items) => items,
             CompletionResponse::List(list) => list.items,
         }
+    }
+
+    #[test]
+    fn property_mapping_completes_keys_and_dollar_ops() {
+        let fixture = class_value_fixture();
+        let source =
+            format!("type: cdo\npatches:\n  - target: {RECIPE}\n    properties:\n      mPro|");
+        let (text, position) = marked(&source);
+        let keys = items(completion(&text, position, &fixture.reflection).expect("property keys"));
+        assert!(keys.iter().any(|item| item.label == "mProducedIn"));
+
+        let source = format!("type: cdo\npatches:\n  - target: {RECIPE}\n    properties:\n      mProducedIn:\n        $op: app|");
+        let (text, position) = marked(&source);
+        let ops = items(completion(&text, position, &fixture.reflection).expect("mapping ops"));
+        assert!(ops.iter().any(|item| item.label == "append"));
     }
 
     fn assert_catalog_documentation(source: &str, key: &str, label: &str) {

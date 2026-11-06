@@ -351,10 +351,65 @@ $defs:
           properties:
             op: { const: update_where }
   properties:
-    type: array
-    minItems: 1
-    items:
-      $ref: '#/$defs/operation'
+    if: { type: object }
+    then:
+      minProperties: 1
+      propertyNames:
+        anyOf:
+          - $ref: '#/$defs/propertyPath'
+          - const: '@tagContainers'
+      additionalProperties:
+        if:
+          type: object
+          required: ['$op']
+        then:
+          $ref: '#/$defs/mappingOperation'
+    else:
+      type: array
+      minItems: 1
+      items:
+        $ref: '#/$defs/operation'
+  mappingOperation:
+    type: object
+    required: ['$op']
+    additionalProperties: false
+    properties:
+      $op:
+        enum: [add, append, append_unique, clamp, clear, copy, divide, duplicate, insert, max, min, move, multiply, prepend, remove, remove_at, replace_refs, replace, reverse, set, sort, subtract, swap, unique, update_where]
+      value: {}
+      where:
+        oneOf:
+          - $ref: '#/$defs/whereClause'
+          - type: array
+            minItems: 1
+            items:
+              $ref: '#/$defs/whereClause'
+      whereMode:
+        $ref: '#/$defs/whereMode'
+      min:
+        anyOf: [{ type: number }, { $ref: '#/$defs/typedRef' }]
+      max:
+        anyOf: [{ type: number }, { $ref: '#/$defs/typedRef' }]
+      index:
+        anyOf: [{ type: integer }, { $ref: '#/$defs/typedRef' }]
+      with:
+        anyOf: [{ type: integer }, { $ref: '#/$defs/typedRef' }]
+      from:
+        $ref: '#/$defs/nonEmptyString'
+    allOf:
+      - if:
+          properties:
+            $op: { enum: [copy, move] }
+        then:
+          properties:
+            from:
+              $ref: '#/$defs/propertyPath'
+      - if:
+          required: [whereMode]
+        then:
+          required: ['$op', where]
+          properties:
+            $op: { const: update_where }
   generatedEntry:
     type: object
     additionalProperties: false

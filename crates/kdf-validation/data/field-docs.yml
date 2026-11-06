@@ -20,18 +20,18 @@
 # SHARED STRUCTURES (`defs`)
 #   An entry may carry `uses: <def>` (or a list of defs). The documentation of everything below
 #   that path then comes from `defs.<def>`, whose keys are relative to the used structure. The
-#   path `patches[].properties[].op` therefore resolves in two steps for every kind that
-#   attaches the operation list to its `properties`:
-#     kinds.cdo."patches[].properties"  ->  uses: operation  ->  defs.operation.op
+#   path `patches[].properties.mDisplayName.$op` therefore resolves through the property
+#   mapping and its operation wrapper. The legacy list path `patches[].properties[].op`
+#   resolves through the same shared operation definition.
 #   A def may itself use further defs (a `where` filter uses `whereClause`, an operation list
 #   inside a generated entry uses `operation`). An exact entry of the kind always wins over a
 #   def entry, which is how a kind overrides one key (the default `parent` of each generated
 #   type) without repeating the others.
 #
 # RESOLUTION ORDER of field(kind, path)
-#   1. kinds.<kind>: exact path, then the longest prefix with `uses`
-#   2. element conditions: `conditions` / `conditionBehavior` / `conditionBehaivor` on any list
+#   1. element conditions: `conditions` / `conditionBehavior` / `conditionBehaivor` on any list
 #      entry below the document root (defs.listEntry, then common.conditions.*)
+#   2. kinds.<kind>: exact path, then the longest prefix with `uses`
 #   3. common: exact path, then `uses`
 #   `mam` is an alias of `research`.
 #
@@ -41,7 +41,7 @@
 #   type         short type label ("string | list", "class path", "bool", "operation list")
 #   required     true, or text that names the condition ("yes, unless ...")
 #   default      value used when the key is omitted
-#   examples     [{title, yaml, partial}] valid YAML; `partial: true` marks a fragment (or a
+#   examples     entries with title, yaml, and optional partial fields; `partial: true` marks a fragment (or a
 #                document the validator of this build cannot judge) that is only parsed as YAML
 #   docs         page below https://docs.k-mods.com/kdataforge/ (short form `features/targeting`)
 #   uses         shared structure(s) that describe the keys below this path
@@ -63,8 +63,7 @@ common:
           patches:
             - target: Desc_Water
               properties:
-                - path: mResourceSinkPoints
-                  value: 0
+                mResourceSinkPoints: 0
     docs: "reference/yaml-schema"
 
   type:
@@ -84,8 +83,8 @@ common:
           patches:
             - target: /Game/FactoryGame/Recipes/Smelter/Recipe_IngotIron.Recipe_IngotIron_C
               properties:
-                - path: mManufactoringDuration
-                  op: multiply
+                mManufactoringDuration:
+                  $op: multiply
                   value: 0.5
       - title: Two documents in one file, each with its own type
         yaml: |
@@ -115,8 +114,7 @@ common:
           patches:
             - target: Desc_Water
               properties:
-                - path: mResourceSinkPoints
-                  value: 0
+                mResourceSinkPoints: 0
     docs: "reference/yaml-schema"
 
   conditionBehaivor:
@@ -139,8 +137,7 @@ common:
           patches:
             - target: Desc_Water
               properties:
-                - path: mResourceSinkPoints
-                  value: 0
+                mResourceSinkPoints: 0
     docs: "features/conditions-and-packs"
 
   conditionBehavior:
@@ -163,8 +160,7 @@ common:
           patches:
             - target: Desc_Water
               properties:
-                - path: mResourceSinkPoints
-                  value: 0
+                mResourceSinkPoints: 0
     docs: "features/conditions-and-packs"
 
   conditions:
@@ -183,8 +179,7 @@ common:
           patches:
             - target: Desc_Water
               properties:
-                - path: mResourceSinkPoints
-                  value: 0
+                mResourceSinkPoints: 0
       - title: Require KAPI and exclude an incompatible mod
         yaml: |
           type: cdo
@@ -195,8 +190,7 @@ common:
           patches:
             - target: Desc_Water
               properties:
-                - path: mResourceSinkPoints
-                  value: 0
+                mResourceSinkPoints: 0
     docs: "features/conditions-and-packs"
 
   conditions.gameVersion:
@@ -215,8 +209,7 @@ common:
           patches:
             - target: Desc_Water
               properties:
-                - path: mResourceSinkPoints
-                  value: 0
+                mResourceSinkPoints: 0
     docs: "features/conditions-and-packs"
 
   conditions.hasMod:
@@ -237,8 +230,7 @@ common:
           patches:
             - target: Desc_Water
               properties:
-                - path: mResourceSinkPoints
-                  value: 0
+                mResourceSinkPoints: 0
     docs: "features/conditions-and-packs"
 
   conditions.modVersion:
@@ -257,8 +249,7 @@ common:
           patches:
             - target: Desc_Water
               properties:
-                - path: mResourceSinkPoints
-                  value: 0
+                mResourceSinkPoints: 0
     docs: "features/conditions-and-packs"
 
   conditions.modVersion.*:
@@ -277,8 +268,7 @@ common:
           patches:
             - target: Desc_Water
               properties:
-                - path: mResourceSinkPoints
-                  value: 0
+                mResourceSinkPoints: 0
     docs: "features/conditions-and-packs"
 
   conditions.hasClass:
@@ -296,8 +286,8 @@ common:
           patches:
             - target: /Script/FactoryGame.FGBuildableFrackingActivator
               properties:
-                - path: mDefaultPotentialExtractionPerMinute
-                  op: multiply
+                mDefaultPotentialExtractionPerMinute:
+                  $op: multiply
                   value: 1.5
     docs: "features/conditions-and-packs"
 
@@ -319,8 +309,7 @@ common:
           patches:
             - target: Desc_Water
               properties:
-                - path: mResourceSinkPoints
-                  value: 0
+                mResourceSinkPoints: 0
     docs: "features/conditions-and-packs"
 
   conditions.config:
@@ -342,8 +331,8 @@ common:
           patches:
             - target: /Game/FactoryGame/Recipes/Smelter/Recipe_IngotIron.Recipe_IngotIron_C
               properties:
-                - path: mManufactoringDuration
-                  op: multiply
+                mManufactoringDuration:
+                  $op: multiply
                   value: 0.9
       - title: Several expressions, all must hold
         partial: true
@@ -370,8 +359,8 @@ common:
           patches:
             - target: /Game/FactoryGame/Recipes/Smelter/Recipe_IngotIron.Recipe_IngotIron_C
               properties:
-                - path: mManufactoringDuration
-                  op: multiply
+                mManufactoringDuration:
+                  $op: multiply
                   value: 2
     docs: "features/conditions-and-packs"
 
@@ -408,24 +397,30 @@ defs:
             fromResource: /Game/FactoryGame/Resource/RawResources/OreIron/Desc_OreIron.Desc_OreIron_C
       docs: "features/resource-node-placement"
     position:
-      summary: "Finite world coordinates [x, y, z] in centimetres."
+      summary: "Three finite world coordinates (X, Y, Z) in centimetres."
       description: "Coordinates are absolute world positions, with 100 centimetres equal to one metre."
       type: "number[3]"
       examples:
         - title: "Configure position"
           partial: true
           yaml: |
-            position: [10000, 20000, 1200]
+            position:
+              - 10000
+              - 20000
+              - 1200
       docs: "features/resource-node-placement"
     rotation:
-      summary: "Finite [pitch, yaw, roll] in degrees; default [0, 0, 0]."
+      summary: "Three finite angles (pitch, yaw, roll) in degrees; each defaults to zero."
       description: "The sequence order is pitch, yaw, roll; every component must be finite."
       type: "number[3]"
       examples:
         - title: "Configure rotation"
           partial: true
           yaml: |
-            rotation: [0, 90, 0]
+            rotation:
+              - 0
+              - 90
+              - 0
       docs: "features/resource-node-placement"
     purity:
       summary: "Node purity; additions default to Normal, replacements preserve purity when omitted."
@@ -506,7 +501,8 @@ defs:
         - title: "Configure materials"
           partial: true
           yaml: |
-            materials: [null]
+            materials:
+              - null
       docs: "features/resource-node-placement"
   # ---- conditions on single list entries -------------------------------------------------
   listEntry:
@@ -520,18 +516,18 @@ defs:
         to evaluate removes the entry and logs an error.
       type: "condition object | list"
       examples:
-        - title: This operation exists only while the bonus setting is on
+        - title: This product entry exists only while the bonus setting is on
           partial: true
           yaml: |
             type: cdo
             patches:
               - target: /Game/FactoryGame/Recipes/Smelter/Recipe_IngotIron.Recipe_IngotIron_C
                 properties:
-                  - path: mProduct[0].Amount
-                    op: multiply
-                    value: 2
-                    conditions:
-                      config: features.enableBonus
+                  mProduct:
+                    - ItemClass: /Game/FactoryGame/Resource/Parts/IronIngot/Desc_IronIngot.Desc_IronIngot_C
+                      Amount: 2
+                      conditions:
+                        config: features.enableBonus
       docs: "features/conditions-and-packs"
     conditionBehavior:
       summary: "How the condition objects of this list entry combine."
@@ -545,13 +541,13 @@ defs:
         - title: Entry kept when either mod is loaded
           partial: true
           yaml: |
-            - path: mManufactoringDuration
-              op: multiply
-              value: 0.9
-              conditionBehavior: OR
-              conditions:
-                - hasMod: KAPI
-                - hasMod: KLib
+            mProduct:
+              - ItemClass: /Game/FactoryGame/Resource/Parts/IronIngot/Desc_IronIngot.Desc_IronIngot_C
+                Amount: 2
+                conditionBehavior: OR
+                conditions:
+                  - hasMod: KAPI
+                  - hasMod: KLib
       docs: "features/conditions-and-packs"
     conditionBehaivor:
       summary: "How the condition objects of this list entry combine (original spelling)."
@@ -564,17 +560,34 @@ defs:
         - title: Entry kept when either mod is loaded
           partial: true
           yaml: |
-            - path: mManufactoringDuration
-              op: multiply
-              value: 0.9
-              conditionBehaivor: OR
-              conditions:
-                - hasMod: KAPI
-                - hasMod: KLib
+            mProduct:
+              - ItemClass: /Game/FactoryGame/Resource/Parts/IronIngot/Desc_IronIngot.Desc_IronIngot_C
+                Amount: 2
+                conditionBehaivor: OR
+                conditions:
+                  - hasMod: KAPI
+                  - hasMod: KLib
       docs: "features/conditions-and-packs"
 
   # ---- operations --------------------------------------------------------------------------
   operation:
+    "*":
+      summary: "Property name and value in a property mapping."
+      description: >-
+        The key is a reflected property path. Its value sets the property directly, or an
+        object with `$op` selects an operation and carries its operands. Nested `properties`
+        mappings use the same form.
+      type: "property path"
+      uses: operation
+      examples:
+        - title: Set a property directly
+          yaml: |
+            type: cdo
+            patches:
+              - target: Desc_IronIngot_C
+                properties:
+                  mResourceSinkPoints: 4
+      docs: "reference/yaml-schema#property-paths"
     path:
       summary: "Property to change."
       description: >-
@@ -595,15 +608,14 @@ defs:
             patches:
               - target: /Game/FactoryGame/Recipes/Smelter/Recipe_IngotIron.Recipe_IngotIron_C
                 properties:
-                  - path: mManufactoringDuration
-                    value: 2
-                  - path: mIngredients[0].Amount
-                    value: 3
+                  mManufactoringDuration: 2
+                  mIngredients[0].Amount: 3
       docs: "reference/yaml-schema#property-paths"
     op:
       summary: "How `value` combines with what is stored at `path`."
       description: >-
-        One of 25 operations. Without `op` the operation is `set` and overwrites the property.
+        One of 25 operations. Without `$op` in a property mapping (or `op` in the ordered list),
+        the operation is `set` and overwrites the property.
         An operation the property type does not support is reported when the pack loads, never
         silently ignored.
       type: "operation"
@@ -616,8 +628,29 @@ defs:
             patches:
               - target: /Game/FactoryGame/Recipes/Smelter/Recipe_IngotIron.Recipe_IngotIron_C
                 properties:
-                  - path: mManufactoringDuration
-                    op: multiply
+                  mManufactoringDuration:
+                    $op: multiply
+                    value: 0.5
+      docs: "features/operations"
+    "$op":
+      summary: "Operation applied to this property."
+      description: >-
+        One of 25 operations. A plain mapping value without `$op` uses `set`.
+        Use `value` and any other operands required by the selected operation in this wrapper.
+        To condition one operation, use a conditional patch entry or an operation list;
+        `conditions` is not a field in this wrapper.
+      type: "operation"
+      required: true
+      values: op
+      examples:
+        - title: Halve a crafting time
+          yaml: |
+            type: cdo
+            patches:
+              - target: /Game/FactoryGame/Recipes/Smelter/Recipe_IngotIron.Recipe_IngotIron_C
+                properties:
+                  mManufactoringDuration:
+                    $op: multiply
                     value: 0.5
       docs: "features/operations"
     value:
@@ -636,16 +669,15 @@ defs:
             patches:
               - target: Desc_IronIngot_C
                 properties:
-                  - path: mResourceSinkPoints
-                    value: 4
+                  mResourceSinkPoints: 4
         - title: Struct list value
           yaml: |
             type: cdo
             patches:
               - target: /Game/FactoryGame/Recipes/Smelter/Recipe_IngotIron.Recipe_IngotIron_C
                 properties:
-                  - path: mIngredients
-                    op: append
+                  mIngredients:
+                    $op: append
                     value:
                       ItemClass: /Game/FactoryGame/Resource/RawResources/Coal/Desc_Coal.Desc_Coal_C
                       Amount: 1
@@ -662,10 +694,13 @@ defs:
         - title: Match a recipe amount by item class
           partial: true
           yaml: |
-            path: mProduct
-            op: update_where
-            where: { path: ItemClass, equals: Desc_Old_C }
-            value: { ItemClass: Desc_New_C }
+            mProduct:
+              $op: update_where
+              where:
+                path: ItemClass
+                equals: Desc_Old_C
+              value:
+                ItemClass: Desc_New_C
       docs: "features/operations#update_where-array-of-structs"
     whereMode:
       summary: "How multiple where clauses combine."
@@ -679,18 +714,21 @@ defs:
         - title: Update elements matching either item class
           partial: true
           yaml: |
-            path: mProduct
-            op: update_where
-            whereMode: OR
-            where:
-              - { path: ItemClass, equals: Desc_OldA_C }
-              - { path: ItemClass, equals: Desc_OldB_C }
-            value: { ItemClass: Desc_New_C }
+            mProduct:
+              $op: update_where
+              whereMode: OR
+              where:
+                - path: ItemClass
+                  equals: Desc_OldA_C
+                - path: ItemClass
+                  equals: Desc_OldB_C
+              value:
+                ItemClass: Desc_New_C
       docs: "features/operations#update_where-array-of-structs"
     min:
       summary: "Lower bound of a `clamp`."
       description: >-
-        Used by `op: clamp` together with `max`. May be a `cfg:` typed reference.
+        Used by `$op: clamp` together with `max`. May be a `cfg:` typed reference.
       type: "number"
       examples:
         - title: Keep a value between 0 and 999
@@ -699,15 +737,15 @@ defs:
             patches:
               - target: /Game/FactoryGame/Schematics/Progression/Schematic_1-1.Schematic_1-1_C
                 properties:
-                  - path: mMenuPriority
-                    op: clamp
+                  mMenuPriority:
+                    $op: clamp
                     min: 0
                     max: 999
       docs: "features/operations"
     max:
       summary: "Upper bound of a `clamp`."
       description: >-
-        Used by `op: clamp` together with `min`. May be a `cfg:` typed reference.
+        Used by `$op: clamp` together with `min`. May be a `cfg:` typed reference.
       type: "number"
       examples:
         - title: Cap a value at 999
@@ -716,8 +754,8 @@ defs:
             patches:
               - target: /Game/FactoryGame/Schematics/Progression/Schematic_1-1.Schematic_1-1_C
                 properties:
-                  - path: mMenuPriority
-                    op: clamp
+                  mMenuPriority:
+                    $op: clamp
                     min: 0
                     max: 999
       docs: "features/operations"
@@ -735,8 +773,8 @@ defs:
             patches:
               - target: /Game/FactoryGame/Recipes/Smelter/Recipe_IngotIron.Recipe_IngotIron_C
                 properties:
-                  - path: mIngredients
-                    op: insert
+                  mIngredients:
+                    $op: insert
                     index: 1
                     value:
                       ItemClass: /Game/FactoryGame/Resource/RawResources/OreCopper/Desc_OreCopper.Desc_OreCopper_C
@@ -755,8 +793,8 @@ defs:
             patches:
               - target: /Game/FactoryGame/Recipes/Smelter/Recipe_IngotIron.Recipe_IngotIron_C
                 properties:
-                  - path: mIngredients
-                    op: swap
+                  mIngredients:
+                    $op: swap
                     index: 0
                     with: 1
       docs: "features/operations"
@@ -775,8 +813,8 @@ defs:
             patches:
               - target: Desc_IronIngot_C
                 properties:
-                  - path: mAbbreviatedDisplayName
-                    op: copy
+                  mAbbreviatedDisplayName:
+                    $op: copy
                     from: mDisplayName
       docs: "features/operations"
 
@@ -818,7 +856,9 @@ defs:
           yaml: |
             ofClass: /Script/FactoryGame.FGRecipe
             classType: blueprint
-            excludeClasses: ['/KLib/*', '/SatisfactoryPlus/*']
+            excludeClasses:
+              - '/KLib/*'
+              - '/SatisfactoryPlus/*'
       docs: "features/targeting#class-identity-filters"
     ofClass:
       summary: "Scope of a filtered selection: this class, its subclasses and its data assets."
@@ -836,8 +876,8 @@ defs:
               - ofClass: /Script/FactoryGame.FGRecipe
                 matchName: Recipe_Alternate_*
                 properties:
-                  - path: mManufactoringDuration
-                    op: multiply
+                  mManufactoringDuration:
+                    $op: multiply
                     value: 0.8
       docs: "features/targeting#ofclass-scope--filters-select-by-tag-name-recipe-shape-or-property-values"
     matchTag:
@@ -854,8 +894,8 @@ defs:
               - ofClass: /Script/FactoryGame.FGRecipe
                 matchTag: KMods.AlternateRecipe
                 properties:
-                  - path: mManufactoringDuration
-                    op: multiply
+                  mManufactoringDuration:
+                    $op: multiply
                     value: 0.8
       docs: "features/targeting#matchtag-select-by-gameplay-tag"
     tagProperty:
@@ -873,8 +913,8 @@ defs:
                 matchTag: KMods.AlternateRecipe
                 tagProperty: mGameplayTags
                 properties:
-                  - path: mManufactoringDuration
-                    op: multiply
+                  mManufactoringDuration:
+                    $op: multiply
                     value: 0.8
       docs: "features/targeting#matchtag-select-by-gameplay-tag"
     matchAssets:
@@ -893,8 +933,8 @@ defs:
                 matchTag: KMods.AlternateRecipe
                 matchAssets: false
                 properties:
-                  - path: mManufactoringDuration
-                    op: multiply
+                  mManufactoringDuration:
+                    $op: multiply
                     value: 0.8
       docs: "features/targeting#matchtag-select-by-gameplay-tag"
     matchName:
@@ -913,8 +953,8 @@ defs:
               - ofClass: /Script/FactoryGame.FGSchematic
                 matchName: /Game/FactoryGame/Schematics/Progression/*
                 properties:
-                  - path: mTimeToComplete
-                    op: multiply
+                  mTimeToComplete:
+                    $op: multiply
                     value: 0.5
       docs: "features/targeting#matchname-select-by-class-name-pattern"
     producedIn:
@@ -931,8 +971,8 @@ defs:
             patches:
               - producedIn: /Game/FactoryGame/Buildable/Factory/ConstructorMk1/Build_ConstructorMk1.Build_ConstructorMk1_C
                 properties:
-                  - path: mManufactoringDuration
-                    op: multiply
+                  mManufactoringDuration:
+                    $op: multiply
                     value: 0.75
       docs: "features/targeting#producedin--ingredient--product-recipe-shortcuts"
     ingredient:
@@ -946,10 +986,12 @@ defs:
           yaml: |
             type: cdo
             patches:
-              - ingredient: [Desc_Plastic_C, Desc_Rubber_C]
+              - ingredient:
+                  - Desc_Plastic_C
+                  - Desc_Rubber_C
                 properties:
-                  - path: mManufactoringDuration
-                    op: multiply
+                  mManufactoringDuration:
+                    $op: multiply
                     value: 0.9
       docs: "features/targeting#producedin--ingredient--product-recipe-shortcuts"
     product:
@@ -966,8 +1008,8 @@ defs:
               - product: Desc_IronScrew_C
                 producedIn: Build_AssemblerMk1_C
                 properties:
-                  - path: mProduct[0].Amount
-                    op: multiply
+                  mProduct[0].Amount:
+                    $op: multiply
                     value: 2
       docs: "features/targeting#producedin--ingredient--product-recipe-shortcuts"
     where:
@@ -990,8 +1032,8 @@ defs:
                   - path: mIngredients[*].ItemClass
                     equals: Desc_IronIngot_C
                 properties:
-                  - path: mManufactoringDuration
-                    op: multiply
+                  mManufactoringDuration:
+                    $op: multiply
                     value: 0.8
       docs: "features/targeting#where-filter-by-property-values"
     whereMode:
@@ -1011,10 +1053,12 @@ defs:
               - ofClass: /Script/FactoryGame.FGItemDescriptor
                 whereMode: OR
                 where:
-                  - { path: mForm, equals: RF_LIQUID }
-                  - { path: mForm, equals: RF_GAS }
+                  - path: mForm
+                    equals: RF_LIQUID
+                  - path: mForm
+                    equals: RF_GAS
                 properties:
-                  - { path: mResourceSinkPoints, value: 0 }
+                  mResourceSinkPoints: 0
       docs: "features/targeting#where-filter-by-property-values"
 
   whereClause:
@@ -1036,8 +1080,7 @@ defs:
                   path: mTechTier
                   lessOrEqual: 3
                 properties:
-                  - path: mTimeToComplete
-                    value: 0
+                  mTimeToComplete: 0
       docs: "features/targeting#where-filter-by-property-values"
     equals:
       summary: "Matches when the property equals the value."
@@ -1055,8 +1098,8 @@ defs:
                   path: mIngredients[*].ItemClass
                   equals: Desc_IronIngot_C
                 properties:
-                  - path: mManufactoringDuration
-                    op: multiply
+                  mManufactoringDuration:
+                    $op: multiply
                     value: 0.9
       docs: "features/targeting#where-filter-by-property-values"
     notEquals:
@@ -1074,8 +1117,7 @@ defs:
                   path: mForm
                   notEquals: RF_SOLID
                 properties:
-                  - path: mResourceSinkPoints
-                    value: 0
+                  mResourceSinkPoints: 0
       docs: "features/targeting#where-filter-by-property-values"
     lessThan:
       summary: "Matches when the property is smaller than the number."
@@ -1093,8 +1135,7 @@ defs:
                   path: mManufactoringDuration
                   lessThan: 2
                 properties:
-                  - path: mManufactoringDuration
-                    value: 2
+                  mManufactoringDuration: 2
       docs: "features/targeting#where-filter-by-property-values"
     lessOrEqual:
       summary: "Matches when the property is smaller than or equal to the number."
@@ -1112,8 +1153,7 @@ defs:
                   path: mTechTier
                   lessOrEqual: 3
                 properties:
-                  - path: mTimeToComplete
-                    value: 0
+                  mTimeToComplete: 0
       docs: "features/targeting#where-filter-by-property-values"
     greaterThan:
       summary: "Matches when the property is larger than the number."
@@ -1131,8 +1171,8 @@ defs:
                   path: mManufactoringDuration
                   greaterThan: 8
                 properties:
-                  - path: mManufactoringDuration
-                    op: multiply
+                  mManufactoringDuration:
+                    $op: multiply
                     value: 0.8
       docs: "features/targeting#where-filter-by-property-values"
     greaterOrEqual:
@@ -1167,8 +1207,8 @@ defs:
                   path: mGameplayTags
                   contains: KMods.AlternateRecipe
                 properties:
-                  - path: mManufactoringDuration
-                    op: multiply
+                  mManufactoringDuration:
+                    $op: multiply
                     value: 0.8
       docs: "features/targeting#where-filter-by-property-values"
     notContains:
@@ -1186,8 +1226,8 @@ defs:
                   path: mGameplayTags
                   notContains: KMods.AlternateRecipe
                 properties:
-                  - path: mManufactoringDuration
-                    op: multiply
+                  mManufactoringDuration:
+                    $op: multiply
                     value: 1.1
       docs: "features/targeting#where-filter-by-property-values"
     in:
@@ -1204,10 +1244,11 @@ defs:
               - ofClass: /Script/FactoryGame.FGItemDescriptor
                 where:
                   path: mForm
-                  in: [RF_LIQUID, RF_GAS]
+                  in:
+                    - RF_LIQUID
+                    - RF_GAS
                 properties:
-                  - path: mResourceSinkPoints
-                    value: 0
+                  mResourceSinkPoints: 0
       docs: "features/targeting#where-filter-by-property-values"
     notIn:
       summary: "Matches when the property matches none of the listed values."
@@ -1222,10 +1263,11 @@ defs:
               - ofClass: /Script/FactoryGame.FGItemDescriptor
                 where:
                   path: mForm
-                  notIn: [RF_LIQUID, RF_GAS]
+                  notIn:
+                    - RF_LIQUID
+                    - RF_GAS
                 properties:
-                  - path: mStackSize
-                    value: SS_HUGE
+                  mStackSize: SS_HUGE
       docs: "features/targeting#where-filter-by-property-values"
     matches:
       summary: "Matches when the display text fits the wildcard pattern."
@@ -1242,8 +1284,8 @@ defs:
                   path: mDisplayName
                   matches: "*Alternate*"
                 properties:
-                  - path: mManufactoringDuration
-                    op: multiply
+                  mManufactoringDuration:
+                    $op: multiply
                     value: 0.8
       docs: "features/targeting#where-filter-by-property-values"
     isEmpty:
@@ -1262,8 +1304,8 @@ defs:
                   path: mProducedIn
                   isEmpty: true
                 properties:
-                  - path: mProducedIn
-                    op: append
+                  mProducedIn:
+                    $op: append
                     value: /Game/FactoryGame/Buildable/-Shared/WorkBench/BP_WorkBenchComponent.BP_WorkBenchComponent_C
       docs: "features/targeting#where-filter-by-property-values"
 
@@ -1321,7 +1363,7 @@ defs:
       description: >-
         The same operations as a `cdo` patch, applied to the class default object of the
         generated class. All variation of a generated class lives in these defaults.
-      type: "operation list"
+      type: "property map | operation list"
       uses: operation
       examples:
         - title: Name and stack size of a new item
@@ -1330,10 +1372,8 @@ defs:
             items:
               - id: MySuperIngot
                 properties:
-                  - path: mDisplayName
-                    value: Super Ingot
-                  - path: mStackSize
-                    value: SS_HUGE
+                  mDisplayName: Super Ingot
+                  mStackSize: SS_HUGE
       docs: "features/operations"
 
   registerableEntry:
@@ -1397,7 +1437,7 @@ defs:
       summary: "Operations applied to the defaults of the class."
       description: >-
         The same operations as a `cdo` patch, applied to the generated (or registered) class.
-      type: "operation list"
+      type: "property map | operation list"
       uses: operation
       examples:
         - title: Craft time of a new recipe
@@ -1406,8 +1446,7 @@ defs:
             recipes:
               - id: Recipe_MySuperIngot
                 properties:
-                  - path: mManufactoringDuration
-                    value: 4
+                  mManufactoringDuration: 4
       docs: "features/operations"
 
   instancedObject:
@@ -1433,7 +1472,7 @@ defs:
       description: >-
         The same operations as a `cdo` patch, applied to the instance before it is appended to
         the owner's array.
-      type: "operation list"
+      type: "property map | operation list"
       uses: operation
       examples:
         - title: Unlock a generated recipe
@@ -1444,9 +1483,8 @@ defs:
                 unlocks:
                   - class: /Game/FactoryGame/Unlocks/BP_UnlockRecipe.BP_UnlockRecipe_C
                     properties:
-                      - path: mRecipes
-                        value:
-                          - Recipe_MySuperIngot
+                      mRecipes:
+                        - Recipe_MySuperIngot
       docs: "features/schematics"
 
   # ---- research tree nodes -----------------------------------------------------------------
@@ -1735,7 +1773,7 @@ defs:
       summary: "Operations applied to the node object."
       description: >-
         The same operations as a `cdo` patch, applied to the node instance.
-      type: "operation list"
+      type: "property map | operation list"
       uses: operation
       examples:
         - title: Property of a node
@@ -1747,8 +1785,7 @@ defs:
                   X: 0
                   Y: 0
                 properties:
-                  - path: mHidden
-                    value: false
+                  mHidden: false
       docs: "features/operations"
 
   # ---- vectors and localized text -----------------------------------------------------------
@@ -2067,8 +2104,7 @@ kinds:
             items:
               - id: SuperIngot
                 properties:
-                  - path: mSmallIcon
-                    value: SuperIngotIcon
+                  mSmallIcon: SuperIngotIcon
       docs: "features/data-assets#2d-image-assets-type-asset"
     "assets[].file":
       summary: "Image file, relative to the pack root."
@@ -2089,7 +2125,7 @@ kinds:
       summary: "Optional operations applied to the generated texture."
       description: >-
         Uses the same operation grammar as a `cdo` patch.
-      type: "operation list"
+      type: "property map | operation list"
       uses: operation
       examples:
         - title: Point filtering for a pixel-art icon
@@ -2099,8 +2135,7 @@ kinds:
               - id: PixelIcon
                 file: icons/pixel.png
                 properties:
-                  - path: Filter
-                    value: TF_Nearest
+                  Filter: TF_Nearest
       docs: "features/data-assets#2d-image-assets-type-asset"
 
   # ---- type: building ------------------------------------------------------------------------
@@ -2123,8 +2158,7 @@ kinds:
               - id: MyCrimsonStorage
                 parent: /Game/FactoryGame/Buildable/Factory/StorageContainerMk1/Desc_StorageContainerMk1.Desc_StorageContainerMk1_C
                 properties:
-                  - path: mDisplayName
-                    value: Crimson Storage Container
+                  mDisplayName: Crimson Storage Container
       docs: "features/buildings"
     "buildings[].parent":
       summary: "Building descriptor class the new entry copies its settings from."
@@ -2162,8 +2196,8 @@ kinds:
             patches:
               - target: /Game/FactoryGame/Recipes/Smelter/Recipe_IngotIron.Recipe_IngotIron_C
                 properties:
-                  - path: mManufactoringDuration
-                    op: multiply
+                  mManufactoringDuration:
+                    $op: multiply
                     value: 0.5
       docs: "features/patching-cdo"
     "patches[].target":
@@ -2180,8 +2214,7 @@ kinds:
             patches:
               - target: /Game/FactoryGame/Recipes/Smelter/Recipe_IngotIron.Recipe_IngotIron_C
                 properties:
-                  - path: mManufactoringDuration
-                    value: 2
+                  mManufactoringDuration: 2
         - title: Several unrelated targets with the same properties
           yaml: |
             type: cdo
@@ -2190,8 +2223,7 @@ kinds:
                   - MySuperIngot
                   - /Game/FactoryGame/Resource/Parts/IronPlate/Desc_IronPlate.Desc_IronPlate_C
                 properties:
-                  - path: mResourceSinkPoints
-                    value: 50
+                  mResourceSinkPoints: 50
       docs: "features/targeting"
     "patches[].allAssetsOfClass":
       summary: "Every asset of a class, found in the asset registry."
@@ -2208,8 +2240,8 @@ kinds:
             patches:
               - allAssetsOfClass: /Script/KAPI.KAPICleanerItemDescription
                 properties:
-                  - path: mProductionTime
-                    op: multiply
+                  mProductionTime:
+                    $op: multiply
                     value: 0.75
       docs: "features/targeting#allassetsofclass-every-asset-of-a-class"
     "patches[].applyToSubclasses":
@@ -2230,8 +2262,8 @@ kinds:
               - target: /Script/FactoryGame.FGBuildableResourceExtractor
                 applyToSubclasses: true
                 properties:
-                  - path: mExtractMultiplier
-                    op: min
+                  mExtractMultiplier:
+                    $op: min
                     value: 2
       docs: "features/targeting#applytosubclasses-widen-a-class-target-to-every-derived-class"
     "patches[].applyToSpawnedActors":
@@ -2250,8 +2282,7 @@ kinds:
               - target: /Game/FactoryGame/Buildable/Factory/StorageContainerMk1/Build_StorageContainerMk1.Build_StorageContainerMk1_C
                 applyToSpawnedActors: true
                 properties:
-                  - path: mInventorySizeX
-                    value: 12
+                  mInventorySizeX: 12
       docs: "features/targeting#applytospawnedactors-runtime-actor-patches"
     "patches[].deferOneGameTick":
       summary: "Waits one game tick after BeginPlay before resolving and applying."
@@ -2268,15 +2299,14 @@ kinds:
               - target: /Game/FactoryGame/Buildable/Factory/StorageContainerMk1/Build_StorageContainerMk1.Build_StorageContainerMk1_C
                 deferOneGameTick: true
                 properties:
-                  - path: mInventorySizeX
-                    value: 12
+                  mInventorySizeX: 12
       docs: "features/targeting"
     "patches[].properties":
       summary: "Operations applied to every selected target."
       description: >-
         A non-empty list of operations, applied in order. Each names a property `path` and an
         `op` (default `set`).
-      type: "operation list"
+      type: "property map | operation list"
       required: true
       uses: operation
       examples:
@@ -2286,12 +2316,13 @@ kinds:
             patches:
               - target: /Game/FactoryGame/Recipes/Smelter/Recipe_IngotIron.Recipe_IngotIron_C
                 properties:
-                  - path: mManufactoringDuration
-                    op: multiply
+                  mManufactoringDuration:
+                    $op: multiply
                     value: 0.5
-                  - path: mGameplayTags
-                    op: append
-                    value: [MyPack.Rebalanced]
+                  mGameplayTags:
+                    $op: append
+                    value:
+                      - MyPack.Rebalanced
       docs: "features/operations"
 
   # ---- type: class ---------------------------------------------------------------------------
@@ -2393,7 +2424,9 @@ kinds:
         - title: "Configure tags"
           partial: true
           yaml: |
-            tags: [FactoryNorth, Boosted]
+            tags:
+              - FactoryNorth
+              - Boosted
       docs: "features/actor-selectors"
     "patches[].actorSelector.sphere":
       summary: "Selects actors inside a world-space sphere in centimetres."
@@ -2404,7 +2437,10 @@ kinds:
           partial: true
           yaml: |
             sphere:
-              center: [0, 0, 0]
+              center:
+                - 0
+                - 0
+                - 0
               radius: 500
       docs: "features/actor-selectors"
     "patches[].actorSelector.sphere.center":
@@ -2415,7 +2451,10 @@ kinds:
         - title: "Configure center"
           partial: true
           yaml: |
-            center: [0, 0, 0]
+            center:
+              - 0
+              - 0
+              - 0
       docs: "features/actor-selectors"
     "patches[].actorSelector.sphere.radius":
       summary: "Finite sphere radius greater than zero, in centimetres."
@@ -2436,8 +2475,14 @@ kinds:
           partial: true
           yaml: |
             box:
-              min: [0, 0, 0]
-              max: [100, 100, 100]
+              min:
+                - 0
+                - 0
+                - 0
+              max:
+                - 100
+                - 100
+                - 100
       docs: "features/actor-selectors"
     "patches[].actorSelector.box.min":
       summary: "Minimum [x, y, z]; each component must be less than max."
@@ -2447,7 +2492,10 @@ kinds:
         - title: "Configure min"
           partial: true
           yaml: |
-            min: [0, 0, 0]
+            min:
+              - 0
+              - 0
+              - 0
       docs: "features/actor-selectors"
     "patches[].actorSelector.box.max":
       summary: "Maximum [x, y, z]; each component must be greater than min."
@@ -2457,7 +2505,10 @@ kinds:
         - title: "Configure max"
           partial: true
           yaml: |
-            max: [100, 100, 100]
+            max:
+              - 100
+              - 100
+              - 100
       docs: "features/actor-selectors"
     "patches[].actorSelector.currentRecipe":
       summary: "Requires an exact currently configured recipe class, or one from a list."
@@ -2488,8 +2539,7 @@ kinds:
               - id: Desc_MyGadget
                 parent: /Script/FactoryGame.FGEquipmentDescriptor
                 properties:
-                  - path: mStackSize
-                    value: SS_ONE
+                  mStackSize: SS_ONE
       docs: "features/custom-classes"
     "classes[].id":
       summary: "Stable id of the generated class."
@@ -2512,7 +2562,7 @@ kinds:
       description: >-
         The same operations as a `cdo` patch, applied to the class default object. All
         variation of a generated class lives in these defaults.
-      type: "operation list"
+      type: "property map | operation list"
       uses: operation
       examples:
         - title: Name of the new class
@@ -2522,8 +2572,7 @@ kinds:
               - id: Desc_MyGadget
                 parent: /Script/FactoryGame.FGEquipmentDescriptor
                 properties:
-                  - path: mDisplayName
-                    value: Portable Gadget
+                  mDisplayName: Portable Gadget
       docs: "features/operations"
     "classes[].parent":
       summary: "Class to derive from, native or Blueprint."
@@ -2764,7 +2813,10 @@ kinds:
               - id: CameraOffset
                 keys:
                   - time: 1
-                    value: [100, 0, 50]
+                    value:
+                      - 100
+                      - 0
+                      - 50
       docs: "features/curves#vector-curves"
     "curves[].keys[].interpMode":
       summary: "Interpolation from this key to the next."
@@ -2935,8 +2987,7 @@ kinds:
               - id: CleanerItem_MyFluid
                 class: /Script/KAPI.KAPICleanerItemDescription
                 properties:
-                  - path: mProductionTime
-                    value: 4.0
+                  mProductionTime: 4.0
       docs: "features/data-assets#creating-new-instances-type-dataasset"
     "assets[].id":
       summary: "Stable id of the data asset."
@@ -2974,7 +3025,7 @@ kinds:
       summary: "Operations applied to the new asset."
       description: >-
         The same operations as a `cdo` patch, applied to the created instance.
-      type: "operation list"
+      type: "property map | operation list"
       uses: operation
       examples:
         - title: Set a time
@@ -2984,8 +3035,7 @@ kinds:
               - id: CleanerItem_MyFluid
                 class: /Script/KAPI.KAPICleanerItemDescription
                 properties:
-                  - path: mProductionTime
-                    value: 4.0
+                  mProductionTime: 4.0
       docs: "features/operations"
     "assets[].unlocks":
       summary: "Instanced unlock objects appended to the asset's `mUnlocks`."
@@ -3089,10 +3139,8 @@ kinds:
               - id: MySuperIngot
                 parent: /Game/FactoryGame/Resource/Parts/IronIngot/Desc_IronIngot.Desc_IronIngot_C
                 properties:
-                  - path: mDisplayName
-                    value: Super Ingot
-                  - path: mStackSize
-                    value: SS_HUGE
+                  mDisplayName: Super Ingot
+                  mStackSize: SS_HUGE
       docs: "features/items"
     "items[].parent":
       summary: "Item class the new item copies mesh, icon and form from."
@@ -3468,7 +3516,9 @@ kinds:
                 multiple: true
                 name: Names
                 description: Between one and four names.
-                default: [Alpha, Beta]
+                default:
+                  - Alpha
+                  - Beta
       docs: "features/pack-configuration#common-field-keys"
     "fields[].apply":
       summary: "Whether a changed value applies live (hot) or after a restart (cold)."
@@ -3533,7 +3583,9 @@ kinds:
                 maxCount: 4
                 name: Names
                 description: Between one and four names.
-                default: [Alpha, Beta]
+                default:
+                  - Alpha
+                  - Beta
       docs: "features/pack-configuration#common-field-keys"
     "fields[].min":
       summary: "Smallest allowed number."
@@ -3706,7 +3758,7 @@ kinds:
     "fields[].options":
       summary: "Choices of a select field."
       description: >-
-        At least one `{value, label}` entry. Values are unique and of the field's `valueType`.
+        At least one entry with `value` and `label`. Values are unique and of the field's `valueType`.
         Text and option values are compared case-sensitively.
       type: "list of options"
       required: "yes, for `type: select`"
@@ -3746,8 +3798,10 @@ kinds:
                 description: A numeric choice.
                 default: 2
                 options:
-                  - { value: 1, label: Tier 1 }
-                  - { value: 2, label: Tier 2 }
+                  - value: 1
+                    label: Tier 1
+                  - value: 2
+                    label: Tier 2
       docs: "features/pack-configuration#text-tags-and-selections"
     "fields[].options[].label":
       summary: "Text shown for the option."
@@ -3794,11 +3848,16 @@ kinds:
                 minSelected: 1
                 name: Enabled tiers
                 description: Pick one or two tiers.
-                default: [1, 2]
+                default:
+                  - 1
+                  - 2
                 options:
-                  - { value: 1, label: Tier 1 }
-                  - { value: 2, label: Tier 2 }
-                  - { value: 3, label: Tier 3 }
+                  - value: 1
+                    label: Tier 1
+                  - value: 2
+                    label: Tier 2
+                  - value: 3
+                    label: Tier 3
       docs: "features/pack-configuration#text-tags-and-selections"
     "fields[].maxSelected":
       summary: "Most options a multi-select may have chosen."
@@ -3818,11 +3877,16 @@ kinds:
                 maxSelected: 2
                 name: Enabled tiers
                 description: Pick one or two tiers.
-                default: [1, 2]
+                default:
+                  - 1
+                  - 2
                 options:
-                  - { value: 1, label: Tier 1 }
-                  - { value: 2, label: Tier 2 }
-                  - { value: 3, label: Tier 3 }
+                  - value: 1
+                    label: Tier 1
+                  - value: 2
+                    label: Tier 2
+                  - value: 3
+                    label: Tier 3
       docs: "features/pack-configuration#text-tags-and-selections"
     "fields[].minCount":
       summary: "Fewest entries a list field must hold."
@@ -3841,7 +3905,8 @@ kinds:
                 minCount: 1
                 name: Names
                 description: At least one name.
-                default: [Alpha]
+                default:
+                  - Alpha
       docs: "features/pack-configuration#text-tags-and-selections"
     "fields[].maxCount":
       summary: "Most entries a list field may hold."
@@ -3862,7 +3927,9 @@ kinds:
                 maxCount: 4
                 name: Names
                 description: Up to four names.
-                default: [Alpha, Beta]
+                default:
+                  - Alpha
+                  - Beta
       docs: "features/pack-configuration#text-tags-and-selections"
     "fields[].descriptionClass":
       summary: "Reserved for a later version."
@@ -3885,7 +3952,8 @@ kinds:
         - title: Reserved key (ignored)
           partial: true
           yaml: |
-            properties: {}
+            properties:
+              futureSetting: true
       docs: "features/pack-configuration#common-field-keys"
 
   # ---- pack.yml ------------------------------------------------------------------------------
@@ -3897,7 +3965,10 @@ kinds:
       examples:
         - title: Runtime script manifest fragment
           partial: true
-          yaml: "scripts: [{language: kmods.typescript, entry: scripts/main.ts}]"
+          yaml: |
+            scripts:
+              - language: kmods.typescript
+                entry: scripts/main.ts
       docs: "features/conditions-and-packs#packyml-the-pack-manifest"
     "scripts[].language":
       summary: "Registered script language."
@@ -3960,7 +4031,9 @@ kinds:
       examples:
         - title: Runtime script manifest fragment
           partial: true
-          yaml: "reflectionClasses: [/Script/Engine.Actor]"
+          yaml: |
+            reflectionClasses:
+              - /Script/Engine.Actor
       docs: "features/conditions-and-packs#packyml-the-pack-manifest"
     "scripts[].classes":
       summary: "Alias of reflectionClasses."
@@ -3969,16 +4042,23 @@ kinds:
       examples:
         - title: Runtime script manifest fragment
           partial: true
-          yaml: "classes: [/Script/Engine.Actor]"
+          yaml: |
+            classes:
+              - /Script/Engine.Actor
       docs: "features/conditions-and-packs#packyml-the-pack-manifest"
     "scripts[].imports":
       summary: "Manifest-authorized static imports."
       description: "At most 64 declarations. Keys and portable case-folded paths must be unique."
       type: "list of import declarations"
       examples:
-        - title: Runtime script manifest fragment
+        - title: Runtime script import (replace the digest with the file's SHA-256)
           partial: true
-          yaml: "imports: []"
+          yaml: |
+            imports:
+              - key: starter-text
+                kind: text
+                path: assets/starter.txt
+                sha256: '0000000000000000000000000000000000000000000000000000000000000000'
       docs: "features/conditions-and-packs#packyml-the-pack-manifest"
     "scripts[].imports[].key":
       summary: "Static import lookup key."
@@ -4244,19 +4324,15 @@ kinds:
             recipes:
               - id: Recipe_MySuperIngot
                 properties:
-                  - path: mIngredients
-                    value:
-                      - ItemClass: /Game/FactoryGame/Resource/Parts/IronIngot/Desc_IronIngot.Desc_IronIngot_C
-                        Amount: 2
-                  - path: mProduct
-                    value:
-                      - ItemClass: MySuperIngot
-                        Amount: 1
-                  - path: mManufactoringDuration
-                    value: 4
-                  - path: mProducedIn
-                    value:
-                      - /Game/FactoryGame/Buildable/Factory/SmelterMk1/Build_SmelterMk1.Build_SmelterMk1_C
+                  mIngredients:
+                    - ItemClass: /Game/FactoryGame/Resource/Parts/IronIngot/Desc_IronIngot.Desc_IronIngot_C
+                      Amount: 2
+                  mProduct:
+                    - ItemClass: MySuperIngot
+                      Amount: 1
+                  mManufactoringDuration: 4
+                  mProducedIn:
+                    - /Game/FactoryGame/Buildable/Factory/SmelterMk1/Build_SmelterMk1.Build_SmelterMk1_C
       docs: "features/recipes"
     "recipes[].parent":
       summary: "Recipe class the new recipe is derived from."
@@ -4310,10 +4386,8 @@ kinds:
             research:
               - id: MyContentLineTree
                 properties:
-                  - path: mDisplayName
-                    value: My Content Line
-                  - path: mMenuPriority
-                    value: 50
+                  mDisplayName: My Content Line
+                  mMenuPriority: 50
       docs: "features/research-trees"
     "research[].parent":
       summary: "Research tree class the new tree is derived from."
@@ -4346,9 +4420,8 @@ kinds:
                 unlockDependencies:
                   - class: /Script/FactoryGame.FGSchematicPurchasedDependency
                     properties:
-                      - path: mSchematics
-                        value:
-                          - Schematic_MyPrerequisite
+                      mSchematics:
+                        - Schematic_MyPrerequisite
       docs: "reference/yaml-schema#instanced-dependencies-on-research-trees"
     "research[].visibilityDependencies":
       summary: "Dependencies appended to the tree's `mVisibilityDependencies`."
@@ -4366,8 +4439,7 @@ kinds:
                 visibilityDependencies:
                   - class: /Script/FactoryGame.FGGamePhaseReachedDependency
                     properties:
-                      - path: mGamePhase
-                        value: EGP_EarlyGame
+                      mGamePhase: EGP_EarlyGame
       docs: "reference/yaml-schema#instanced-dependencies-on-research-trees"
     "research[].autoPath":
       summary: "Draws straight roads for the `parents` relationships of added nodes."
@@ -4510,8 +4582,7 @@ kinds:
               - id: MyCustomOre
                 parent: /Game/FactoryGame/Resource/RawResources/OreIron/Desc_OreIron.Desc_OreIron_C
                 properties:
-                  - path: mDisplayName
-                    value: Custom Ore
+                  mDisplayName: Custom Ore
       docs: "features/resources"
     "resources[].parent":
       summary: "Resource descriptor class the new resource copies from."
@@ -4652,7 +4723,9 @@ kinds:
             type: resourcenode
             remove:
               - resource: MyGeneratedResource
-                nodeTypes: [Node, FrackingCore]
+                nodeTypes:
+                  - Node
+                  - FrackingCore
       docs: "features/resources#removing-resource-nodes-type-resourcenode"
     "remove[].nodeTypes":
       summary: "Node types the removal is limited to."
@@ -4667,7 +4740,8 @@ kinds:
             type: resourcenode
             remove:
               - resource: MyGeneratedResource
-                nodeTypes: [Node]
+                nodeTypes:
+                  - Node
       docs: "features/resources#removing-resource-nodes-type-resourcenode"
     "remove[].allowOccupied":
       summary: "Also removes node groups an extractor is built on."
@@ -4712,7 +4786,10 @@ kinds:
             add:
               - id: northern-iron
                 resource: /Game/FactoryGame/Resource/RawResources/OreIron/Desc_OreIron.Desc_OreIron_C
-                position: [10000, 20000, 1200]
+                position:
+                  - 10000
+                  - 20000
+                  - 1200
       uses: nodePlacement
       docs: "features/resource-node-placement"
     replace:
@@ -4726,7 +4803,10 @@ kinds:
             replace:
               - id: northern-iron
                 resource: /Game/FactoryGame/Resource/RawResources/OreIron/Desc_OreIron.Desc_OreIron_C
-                position: [10000, 20000, 1200]
+                position:
+                  - 10000
+                  - 20000
+                  - 1200
       uses: nodePlacement
       docs: "features/resource-node-placement"
     "replace[].fromResource":
@@ -4777,16 +4857,13 @@ kinds:
             schematics:
               - id: Schematic_MySuperIngot
                 properties:
-                  - path: mDisplayName
-                    value: Super Ingot Smelting
-                  - path: mTechTier
-                    value: 2
+                  mDisplayName: Super Ingot Smelting
+                  mTechTier: 2
                 unlocks:
                   - class: /Game/FactoryGame/Unlocks/BP_UnlockRecipe.BP_UnlockRecipe_C
                     properties:
-                      - path: mRecipes
-                        value:
-                          - Recipe_MySuperIngot
+                      mRecipes:
+                        - Recipe_MySuperIngot
       docs: "features/schematics"
     "schematics[].parent":
       summary: "Schematic class the new schematic is derived from."
@@ -4820,13 +4897,11 @@ kinds:
                 unlocks:
                   - class: /Game/FactoryGame/Unlocks/BP_UnlockRecipe.BP_UnlockRecipe_C
                     properties:
-                      - path: mRecipes
-                        value:
-                          - Recipe_MySuperIngot
+                      mRecipes:
+                        - Recipe_MySuperIngot
                   - class: /Script/FactoryGame.FGUnlockInventorySlot
                     properties:
-                      - path: mNumInventorySlotsToUnlock
-                        value: 1
+                      mNumInventorySlotsToUnlock: 1
       docs: "features/schematics#instanced-unlocks-the-normal-way-to-wire-up-a-recipe"
     "schematics[].dependencies":
       summary: "Prerequisites created on the schematic."
@@ -4845,9 +4920,8 @@ kinds:
                 dependencies:
                   - class: /Script/FactoryGame.FGSchematicPurchasedDependency
                     properties:
-                      - path: mSchematics
-                        value:
-                          - Schematic_MySuperIngot
+                      mSchematics:
+                        - Schematic_MySuperIngot
       docs: "features/schematics#gating-a-schematic-on-prerequisites"
     "schematics[].recipes":
       summary: "Shortcut: recipes the schematic unlocks."
@@ -5080,7 +5154,9 @@ kinds:
               - ofClass: /Script/FactoryGame.FGItemDescriptor
                 where:
                   path: mForm
-                  in: [RF_LIQUID, RF_GAS]
+                  in:
+                    - RF_LIQUID
+                    - RF_GAS
                 points: 0
       docs: "features/sinkpoints"
     "entries[].item":
@@ -5163,15 +5239,15 @@ kinds:
               - id: WelcomeMessage
                 class: /Script/FactoryGame.FGMessage
                 properties:
-                  - path: mAudioEvent
-                    value: AdaWelcome
+                  mAudioEvent: AdaWelcome
       docs: "features/sounds#reference-an-event"
     "sounds[].file":
-      summary: "WAV/FLAC file, relative to the pack root."
+      summary: "WAV, FLAC or Ogg Vorbis file, relative to the pack root."
       description: >-
-        PCM16 RIFF WAV or native FLAC, mono or stereo, 8000 to 192000 Hz, at most 64 MiB encoded and decoded. FLAC requires a known nonzero frame count. Ogg and 24-bit FLAC are unsupported. The
-        path and any symbolic link must stay inside the pack. MP3, OGG, float WAV, loops and
-        spatial attenuation are unsupported.
+        PCM16 RIFF WAV, native 16-bit FLAC or Ogg Vorbis, mono or stereo, 8000 to 192000 Hz,
+        at most 64 MiB encoded and decoded. FLAC requires a known nonzero frame count. The
+        path and any symbolic link must stay inside the pack. MP3, Opus, Ogg FLAC, 24-bit FLAC,
+        float WAV, loops and spatial attenuation are unsupported.
       type: "file path"
       required: true
       examples:
@@ -5181,6 +5257,12 @@ kinds:
             sounds:
               - id: AdaWelcome
                 file: audio/welcome.wav
+        - title: Ogg Vorbis in a subfolder
+          yaml: |
+            type: sound
+            sounds:
+              - id: AdaWelcome
+                file: audio/welcome.ogg
       docs: "features/sounds#accepted-audio"
     "sounds[].name":
       summary: "Display name of the sound setting."
@@ -5316,8 +5398,7 @@ kinds:
               - id: MyStarterKitUnlock
                 parent: /Game/FactoryGame/Unlocks/BP_UnlockInventorySlot.BP_UnlockInventorySlot_C
                 properties:
-                  - path: mNumInventorySlotsToUnlock
-                    value: 3
+                  mNumInventorySlotsToUnlock: 3
       docs: "features/unlocks"
     "unlocks[].parent":
       summary: "Concrete unlock class the new class derives from."
@@ -5492,9 +5573,10 @@ values:
         - title: Add one resource form without duplicates
           partial: true
           yaml: |
-            path: mAllowedResourceForms
-            op: append_unique
-            value: [RF_GAS]
+            mAllowedResourceForms:
+              $op: append_unique
+              value:
+                - RF_GAS
       docs: "features/operations#append_unique-array"
     update_where:
       summary: "Partially updates every matching struct element in an array."
@@ -5507,10 +5589,13 @@ values:
         - title: Replace an item class without relying on array order
           partial: true
           yaml: |
-            path: mProduct
-            op: update_where
-            where: { path: ItemClass, equals: Desc_Old_C }
-            value: { ItemClass: Desc_New_C }
+            mProduct:
+              $op: update_where
+              where:
+                path: ItemClass
+                equals: Desc_Old_C
+              value:
+                ItemClass: Desc_New_C
       docs: "features/operations#update_where-array-of-structs"
     replace_refs:
       summary: "Recursively replaces matching object and class references."
@@ -5523,16 +5608,16 @@ values:
         - title: Replace a recipe in nested schematic unlocks
           partial: true
           yaml: |
-            path: mUnlocks
-            op: replace_refs
-            from: /OldMod/Recipes/Recipe_Old.Recipe_Old_C
-            value: /NewMod/Recipes/Recipe_New.Recipe_New_C
+            mUnlocks:
+              $op: replace_refs
+              from: /OldMod/Recipes/Recipe_Old.Recipe_Old_C
+              value: /NewMod/Recipes/Recipe_New.Recipe_New_C
       docs: "features/operations#replace_refs-reflected-reference-trees"
     set:
       summary: "Overwrites the property with `value`."
       description: >-
         The default operation. Works on every property type; bitmask properties accept one flag
-        name or a list of names. `set` is implied when `op` is left out.
+        name or a list of names. `set` is implied when `$op` is left out.
       type: "op"
       examples:
         - title: Replace a text
@@ -5541,9 +5626,7 @@ values:
             patches:
               - target: /Game/FactoryGame/Resource/Parts/IronIngot/Desc_IronIngot.Desc_IronIngot_C
                 properties:
-                  - path: mDisplayName
-                    op: set
-                    value: Reinforced Iron Ingot
+                  mDisplayName: Reinforced Iron Ingot
       docs: "features/operations#set-default-everything"
     add:
       summary: "Adds `value` to a numeric property."
@@ -5558,8 +5641,8 @@ values:
             patches:
               - target: /Game/FactoryGame/Schematics/Progression/Schematic_1-1.Schematic_1-1_C
                 properties:
-                  - path: mTechTier
-                    op: add
+                  mTechTier:
+                    $op: add
                     value: 1
       docs: "features/operations#add--subtract-numeric"
     subtract:
@@ -5574,8 +5657,8 @@ values:
             patches:
               - target: /Game/FactoryGame/Schematics/Progression/Schematic_1-1.Schematic_1-1_C
                 properties:
-                  - path: mTimeToComplete
-                    op: subtract
+                  mTimeToComplete:
+                    $op: subtract
                     value: 30
       docs: "features/operations#add--subtract-numeric"
     multiply:
@@ -5590,8 +5673,8 @@ values:
             patches:
               - target: /Game/FactoryGame/Recipes/Smelter/Recipe_IngotIron.Recipe_IngotIron_C
                 properties:
-                  - path: mManufactoringDuration
-                    op: multiply
+                  mManufactoringDuration:
+                    $op: multiply
                     value: 0.5
       docs: "features/operations#multiply--divide-numeric"
     divide:
@@ -5607,8 +5690,8 @@ values:
             patches:
               - target: /Game/FactoryGame/Resource/Parts/IronIngot/Desc_IronIngot.Desc_IronIngot_C
                 properties:
-                  - path: mEnergyValue
-                    op: divide
+                  mEnergyValue:
+                    $op: divide
                     value: 2
       docs: "features/operations#multiply--divide-numeric"
     min:
@@ -5624,8 +5707,8 @@ values:
             patches:
               - target: /Game/FactoryGame/Resource/Parts/IronIngot/Desc_IronIngot.Desc_IronIngot_C
                 properties:
-                  - path: mResourceSinkPoints
-                    op: min
+                  mResourceSinkPoints:
+                    $op: min
                     value: 100
       docs: "features/operations#min--max-numeric-result--minmax-of-current-and-value"
     max:
@@ -5641,8 +5724,8 @@ values:
             patches:
               - target: /Game/FactoryGame/Resource/Parts/IronIngot/Desc_IronIngot.Desc_IronIngot_C
                 properties:
-                  - path: mResourceSinkPoints
-                    op: max
+                  mResourceSinkPoints:
+                    $op: max
                     value: 50
       docs: "features/operations#min--max-numeric-result--minmax-of-current-and-value"
     clamp:
@@ -5657,8 +5740,8 @@ values:
             patches:
               - target: /Game/FactoryGame/Schematics/Progression/Schematic_1-1.Schematic_1-1_C
                 properties:
-                  - path: mMenuPriority
-                    op: clamp
+                  mMenuPriority:
+                    $op: clamp
                     min: 0
                     max: 999
       docs: "features/operations#clamp-numeric"
@@ -5667,7 +5750,7 @@ values:
       description: >-
         Arrays and sets take one item or a list; strings concatenate; tag containers add tags; a
         map merges the key/value pairs of `value`; bitmasks OR-add named flags. An instanced
-        object array accepts a `{class, properties}` value. An empty list adds nothing and is not
+        object array accepts a value with `class` and nested `properties`. An empty list adds nothing and is not
         an error; leaving `value` out is.
       type: "op"
       examples:
@@ -5677,8 +5760,8 @@ values:
             patches:
               - target: /Game/FactoryGame/Recipes/Smelter/Recipe_IngotIron.Recipe_IngotIron_C
                 properties:
-                  - path: mIngredients
-                    op: append
+                  mIngredients:
+                    $op: append
                     value:
                       ItemClass: /Game/FactoryGame/Resource/RawResources/Coal/Desc_Coal.Desc_Coal_C
                       Amount: 1
@@ -5688,8 +5771,8 @@ values:
             patches:
               - target: /Game/FactoryGame/Recipes/Smelter/Recipe_IngotIron.Recipe_IngotIron_C
                 properties:
-                  - path: mGameplayTags
-                    op: append
+                  mGameplayTags:
+                    $op: append
                     value:
                       - MyPack.Rebalanced
       docs: "features/operations#append-array--set--map--string--tag-container--bitmask"
@@ -5706,8 +5789,8 @@ values:
             patches:
               - target: /Game/FactoryGame/Resource/Parts/IronIngot/Desc_IronIngot.Desc_IronIngot_C
                 properties:
-                  - path: mDisplayName
-                    op: prepend
+                  mDisplayName:
+                    $op: prepend
                     value: '[MP] '
       docs: "features/operations#prepend-array--set--string-tag-containers-and-bitmasks-same-as-append"
     insert:
@@ -5723,8 +5806,8 @@ values:
             patches:
               - target: /Game/FactoryGame/Recipes/Smelter/Recipe_IngotIron.Recipe_IngotIron_C
                 properties:
-                  - path: mIngredients
-                    op: insert
+                  mIngredients:
+                    $op: insert
                     index: 1
                     value:
                       ItemClass: /Game/FactoryGame/Resource/RawResources/OreCopper/Desc_OreCopper.Desc_OreCopper_C
@@ -5744,8 +5827,8 @@ values:
             patches:
               - target: /Game/FactoryGame/Recipes/Smelter/Recipe_IngotIron.Recipe_IngotIron_C
                 properties:
-                  - path: mGameplayTags
-                    op: remove
+                  mGameplayTags:
+                    $op: remove
                     value: KMods.WikiExclude
       docs: "features/operations#remove-array-by-value--set-by-value--map-by-key--tag-container--bitmask"
     remove_at:
@@ -5760,8 +5843,8 @@ values:
             patches:
               - target: /Game/FactoryGame/Recipes/Smelter/Recipe_IngotIron.Recipe_IngotIron_C
                 properties:
-                  - path: mProduct
-                    op: remove_at
+                  mProduct:
+                    $op: remove_at
                     index: 1
       docs: "features/operations#remove_at-array"
     clear:
@@ -5777,8 +5860,8 @@ values:
             patches:
               - target: /Game/FactoryGame/Schematics/Progression/Schematic_1-1.Schematic_1-1_C
                 properties:
-                  - path: mSubCategories
-                    op: clear
+                  mSubCategories:
+                    $op: clear
       docs: "features/operations#clear-array--set--map--string--tag-container--bitmask"
     swap:
       summary: "Exchanges the array elements at `index` and `with`."
@@ -5792,8 +5875,8 @@ values:
             patches:
               - target: /Game/FactoryGame/Recipes/Smelter/Recipe_IngotIron.Recipe_IngotIron_C
                 properties:
-                  - path: mIngredients
-                    op: swap
+                  mIngredients:
+                    $op: swap
                     index: 0
                     with: 1
       docs: "features/operations#swap-array"
@@ -5809,8 +5892,8 @@ values:
             patches:
               - target: /Game/FactoryGame/Recipes/Smelter/Recipe_IngotIron.Recipe_IngotIron_C
                 properties:
-                  - path: mProduct
-                    op: replace
+                  mProduct:
+                    $op: replace
                     index: 0
                     value:
                       ItemClass: /Game/FactoryGame/Resource/Parts/SteelIngot/Desc_SteelIngot.Desc_SteelIngot_C
@@ -5829,8 +5912,8 @@ values:
             patches:
               - target: /Game/FactoryGame/Recipes/Smelter/Recipe_IngotIron.Recipe_IngotIron_C
                 properties:
-                  - path: mProduct
-                    op: duplicate
+                  mProduct:
+                    $op: duplicate
                     index: 0
       docs: "features/operations#duplicate-array-copies-element-to-the-end"
     sort:
@@ -5846,8 +5929,8 @@ values:
             patches:
               - target: /Game/FactoryGame/Schematics/Progression/Schematic_1-1.Schematic_1-1_C
                 properties:
-                  - path: mRelevantEvents
-                    op: sort
+                  mRelevantEvents:
+                    $op: sort
       docs: "features/operations#sort--reverse-array"
     reverse:
       summary: "Reverses the order of an array."
@@ -5861,8 +5944,8 @@ values:
             patches:
               - target: /Game/FactoryGame/Schematics/Progression/Schematic_1-1.Schematic_1-1_C
                 properties:
-                  - path: mSubCategories
-                    op: reverse
+                  mSubCategories:
+                    $op: reverse
       docs: "features/operations#sort--reverse-array"
     unique:
       summary: "Removes later duplicates from an array."
@@ -5877,8 +5960,8 @@ values:
             patches:
               - target: /Game/FactoryGame/Schematics/Progression/Schematic_1-1.Schematic_1-1_C
                 properties:
-                  - path: mSubCategories
-                    op: unique
+                  mSubCategories:
+                    $op: unique
       docs: "features/operations#unique-array-removes-later-duplicates-sets-no-op"
     copy:
       summary: "Copies the value of another property of the same object into `path`."
@@ -5893,8 +5976,8 @@ values:
             patches:
               - target: /Game/FactoryGame/Resource/Parts/IronIngot/Desc_IronIngot.Desc_IronIngot_C
                 properties:
-                  - path: mAbbreviatedDisplayName
-                    op: copy
+                  mAbbreviatedDisplayName:
+                    $op: copy
                     from: mDisplayName
       docs: "features/operations#copy-any-property-from-another-path-on-the-same-object"
     move:
@@ -5909,8 +5992,8 @@ values:
             patches:
               - target: /Game/FactoryGame/Resource/Parts/IronIngot/Desc_IronIngot.Desc_IronIngot_C
                 properties:
-                  - path: mDescription
-                    op: move
+                  mDescription:
+                    $op: move
                     from: mScannerDisplayText
       docs: "features/operations#move-copy-then-reset-the-source-to-its-default"
 
@@ -5972,8 +6055,8 @@ values:
             patches:
               - target: /Game/FactoryGame/Recipes/Smelter/Recipe_IngotIron.Recipe_IngotIron_C
                 properties:
-                  - path: mManufactoringDuration
-                    op: multiply
+                  mManufactoringDuration:
+                    $op: multiply
                     value: 0.5
       docs: "features/patching-cdo"
     category_reorder:
@@ -5989,7 +6072,8 @@ values:
             type: category_reorder
             subType: items
             category: /Game/Categories/Cat_Pipelines.Cat_Pipelines_C
-            order: [/Game/Items/Desc_Pipe.Desc_Pipe_C]
+            order:
+              - /Game/Items/Desc_Pipe.Desc_Pipe_C
       docs: "features/category-reorder"
     class:
       summary: "Generates classes of any kind from any parent."
@@ -6274,8 +6358,7 @@ values:
             patches:
               - target: Desc_Water
                 properties:
-                  - path: mResourceSinkPoints
-                    value: 0
+                  mResourceSinkPoints: 0
       docs: "features/conditions-and-packs"
     OR:
       summary: "At least one condition object has to pass."
@@ -6294,8 +6377,7 @@ values:
             patches:
               - target: Desc_Water
                 properties:
-                  - path: mResourceSinkPoints
-                    value: 0
+                  mResourceSinkPoints: 0
       docs: "features/conditions-and-packs"
 
   # ---- smaller enums -------------------------------------------------------------------------------------
@@ -6361,7 +6443,10 @@ values:
               - id: CameraOffset
                 keys:
                   - time: 0
-                    value: [0, 0, 0]
+                    value:
+                      - 0
+                      - 0
+                      - 0
       docs: "features/curves#vector-curves"
 
   registerAs:
@@ -6739,7 +6824,8 @@ values:
             type: resourcenode
             remove:
               - resource: MyGeneratedResource
-                nodeTypes: [Node]
+                nodeTypes:
+                  - Node
       docs: "features/resources#removing-resource-nodes-type-resourcenode"
     FrackingSatellite:
       summary: "Satellite node of a fracking cluster."
@@ -6752,7 +6838,8 @@ values:
             type: resourcenode
             remove:
               - resource: MyGeneratedResource
-                nodeTypes: [FrackingSatellite]
+                nodeTypes:
+                  - FrackingSatellite
       docs: "features/resources#removing-resource-nodes-type-resourcenode"
     FrackingCore:
       summary: "Core node of a fracking cluster."
@@ -6765,7 +6852,8 @@ values:
             type: resourcenode
             remove:
               - resource: MyGeneratedResource
-                nodeTypes: [FrackingCore]
+                nodeTypes:
+                  - FrackingCore
       docs: "features/resources#removing-resource-nodes-type-resourcenode"
     Geyser:
       summary: "Geyser node."
@@ -6778,7 +6866,8 @@ values:
             type: resourcenode
             remove:
               - resource: MyGeneratedResource
-                nodeTypes: [Geyser]
+                nodeTypes:
+                  - Geyser
       docs: "features/resources#removing-resource-nodes-type-resourcenode"
     Deposit:
       summary: "Deposit node."
@@ -6791,7 +6880,8 @@ values:
             type: resourcenode
             remove:
               - resource: MyGeneratedResource
-                nodeTypes: [Deposit]
+                nodeTypes:
+                  - Deposit
       docs: "features/resources#removing-resource-nodes-type-resourcenode"
 
   # ---- pack configuration -------------------------------------------------------------------------------
@@ -7200,8 +7290,8 @@ prefixes:
           patches:
             - target: /Game/FactoryGame/Recipes/Smelter/Recipe_IngotIron.Recipe_IngotIron_C
               properties:
-                - path: mManufactoringDuration
-                  op: divide
+                mManufactoringDuration:
+                  $op: divide
                   value: cfg:balance.ironSpeed
       - title: Field of another pack
         yaml: |
@@ -7209,8 +7299,8 @@ prefixes:
           patches:
             - target: /Game/FactoryGame/Recipes/Smelter/Recipe_IngotIron.Recipe_IngotIron_C
               properties:
-                - path: mManufactoringDuration
-                  op: multiply
+                mManufactoringDuration:
+                  $op: multiply
                   value: cfg:Other:shared.level
     docs: "features/templates#typed-references"
   "session:":
@@ -7228,8 +7318,7 @@ prefixes:
           patches:
             - target: /Game/FactoryGame/Resource/Parts/IronIngot/Desc_IronIngot.Desc_IronIngot_C
               properties:
-                - path: mCanBeDiscarded
-                  value: session:FG.Example
+                mCanBeDiscarded: session:FG.Example
     docs: "features/templates#game-settings"
   "ags:":
     summary: "Typed reference to an advanced game setting."
@@ -7244,8 +7333,7 @@ prefixes:
           patches:
             - target: /Game/FactoryGame/Resource/Parts/IronIngot/Desc_IronIngot.Desc_IronIngot_C
               properties:
-                - path: mCanBeDiscarded
-                  value: ags:FG.GameRules.NoPower
+                mCanBeDiscarded: ags:FG.GameRules.NoPower
     docs: "features/templates#game-settings"
   "option:":
     summary: "Typed reference to a local game option of the player."
@@ -7260,8 +7348,7 @@ prefixes:
           patches:
             - target: /Game/FactoryGame/Resource/Parts/IronIngot/Desc_IronIngot.Desc_IronIngot_C
               properties:
-                - path: mCanBeDiscarded
-                  value: option:FG.Example
+                mCanBeDiscarded: option:FG.Example
     docs: "features/templates#game-settings"
 
   # ---- pre-pass templates ---------------------------------------------------------------------------------
@@ -7280,8 +7367,7 @@ prefixes:
           items:
             - id: SuperIngot
               properties:
-                - path: mDescription
-                  value: 'Smelts at {cfg:balance.ironSpeed}x speed.'
+                mDescription: 'Smelts at {cfg:balance.ironSpeed}x speed.'
     docs: "features/templates#templates"
   "{session:":
     summary: "Template that inserts a session setting as text."
@@ -7296,8 +7382,7 @@ prefixes:
           items:
             - id: SuperIngot
               properties:
-                - path: mDescription
-                  value: 'Setting: {session:FG.Example}'
+                mDescription: 'Setting: {session:FG.Example}'
     docs: "features/templates#game-settings"
   "{ags:":
     summary: "Template that inserts an advanced game setting as text."
@@ -7312,8 +7397,7 @@ prefixes:
           items:
             - id: SuperIngot
               properties:
-                - path: mDescription
-                  value: 'No power: {ags:FG.GameRules.NoPower}'
+                mDescription: 'No power: {ags:FG.GameRules.NoPower}'
     docs: "features/templates#game-settings"
   "{option:":
     summary: "Template that inserts a local game option as text."
@@ -7327,8 +7411,7 @@ prefixes:
           items:
             - id: SuperIngot
               properties:
-                - path: mDescription
-                  value: 'Option: {option:FG.Example}'
+                mDescription: 'Option: {option:FG.Example}'
     docs: "features/templates#game-settings"
 
   # ---- apply-time templates (operation value, min and max) ------------------------------------------------
@@ -7347,8 +7430,7 @@ prefixes:
           patches:
             - target: /Game/FactoryGame/Recipes/Constructor/Recipe_IronPlate.Recipe_IronPlate_C
               properties:
-                - path: mProduct[0].Amount
-                  value: '{class:/Script/Engine.KismetMathLibrary:Round({cfg:balance.ironSpeed})}'
+                mProduct[0].Amount: '{class:/Script/Engine.KismetMathLibrary:Round({cfg:balance.ironSpeed})}'
     docs: "features/templates#providers"
   "{item:":
     summary: "Apply-time template that reads a property or function of an item descriptor."
@@ -7364,8 +7446,7 @@ prefixes:
           items:
             - id: SuperIngot
               properties:
-                - path: mDescription
-                  value: 'Smelts like {item:/Game/FactoryGame/Resource/Parts/IronIngot/Desc_IronIngot.Desc_IronIngot_C:GetItemName}.'
+                mDescription: 'Smelts like {item:/Game/FactoryGame/Resource/Parts/IronIngot/Desc_IronIngot.Desc_IronIngot_C:GetItemName}.'
     docs: "features/templates#providers"
   "{resource:":
     summary: "Apply-time template that reads a property or function of a resource descriptor."
@@ -7380,8 +7461,7 @@ prefixes:
           items:
             - id: SuperIngot
               properties:
-                - path: mDescription
-                  value: 'Made from {resource:/Game/FactoryGame/Resource/RawResources/OreIron/Desc_OreIron.Desc_OreIron_C:GetItemName}.'
+                mDescription: 'Made from {resource:/Game/FactoryGame/Resource/RawResources/OreIron/Desc_OreIron.Desc_OreIron_C:GetItemName}.'
     docs: "features/templates#providers"
   "{building:":
     summary: "Apply-time template that reads a property or function of a buildable class."
@@ -7397,8 +7477,7 @@ prefixes:
           patches:
             - target: /Game/FactoryGame/Buildable/Factory/ConstructorMk1/Build_ConstructorMk1.Build_ConstructorMk1_C
               properties:
-                - path: mPowerConsumption
-                  value: '{building:/Game/FactoryGame/Buildable/Factory/SmelterMk1/Build_SmelterMk1.Build_SmelterMk1_C:mPowerConsumption}'
+                mPowerConsumption: '{building:/Game/FactoryGame/Buildable/Factory/SmelterMk1/Build_SmelterMk1.Build_SmelterMk1_C:mPowerConsumption}'
     docs: "features/templates#providers"
   "{recipe:":
     summary: "Apply-time template that reads a property or function of a recipe."
@@ -7413,8 +7492,7 @@ prefixes:
           patches:
             - target: /Game/FactoryGame/Recipes/Constructor/Recipe_IronPlate.Recipe_IronPlate_C
               properties:
-                - path: mManufactoringDuration
-                  value: '{recipe:/Game/FactoryGame/Recipes/Smelter/Recipe_IngotIron.Recipe_IngotIron_C:mManufactoringDuration}'
+                mManufactoringDuration: '{recipe:/Game/FactoryGame/Recipes/Smelter/Recipe_IngotIron.Recipe_IngotIron_C:mManufactoringDuration}'
     docs: "features/templates#whole-token-typed-values"
   "{schematic:":
     summary: "Apply-time template that reads a property or function of a schematic."
@@ -7429,8 +7507,7 @@ prefixes:
           patches:
             - target: /Game/FactoryGame/Schematics/Progression/Schematic_2-1.Schematic_2-1_C
               properties:
-                - path: mMenuPriority
-                  value: '{schematic:/Game/FactoryGame/Schematics/Progression/Schematic_1-1.Schematic_1-1_C:GetTechTier}'
+                mMenuPriority: '{schematic:/Game/FactoryGame/Schematics/Progression/Schematic_1-1.Schematic_1-1_C:GetTechTier}'
     docs: "features/templates#providers"
   "{research:":
     summary: "Apply-time template that reads a property or function of a research tree."
@@ -7445,8 +7522,7 @@ prefixes:
           items:
             - id: SuperIngot
               properties:
-                - path: mDescription
-                  value: 'See {research:/Game/FactoryGame/Schematics/Research/BPD_ResearchTree_Mycelia.BPD_ResearchTree_Mycelia_C:GetDisplayName}.'
+                mDescription: 'See {research:/Game/FactoryGame/Schematics/Research/BPD_ResearchTree_Mycelia.BPD_ResearchTree_Mycelia_C:GetDisplayName}.'
     docs: "features/templates#providers"
   "{category:":
     summary: "Apply-time template that reads a property or function of a category class."
@@ -7461,8 +7537,7 @@ prefixes:
           items:
             - id: SuperIngot
               properties:
-                - path: mDescription
-                  value: 'Category: {category:SampleBalanceCategory:mDisplayName}'
+                mDescription: 'Category: {category:SampleBalanceCategory:mDisplayName}'
     docs: "features/templates#providers"
   "{dataasset:":
     summary: "Apply-time template that reads a property or function of a data asset instance."
@@ -7478,8 +7553,7 @@ prefixes:
           patches:
             - target: /Game/FactoryGame/Recipes/Smelter/Recipe_IngotIron.Recipe_IngotIron_C
               properties:
-                - path: mManufactoringDuration
-                  value: '{dataasset:CleanerItem_SuperIngot:mProductionTime}'
+                mManufactoringDuration: '{dataasset:CleanerItem_SuperIngot:mProductionTime}'
     docs: "features/templates#providers"
   "{asset:":
     summary: "Apply-time template that reads a property or function of any asset by path."
@@ -7494,8 +7568,7 @@ prefixes:
           patches:
             - target: /Game/FactoryGame/Recipes/Smelter/Recipe_IngotIron.Recipe_IngotIron_C
               properties:
-                - path: mManufactoringDuration
-                  value: '{asset:/Game/Path/To/Asset.Asset:SomeProperty}'
+                mManufactoringDuration: '{asset:/Game/Path/To/Asset.Asset:SomeProperty}'
     docs: "features/templates#providers"
   "\\{":
     summary: "Escape that keeps a template token as literal text."
@@ -7511,6 +7584,5 @@ prefixes:
           items:
             - id: EscapeDemo
               properties:
-                - path: mDescription
-                  value: 'Use \{cfg:balance.ironSpeed} to read the speed.'
+                mDescription: 'Use \{cfg:balance.ironSpeed} to read the speed.'
     docs: "features/templates#escaping"

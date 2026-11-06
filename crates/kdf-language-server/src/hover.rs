@@ -9,7 +9,7 @@ use kdf_validation::expression::{self, ExprKind, Operand, OperandKind, Token, To
 use kdf_validation::template::{self, Member, ScanPhase, TemplateToken};
 use kdf_validation::{Callable, Implicit};
 use serde_json::Value;
-use tower_lsp::lsp_types::{Hover, HoverContents, Range};
+use tower_lsp::lsp_types::{Hover, HoverContents, Position, Range};
 
 /// Hover with `text`; markdown only when the client declared it renders markdown.
 fn card(env: &Env<'_>, range: Range, text: String) -> Option<Hover> {
@@ -103,6 +103,47 @@ pub(crate) fn class_card(env: &Env<'_>, path: &str) -> Option<String> {
 }
 
 pub(crate) fn hover(env: &Env<'_>, resolved: &Resolved) -> Option<Hover> {
+    if resolved.in_properties_mapping_key() {
+        if let (Place::Key(slot), Some(op)) = (&resolved.place, resolved.op_entry()) {
+            op.mapping_path?;
+            let line = env.text.lines().nth(slot.line as usize)?;
+            let raw_path = line
+                .get(
+                    crate::context::byte_at(line, slot.start)
+                        ..crate::context::byte_at(line, slot.end),
+                )?
+                .trim();
+            let path =
+                serde_yaml::from_str::<String>(raw_path).unwrap_or_else(|_| raw_path.to_owned());
+            if path == kdf_validation::TAG_CONTAINER_SELECTOR {
+                return card(
+                    env,
+                    Range::new(
+                        Position::new(slot.line, slot.start),
+                        Position::new(slot.line, slot.end),
+                    ),
+                    kdf_validation::TAG_CONTAINER_SELECTOR_DOC.to_owned(),
+                );
+            }
+            let patch = patch_class(env, resolved)?;
+            let property = env.reflection.resolve_property_path(&patch.class, &path)?;
+            let (reload, reason) =
+                env.reflection
+                    .property_reload_with(&patch.class, &path, patch.apply_to_spawned);
+            return card(
+                env,
+                Range::new(
+                    Position::new(slot.line, slot.start),
+                    Position::new(slot.line, slot.end),
+                ),
+                property_card(
+                    &property,
+                    Some((reload, reason.as_str())),
+                    Some(patch.class.as_str()),
+                ),
+            );
+        }
+    }
     let Place::Value(slot) = &resolved.place else {
         return None;
     };

@@ -32,6 +32,8 @@ fn lint_sound(file: &str, data: Option<&[u8]>, extra: &str) -> kdf_validation::L
     if let Some(data) = data {
         let output = if file.to_ascii_lowercase().ends_with(".flac") {
             "audio/welcome.flac"
+        } else if file.to_ascii_lowercase().ends_with(".ogg") {
+            "audio/welcome.ogg"
         } else {
             "audio/welcome.wav"
         };
@@ -71,6 +73,35 @@ fn accepts_native_pcm16_flac_and_rejects_unsupported_streaminfo() {
     ] {
         let result = lint_sound("audio/welcome.flac", Some(&data), "");
         assert!(!result.ok, "{:?}", result.diagnostics);
+    }
+}
+
+#[test]
+fn accepts_ogg_vorbis_and_rejects_corrupt_audio() {
+    let valid = include_bytes!("fixtures/audio/welcome.ogg");
+    let result = lint_sound("audio/welcome.ogg", Some(valid), "");
+    assert!(result.ok, "{:?}", result.diagnostics);
+
+    let mut bad_later_page = valid.to_vec();
+    let last_byte = bad_later_page.len() - 100;
+    bad_later_page[last_byte] ^= 1;
+    let mut chained = valid.to_vec();
+    chained.extend_from_slice(valid);
+    for data in [
+        b"OggSnotvorbis".to_vec(),
+        valid[..valid.len() / 2].to_vec(),
+        bad_later_page,
+        chained,
+    ] {
+        let result = lint_sound("audio/welcome.ogg", Some(&data), "");
+        assert!(
+            result
+                .diagnostics
+                .iter()
+                .any(|d| d.code == "semantic.sound-format"),
+            "{:?}",
+            result.diagnostics
+        );
     }
 }
 

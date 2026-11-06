@@ -37,10 +37,8 @@ fn current_runtime_script_manifest_and_sdk_starter_validate() {
     let result =
         validate_document(Path::new("pack.yml"), starter, &LintOptions::default()).unwrap();
     assert!(result.ok, "{:?}", result.diagnostics);
-    let sdk = include_str!(
-        "../../../apps/code-oss/extension/sdk/kdataforgejs/template/DataForge/pack.yml"
-    )
-    .replace("{{ref}}", "SdkStarter");
+    let sdk = include_str!("../../../extension/sdk/kdataforgejs/template/DataForge/pack.yml")
+        .replace("{{ref}}", "SdkStarter");
     let result = validate_document(Path::new("pack.yml"), &sdk, &LintOptions::default()).unwrap();
     assert!(result.ok, "{:?}", result.diagnostics);
     for aliases in [

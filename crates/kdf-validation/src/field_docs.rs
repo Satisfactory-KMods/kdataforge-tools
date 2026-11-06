@@ -15,11 +15,11 @@
 //!
 //! # Resolution order of [`field`]
 //!
-//! 1. The table of the document kind: an exact path, then the shared structures (`defs`) the kind
-//!    attaches to a path through `uses`.
-//! 2. Element conditions: `conditions`, `conditionBehavior` and `conditionBehaivor` are allowed on
+//! 1. Element conditions: `conditions`, `conditionBehavior` and `conditionBehaivor` are allowed on
 //!    every map entry of every list, so a path that contains one of them below the document root
 //!    resolves to the entry-condition documentation (and to the shared `conditions.*` keys).
+//! 2. The table of the document kind: an exact path, then the shared structures (`defs`) the kind
+//!    attaches to a path through `uses`.
 //! 3. The `common` table that every kind shares (`type`, `debug`, `include`, `conditions`, ...).
 //!
 //! The kind `mam` is an alias of `research`.
@@ -363,13 +363,13 @@ impl Catalog {
         } else {
             kind.as_str()
         };
+        if let Some(entry) = self.element_condition(path) {
+            return Some(&entry.doc);
+        }
         if let Some(table) = self.kinds.get(kind) {
             if let Some(entry) = self.resolve(table, path, 0) {
                 return Some(&entry.doc);
             }
-        }
-        if let Some(entry) = self.element_condition(path) {
-            return Some(&entry.doc);
         }
         self.resolve(&self.common, path, 0).map(|entry| &entry.doc)
     }

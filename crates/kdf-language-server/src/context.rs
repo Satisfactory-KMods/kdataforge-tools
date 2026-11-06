@@ -602,6 +602,7 @@ pub(crate) struct Resolved {
 #[derive(Clone, Debug)]
 pub(crate) struct OpView<'a> {
     pub(crate) keys: &'a [KeyEntry],
+    pub(crate) mapping_path: Option<&'a str>,
     /// Keys from the entry down to the cursor (`["value", "Amount"]`, `"#"` for sequence elements).
     pub(crate) below: Vec<String>,
     pub(crate) frame: usize,
@@ -609,6 +610,11 @@ pub(crate) struct OpView<'a> {
 
 impl OpView<'_> {
     pub(crate) fn key_value(&self, name: &str) -> Option<&str> {
+        if name == "path" {
+            if let Some(path) = self.mapping_path {
+                return Some(path);
+            }
+        }
         self.keys
             .iter()
             .find(|entry| entry.name == name)
@@ -616,7 +622,13 @@ impl OpView<'_> {
     }
     /// Operation name (`set` when `op:` is omitted).
     pub(crate) fn op_name(&self) -> String {
-        self.key_value("op").unwrap_or("set").to_ascii_lowercase()
+        self.key_value(if self.mapping_path.is_some() {
+            "$op"
+        } else {
+            "op"
+        })
+        .unwrap_or("set")
+        .to_ascii_lowercase()
     }
 }
 
@@ -731,28 +743,69 @@ impl Resolved {
     }
 
     pub(crate) fn op_entry(&self) -> Option<OpView<'_>> {
-        let list = self.frames.iter().rposition(
+        if let Some(list) = self.frames.iter().rposition(
             |frame| matches!(frame, Frame::Seq { via_key: Some(key) } if key == "properties"),
-        )?;
-        let Some(Frame::Map { keys, .. }) = self.frames.get(list + 1) else {
-            return None;
-        };
-        let mut below = Vec::new();
-        for frame in &self.frames[list + 1..] {
-            match frame {
-                Frame::Map { selected, .. } => {
-                    if let Some(key) = selected {
-                        below.push(key.clone());
+        ) {
+            if let Some(Frame::Map { keys, .. }) = self.frames.get(list + 1) {
+                let mut below = Vec::new();
+                for frame in &self.frames[list + 1..] {
+                    match frame {
+                        Frame::Map { selected, .. } => {
+                            if let Some(key) = selected {
+                                below.push(key.clone());
+                            }
+                        }
+                        Frame::Seq { .. } => below.push("#".to_owned()),
                     }
                 }
+                return Some(OpView {
+                    keys,
+                    mapping_path: None,
+                    below,
+                    frame: list + 1,
+                });
+            }
+        }
+        let container = self.frames.windows(2).enumerate().rfind(|(_, frames)| {
+            matches!(frames[0], Frame::Map { selected: Some(ref key), .. } if key == "properties")
+                && matches!(frames[1], Frame::Map { .. })
+        })?.0 + 1;
+        let Frame::Map { selected, .. } = &self.frames[container] else {
+            return None;
+        };
+        let path = selected.as_deref().unwrap_or("");
+        let keys = match self.frames.get(container + 1) {
+            Some(Frame::Map { keys, .. }) => keys.as_slice(),
+            _ => &[],
+        };
+        let mut below = if path.is_empty() {
+            Vec::new()
+        } else {
+            vec![path.to_owned()]
+        };
+        for frame in &self.frames[container + 1..] {
+            match frame {
+                Frame::Map {
+                    selected: Some(key),
+                    ..
+                } => below.push(key.clone()),
                 Frame::Seq { .. } => below.push("#".to_owned()),
+                _ => {}
             }
         }
         Some(OpView {
             keys,
+            mapping_path: Some(path),
             below,
-            frame: list + 1,
+            frame: container + 1,
         })
+    }
+
+    pub(crate) fn in_properties_mapping_key(&self) -> bool {
+        matches!(self.place, Place::Key(_))
+            && self.frames.len() >= 2
+            && matches!(self.frames[self.frames.len() - 2], Frame::Map { selected: Some(ref key), .. } if key == "properties")
+            && matches!(self.frames.last(), Some(Frame::Map { .. }))
     }
 
     pub(crate) fn patch_entry(&self) -> Option<PatchView<'_>> {

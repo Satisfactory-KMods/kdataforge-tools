@@ -128,7 +128,16 @@ const WHERE_OPERANDS: [&str; 10] = [
 
 pub(crate) fn operand_context(env: &Env<'_>, resolved: &Resolved) -> Option<OperandCtx> {
     if let Some(op) = resolved.op_entry() {
-        let operand = op.below.first()?.clone();
+        let relative = if op.mapping_path.is_some() {
+            &op.below[1..]
+        } else {
+            op.below.as_slice()
+        };
+        let operand = if op.mapping_path.is_some() && relative.is_empty() {
+            "value".to_owned()
+        } else {
+            relative.first()?.clone()
+        };
         if !OP_OPERANDS.contains(&operand.as_str()) {
             return None;
         }
@@ -139,10 +148,10 @@ pub(crate) fn operand_context(env: &Env<'_>, resolved: &Resolved) -> Option<Oper
                     .and_then(|patch| env.reflection.resolve_property_path(&patch.class, path))
             })
         });
-        let slot = if op.below.len() == 1 {
+        let slot = if relative.len() <= 1 {
             expected_slot(Some(&op_name), &operand, property.as_ref())
         } else if operand == "value" {
-            nested_slot(env, &op_name, property.as_ref(), &op.below[1..])
+            nested_slot(env, &op_name, property.as_ref(), &relative[1..])
         } else {
             Slot::Unknown
         };

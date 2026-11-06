@@ -290,6 +290,7 @@ pub(crate) fn resolve_target<'a>(
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 enum MapKind {
     Op,
+    Properties,
     Where,
     Other,
 }
@@ -403,16 +404,26 @@ impl<'a, 'e> Checker<'a, 'e> {
         if self.unquoted_template(map) {
             return;
         }
-        let kind =
-            if parent_key == Some("properties") && map.get("path").is_some_and(Value::is_string) {
+        let kind = if parent_key == Some("properties") {
+            if self
+                .segments
+                .last()
+                .is_some_and(|segment| segment.parse::<usize>().is_ok())
+            {
                 MapKind::Op
-            } else if parent_key == Some("where") {
-                MapKind::Where
             } else {
-                MapKind::Other
-            };
-        if kind == MapKind::Op {
-            let frame = self.op_frame(map);
+                MapKind::Properties
+            }
+        } else if parent_key == Some("$kdf_mapping_op") {
+            MapKind::Op
+        } else if parent_key == Some("where") {
+            MapKind::Where
+        } else {
+            MapKind::Other
+        };
+        if kind == MapKind::Op && parent_key != Some("$kdf_mapping_op") {
+            let path = map.get("path").and_then(Value::as_str).unwrap_or_default();
+            let frame = self.op_frame(Some(map), path, false);
             self.ops.push(frame);
         }
         self.maps.push(kind);
@@ -422,6 +433,25 @@ impl<'a, 'e> Checker<'a, 'e> {
             }
             self.push(name);
             self.key_name(name);
+            if kind == MapKind::Properties {
+                let explicit = child
+                    .as_object()
+                    .filter(|fields| fields.contains_key("$op"));
+                let frame = self.op_frame(explicit, name, explicit.is_some());
+                self.ops.push(frame);
+                if explicit.is_none() {
+                    self.value_scopes.push(ValueScope {
+                        depth: self.segments.len(),
+                    });
+                }
+                self.walk(child, explicit.map(|_| "$kdf_mapping_op").or(Some(name)));
+                if explicit.is_none() {
+                    self.value_scopes.pop();
+                }
+                self.ops.pop();
+                self.pop();
+                continue;
+            }
             let entering_value = kind == MapKind::Op && name == "value";
             if entering_value {
                 self.value_scopes.push(ValueScope {
@@ -435,7 +465,7 @@ impl<'a, 'e> Checker<'a, 'e> {
             self.pop();
         }
         self.maps.pop();
-        if kind == MapKind::Op {
+        if kind == MapKind::Op && parent_key != Some("$kdf_mapping_op") {
             self.ops.pop();
         }
     }
@@ -546,13 +576,12 @@ impl<'a, 'e> Checker<'a, 'e> {
         None
     }
 
-    fn op_frame(&mut self, map: &Map<String, Value>) -> OpFrame {
+    fn op_frame(&mut self, map: Option<&Map<String, Value>>, path: &str, mapping: bool) -> OpFrame {
         let op = map
-            .get("op")
+            .and_then(|map| map.get(if mapping { "$op" } else { "op" }))
             .and_then(Value::as_str)
             .unwrap_or("set")
             .to_ascii_lowercase();
-        let path = map.get("path").and_then(Value::as_str).unwrap_or_default();
         let mut frame = OpFrame {
             op,
             property: crate::tag_container_selector_property(path),
@@ -576,7 +605,9 @@ impl<'a, 'e> Checker<'a, 'e> {
         if reload.is_not_live() {
             frame.cold = Some((reload, reason.clone()));
             if self.env.options.cold_properties != ColdPropertyLevel::Off {
-                self.push("path");
+                if !mapping {
+                    self.push("path");
+                }
                 let range = self.scalar_range();
                 let advisory = match self.env.options.cold_properties {
                     ColdPropertyLevel::Hint => Advisory::Hint,
@@ -594,7 +625,9 @@ impl<'a, 'e> Checker<'a, 'e> {
                     )
                     .with_advisory(advisory);
                 self.out.push(diagnostic);
-                self.pop();
+                if !mapping {
+                    self.pop();
+                }
             }
         }
         frame

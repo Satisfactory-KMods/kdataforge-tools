@@ -18,6 +18,85 @@ fn document(operations: &str) -> String {
 }
 
 #[test]
+fn mapping_form_completes_property_keys_and_operations() {
+    assert!(offers(&document("      mSta|\n"), "mStackSize"));
+    assert!(offers(
+        &document("      mStackSize:\n        $op: mul|\n"),
+        "multiply"
+    ));
+    let (hover, selected) = Fixture::new()
+        .hover(
+            "ConfigDemo/example.recipe.yml",
+            "type: recipe\nrecipes:\n  - id: Example\n    properties:\n      mManu|factoringDuration: 4\n",
+        )
+        .expect("generated recipe mapping property hover");
+    assert_eq!(selected, "mManufactoringDuration");
+    assert!(hover.contains("float"));
+}
+
+#[test]
+fn nested_instanced_mapping_completes_properties_struct_fields_and_operations() {
+    const UNLOCK: &str = "/Script/FactoryGame.FGUnlockRecipe";
+    let fixture = Fixture::build(
+        &[],
+        vec![test_support::class(
+            UNLOCK,
+            None,
+            vec![
+                test_support::prop(
+                    "mRecipes",
+                    "ArrayProperty",
+                    "TArray<TSubclassOf<UFGRecipe>>",
+                ),
+                test_support::merge(
+                    test_support::prop("mRecipeData", "StructProperty", "FItemAmount"),
+                    json!({"struct": "/Script/FactoryGame.ItemAmount"}),
+                ),
+            ],
+            vec![],
+        )],
+    );
+    let document = |properties: &str| {
+        format!(
+            "type: schematic\nschematics:\n  - id: Test\n    unlocks:\n      - class: {UNLOCK}\n        properties:\n{properties}"
+        )
+    };
+    for (source, expected) in [
+        (document("          mRec|\n"), "mRecipes"),
+        (
+            document("          mRecipeData:\n            Am|\n"),
+            "Amount",
+        ),
+        (
+            document("          mRecipes:\n            $op: app|\n"),
+            "append",
+        ),
+    ] {
+        let result = fixture.run("ConfigDemo/test.schematic.yml", &source);
+        assert!(
+            result.items.iter().any(|item| item.label == expected),
+            "missing {expected} for {source}"
+        );
+    }
+    let (hover, selected) = fixture
+        .hover(
+            "ConfigDemo/test.schematic.yml",
+            &document("          mRec|ipes: []\n"),
+        )
+        .expect("instanced mapping property hover");
+    assert_eq!(selected, "mRecipes");
+    assert!(hover.contains("TArray"));
+    let (hover, selected) = fixture
+        .hover(
+            "ConfigDemo/test.schematic.yml",
+            &document("          'mRec|ipes': []\n"),
+        )
+        .expect("quoted instanced mapping property hover");
+    assert_eq!(selected, "'mRecipes'");
+    assert!(hover.contains("TArray"));
+}
+
+#[test]
 fn initial_set_remains_available_before_following_multiply() {
     let source = document(
         "      - path: mSta|\n        value: 1\n      - path: mStackSize\n        op: multiply\n        value: 2\n",

@@ -1,0 +1,34 @@
+{
+  "KDataForge properties mapping": {
+    "prefix": "kdf-properties-map",
+    "description": "Write KDataForge properties as a mapping with a plain value and an explicit operation.",
+    "body": [
+      "properties:",
+      "  ${1:mDisplayNameOverride}: ${2:false}",
+      "  ${3:mManufactoringDuration}:",
+      "    \\$op: ${4:multiply}",
+      "    value: ${5:0.5}"
+    ]
+  },
+  "KDataForge mapping operation": {
+    "prefix": "kdf-property-op",
+    "description": "Add an explicit operation to a KDataForge properties mapping.",
+    "body": [
+      "${1:mManufactoringDuration}:",
+      "  \\$op: ${2:multiply}",
+      "  value: ${3:0.5}"
+    ]
+  },
+  "KDataForge instanced recipe unlock": {
+    "prefix": "kdf-unlock-recipe-map",
+    "description": "Add an instanced recipe unlock with nested mapping properties.",
+    "body": [
+      "- class: /Game/FactoryGame/Unlocks/BP_UnlockRecipe.BP_UnlockRecipe_C",
+      "  properties:",
+      "    mRecipes:",
+      "      \\$op: append",
+      "      value:",
+      "        - ${1:/KDataForge/Gen/MyPack.Gen_MyPack_Recipe_MyRecipe}"
+    ]
+  }
+}

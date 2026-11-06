@@ -69,7 +69,10 @@
         "kdf.datapackPath": { "type": "string", "default": "", "description": "Reflection .kdfdata archive. Empty enables schema-only validation." }
       }
     },
-    "snippets": [{ "language": "typescript", "path": "./snippets/kdataforgejs.code-snippets" }],
+    "snippets": [
+      { "language": "typescript", "path": "./snippets/kdataforgejs.code-snippets" },
+      { "language": "yaml", "path": "./snippets/kdataforge-yaml.code-snippets" }
+    ],
     "menus": {
       "explorer/context": [
         { "command": "kdf.sdk.createProject", "when": "resourceScheme == file && explorerResourceIsFolder", "group": "kdf@1" },

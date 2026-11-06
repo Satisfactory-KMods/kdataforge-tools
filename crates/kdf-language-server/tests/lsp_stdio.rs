@@ -101,7 +101,7 @@ fn stdio_protocol_validates_unsaved_buffer_and_exposes_missing_reflection() {
 
     send(
         &mut stdin,
-        json!({"jsonrpc":"2.0","id":1,"method":"initialize","params":{"processId":null,"rootUri":root_uri,"capabilities":{}}}),
+        json!({"jsonrpc":"2.0","id":1,"method":"initialize","params":{"processId":null,"rootUri":root_uri,"capabilities":{"workspace":{"workspaceEdit":{"documentChanges":true}}}}}),
     );
     let init = receive_until(&rx, |value| value.get("id") == Some(&json!(1)));
     assert_eq!(init["result"]["serverInfo"]["name"], "kdf-language-server");
@@ -348,7 +348,7 @@ fn stdio_protocol_validates_unsaved_buffer_and_exposes_missing_reflection() {
         }}),
     );
     let prepared = receive_until(&rx, |value| value.get("id") == Some(&json!(8)));
-    assert_eq!(prepared["result"]["placeholder"], "Old");
+    assert_eq!(prepared["result"]["placeholder"], "Old", "{prepared}");
     send(
         &mut stdin,
         json!({"jsonrpc":"2.0","id":9,"method":"textDocument/rename","params":{

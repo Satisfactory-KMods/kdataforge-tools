@@ -296,7 +296,7 @@ pub(crate) fn semantic_document(
                                 result,
                             );
                         } else if !(if sound {
-                            &["wav", "flac"][..]
+                            &["wav", "flac", "ogg"][..]
                         } else {
                             &["png", "jpg", "jpeg", "tga", "bmp"][..]
                         })
@@ -315,7 +315,7 @@ pub(crate) fn semantic_document(
                                 Severity::Error,
                                 &code("format"),
                                 if sound {
-                                    "sound file must be a PCM16 .wav or .flac"
+                                    "sound file must be a PCM16 .wav, native .flac or Ogg Vorbis .ogg"
                                 } else {
                                     "asset file must be png/jpg/jpeg/tga/bmp"
                                 },
@@ -1003,6 +1003,102 @@ fn validate_operations(
                                 );
                             }
                         }
+                    }
+                }
+            }
+            if let Some(properties) = map.get("properties").and_then(Value::as_object) {
+                for (path, value) in properties {
+                    let key = path.replace('~', "~0").replace('/', "~1");
+                    let location = format!("{pointer}/properties/{key}");
+                    let explicit = value
+                        .as_object()
+                        .filter(|fields| fields.contains_key("$op"));
+                    let op = explicit
+                        .and_then(|fields| fields.get("$op"))
+                        .and_then(Value::as_str)
+                        .unwrap_or("set");
+                    let required = match operation_spec(op) {
+                        Some(spec) => spec.required,
+                        None => {
+                            emit(
+                                file,
+                                index,
+                                &format!("{location}/$op"),
+                                Severity::Error,
+                                "semantic.invalid-op",
+                                format!("unknown property operation {op:?}"),
+                                result,
+                            );
+                            &[]
+                        }
+                    };
+                    if let Some(fields) = explicit {
+                        for field in required {
+                            if !fields.contains_key(*field) {
+                                emit(
+                                    file,
+                                    index,
+                                    &location,
+                                    Severity::Error,
+                                    "semantic.op-required",
+                                    format!("operation {op:?} requires {field:?}"),
+                                    result,
+                                );
+                            }
+                        }
+                        for field in ["index", "with"] {
+                            if required.contains(&field)
+                                && fields.get(field).is_some_and(is_invalid_array_index)
+                            {
+                                emit(
+                                    file,
+                                    index,
+                                    &format!("{location}/{field}"),
+                                    Severity::Error,
+                                    "semantic.index-range",
+                                    "array index must be between 0 and 2147483647",
+                                    result,
+                                );
+                            }
+                        }
+                        if op == "divide" && fields.get("value").is_some_and(is_numeric_zero) {
+                            emit(
+                                file,
+                                index,
+                                &format!("{location}/value"),
+                                Severity::Error,
+                                "semantic.divide-zero",
+                                "divide operation cannot use zero",
+                                result,
+                            );
+                        }
+                    }
+                    if path == crate::TAG_CONTAINER_SELECTOR {
+                        if !crate::tag_container_operation(op) {
+                            emit(file, index, &format!("{location}/$op"), Severity::Error,
+                                "semantic.tag-container-op",
+                                "@tagContainers supports only set, append, prepend, remove and clear", result);
+                        }
+                    } else if !valid_property_path(path) {
+                        emit(
+                            file,
+                            index,
+                            &location,
+                            Severity::Error,
+                            "semantic.property-path",
+                            "path is not a valid property path",
+                            result,
+                        );
+                    } else if has_wildcard_accessor(path) {
+                        emit(
+                            file,
+                            index,
+                            &location,
+                            Severity::Error,
+                            "semantic.property-path-wildcard",
+                            "[*] is only valid inside a where filter",
+                            result,
+                        );
                     }
                 }
             }
