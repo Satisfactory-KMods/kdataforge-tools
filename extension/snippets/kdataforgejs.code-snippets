@@ -3,9 +3,11 @@
     "prefix": "kdf-handler",
     "description": "Create a typed KDataForgeJS handler.",
     "body": [
-      "import { defineHandler } from \"@sf-kmods/kdataforgejs\";",
+      "import { ctx, defineHandler, defineMeta } from \"@sf-kmods/kdataforgejs\";",
       "",
-      "export default defineHandler(async (ctx) => {",
+      "export const meta = defineMeta({ capabilities: [] });",
+      "",
+      "export default defineHandler(async () => {",
       "    ${1:console.info(ctx.catalog().digest);}",
       "    await Promise.resolve();",
       "});"
@@ -15,8 +17,10 @@
     "prefix": "kdf-meta",
     "description": "Declare KDataForgeJS runtime capabilities.",
     "body": [
+      "import { Capability } from \"@sf-kmods/kdataforgejs\";",
+      "",
       "export const meta = defineMeta({",
-      "    capabilities: [\"${1:kdf.imports.read}\"],",
+      "    capabilities: [Capability.${1:ImportsRead}],",
       "});"
     ]
   },
@@ -24,12 +28,14 @@
     "prefix": "kdf-item",
     "description": "Create an item from a typed KDataForgeJS handler.",
     "body": [
+      "import { ResourceForm, StackSize } from \"@sf-kmods/kdataforgejs\";",
+      "",
       "const ${1:item} = ctx.createItem({",
       "    id: \"${2:my-pack.item}\",",
       "    parent: { classPath: \"/Script/FactoryGame.FGItemDescriptor\" },",
       "    displayName: { namespace: \"${3:my-pack}\", key: \"${4:item}\", source: \"${5:Item}\" },",
-      "    form: \"solid\",",
-      "    stackSize: \"big\",",
+      "    form: ResourceForm.Solid,",
+      "    stackSize: StackSize.Big,",
       "});"
     ]
   }

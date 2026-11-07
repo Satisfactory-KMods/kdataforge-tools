@@ -10,13 +10,31 @@
 		"url": "git+https://github.com/Satisfactory-KMods/kdataforge-tools.git",
 		"directory": "packages/kdataforgejs-types"
 	},
-	"publishConfig": { "access": "public" },
-	"keywords": ["kdataforge", "satisfactory", "modding", "typescript"],
-	"files": ["index.d.ts", "lib", "tsconfig.base.json", "declarations.json", "editor.kdfjs.json", "README.md"],
+	"publishConfig": {
+		"access": "public"
+	},
+	"keywords": [
+		"kdataforge",
+		"satisfactory",
+		"modding",
+		"typescript"
+	],
+	"files": [
+		"index.d.ts",
+		"lib",
+		"tsconfig.base.json",
+		"declarations.json",
+		"editor.kdfjs.json",
+		"README.md",
+		"authoring.kdfjs.json",
+		"enums.kdfjs.json"
+	],
 	"exports": {
 		"./tsconfig.base.json": "./tsconfig.base.json",
 		"./declarations.json": "./declarations.json",
-		"./package.json": "./package.json"
+		"./package.json": "./package.json",
+		"./authoring.kdfjs.json": "./authoring.kdfjs.json",
+		"./enums.kdfjs.json": "./enums.kdfjs.json"
 	},
 	"scripts": {
 		"sync": "node scripts/sync-declarations.mjs",

@@ -23,7 +23,7 @@ npm run verify
 | `kdf game-data [dir]` | Runs manifest sync, finds a modded Satisfactory installation, reuses a valid cached export or starts a full reflection export, closes the game and imports the archive plus generated TypeScript declarations. Use `--game-path <root-or-executable>` to select an installation explicitly; add `--content-types` for schema-derived content document types and `--force` to bypass the cache. |
 | `kdf doctor [dir]` | Read-only health report for Node, project checks, manifest drift, installation and imported game data. `--json` emits machine-readable statuses: `pass`, `warn`, `fail`, `unknown`. |
 | `kdf dev [dir]` | Watches authored files, debounces changes, then runs sync, check, lint and validate in order. After success, prints manual `KDF.Reload` instruction. |
-| `kdf add <handler\|hook\|item\|recipe\|document> <name> [dir]` | Creates one scaffold and updates entry imports, handler call and literal capabilities. Existing destinations and computed metadata are refused. Documents default to `cdo`; `--type item` or `--type recipe` selects another minimal document form. |
+| `kdf add <handler\|hook\|item\|recipe\|document> <name> [dir]` | Creates one scaffold and updates entry imports, handler call and Capability enum members. Existing destinations and computed metadata are refused. Documents default to `cdo`; `--type item` or `--type recipe` selects another minimal document form. |
 | `kdf update [dir]` | Read-only, network-free report of declared and locally installed SDK/CLI versions and game-data status. `--apply` updates local dev dependencies, then runs the newly installed local CLI's `game-data` once. `--offline --apply` skips the package manager and refreshes from installed packages/cache/game only. |
 
 Exit code `0` means all good, `1` means findings, `2` means the command was used wrong.
@@ -34,6 +34,10 @@ It does not replace the runtime: catalog, authority and limits are still decided
 The generated project keeps `package.json` and `tsconfig.json` next to the `DataForge` folder, never inside it. The pack
 itself has no `node_modules`. `npm run refresh` runs `kdf game-data`; `npm run fix` formats scripts and synchronizes
 generated manifest fields. `format`, `lint`, `check`, `validate`, `hash`, `sync`, `test`, and `verify` are available too.
+
+New scripts import `ctx` from `@sf-kmods/kdataforgejs` and use `defineHandler(async () => { ... })`.
+Helper modules import that same context directly. `kdf add` supports these parameterless handlers and existing
+handlers that receive a context parameter; existing scripts do not need migration.
 
 ## Multiple packs in one workspace
 
@@ -76,7 +80,7 @@ reflection files remain untouched until game-data succeeds. `kdf update --offlin
 requires both packages already installed at matching versions, skips package-manager registry
 access, and only refreshes game data. Offline mode never alters lockfiles.
 
-Literal `ctx.import(kind, path)` calls and reflected paths used by `ctx.getClass`, `ctx.getObject` and
+Direct `ctx.import(ImportKind.Member, "path")` calls and reflected paths used by `ctx.getClass`, `ctx.getObject` and
 `ctx.getDataAsset` are source of truth. YAML imports are scanned for `target` paths. Run `kdf sync`; do not maintain
 manifest import digests or reflection class lists by hand. Dynamic import paths are rejected because CLI cannot grant
 their authority safely.
@@ -129,3 +133,6 @@ fresh export. `--force` bypasses the hit. The game-data archive and declarations
 own sync do not trigger another run. No automatic game command is sent: run `KDF.Reload` in the local game/server console
 after successful checks. Item and recipe scaffolds contain placeholder definitions; fill in actual parent classes,
 ingredients, products and machines before loading them. Hook scaffolds leave target selection for the author.
+
+Closed API choices use named enums from `@sf-kmods/kdataforgejs`. Run `kdf game-data` after updating the runtime and SDK.
+`kdf sync` generates select enums in `DataForge/scripts/generated/kdataforgejs-config-enums.ts` and pairs them with each pack's config map. Import those values inside the script graph; authored files at that path are never overwritten.

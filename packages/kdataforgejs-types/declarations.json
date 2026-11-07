@@ -3,7 +3,7 @@
   "package": "@sf-kmods/kdataforgejs",
   "baseDeclaration": "@sf-kmods/kdataforgejs/index.d.ts",
   "typeGenerator": {
-    "formatVersion": 9,
+    "formatVersion": 11,
     "outputPrefix": "typescript/kdataforgejs",
     "generatedDeclaration": "typescript/kdataforgejs/kdataforge.generated.d.ts",
     "artifacts": [
@@ -12,5 +12,12 @@
       "paths.json",
       "editor.json"
     ]
+  },
+  "sourceArtifacts": {
+    "index.d.ts": "0385229e58a17fa2679bda4613e4029daa8c8f0e234ee20f6be5c2661be4435f",
+    "lib/kdfjs-es2020.d.ts": "8fe7ae8c3d069056d07f586d3def4855d21fdd487a9f6eebd67675a0045b1346",
+    "editor.kdfjs.json": "4e5ffef2c76dc589c8403188f75c6826fd7da30edb7d64b026c670ee74efcba2",
+    "authoring.kdfjs.json": "6929c7830121565f22e9e4a07a73a47f531443bcf89f01783730a296807c95a3",
+    "enums.kdfjs.json": "b65e86d2d45bcadb836fd0ec228df4cd954c1cc9f47676a658cef48978dcc0f8"
   }
 }

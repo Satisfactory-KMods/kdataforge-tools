@@ -59,6 +59,12 @@ function buildSdkAuthoringMetadata(json) {
     };
   });
   const catalogVersion = input.catalogVersion ?? null;
+  const enumValues = input.enumValues;
+  if (enumValues !== undefined && (!object(enumValues) || Object.keys(enumValues).length > 256
+    || Object.entries(enumValues).some(([name, members]) => !/^[A-Za-z_$][A-Za-z0-9_$]*$/.test(name)
+      || !object(members) || Object.keys(members).length > 2048
+      || Object.entries(members).some(([member, value]) => !/^[A-Za-z_$][A-Za-z0-9_$]*$/.test(member)
+        || !(typeof value === 'string' || Number.isSafeInteger(value)))))) throw new Error('Invalid enum value metadata');
   const replacements = own(input, 'replacements') ?? [];
   if (!Array.isArray(replacements)) throw new Error('Invalid replacement map');
   for (const replacement of replacements) {
@@ -68,7 +74,8 @@ function buildSdkAuthoringMetadata(json) {
       throw new Error('Invalid or version-mismatched policy replacement');
   }
   return { schemaVersion: 1, sdkVersion: input.sdkVersion, catalogVersion,
-    defaultGrants: fact(own(input, 'defaultGrants'), texts), symbols, replacements };
+    defaultGrants: fact(own(input, 'defaultGrants'), texts), symbols, replacements,
+    ...(enumValues === undefined ? {} : { enumValues }) };
 }
 
 module.exports = { buildSdkAuthoringMetadata };

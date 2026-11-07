@@ -107,7 +107,7 @@ it("preflights every manifest before sync writes any pack", () => {
 	const betaEntry = join(beta, "DataForge/scripts/main.ts");
 	writeFileSync(betaEntry, readFileSync(betaEntry, "utf8").replace("console.info",
 		'ctx.import("text", input);\n\tconsole.info'));
-	assert.throws(() => syncProject(root), /literal kind and path/);
+	assert.throws(() => syncProject(root), /ImportKind member and a literal path/);
 	assert.equal(readFileSync(alphaManifest, "utf8"), before);
 	assert.ok(!existsSync(join(alpha, "DataForge/typescript/kdataforgejs-config.d.ts")));
 });

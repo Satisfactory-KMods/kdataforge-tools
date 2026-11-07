@@ -3,6 +3,7 @@ import { basename, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import ts from "typescript";
 import { parse } from "yaml";
+import { apiEnums, enumMember } from "./apiEnums.js";
 
 type Schema = Readonly<Record<string, unknown>>;
 interface LocatedSchema { readonly file: string; readonly pointer: string; readonly schema: Schema; }
@@ -63,7 +64,7 @@ class ContentTypes {
 	declarations(): string {
 		const declarations: string[] = [];
 		for (const [key, located] of this.aliases) {
-			declarations.push(`type ${aliasName(key)} = ${this.render(located.schema, located.file)};`);
+			declarations.push(`type ${aliasName(key)} = ${this.render(located)};`);
 		}
 		return declarations.join("\n");
 	}
@@ -77,51 +78,57 @@ class ContentTypes {
 		return schema;
 	}
 
-	private render(schema: Schema, file: string): string {
+	private render(located: LocatedSchema): string {
+		const { schema, file, pointer } = located;
 		const parts: string[] = [];
 		if (typeof schema.$ref === "string") {
 			const [path = "", pointer = ""] = schema.$ref.split("#");
 			parts.push(this.reference(path === "" ? file : basename(path), pointer));
 		}
-		if ("const" in schema) parts.push(literal(schema.const));
-		else if (Array.isArray(schema.enum)) parts.push(schema.enum.map(literal).join(" | "));
+		const binding = apiEnums.schemaBindings.find((entry) => entry.file === file && entry.pointer === pointer);
+		if ("const" in schema) parts.push(binding ? enumMember(binding.enum, schema.const) : literal(schema.const));
+		else if (Array.isArray(schema.enum)) {
+			if (!binding) throw new Error(`Unmapped schema enum: ${file}#${pointer}`);
+			parts.push(schema.enum.map((value) => enumMember(binding.enum, value)).join(" | "));
+		}
 		else {
-			const type = this.valueType(schema, file);
+			const type = this.valueType(located);
 			if (type !== undefined) parts.push(type);
 		}
 		for (const key of ["allOf", "anyOf", "oneOf"]) {
 			const entries = schema[key];
 			if (!Array.isArray(entries)) continue;
-			const types = entries.map((entry) => this.render(record(entry) ?? {}, file));
+			const types = entries.map((entry, index) => this.render({ file, pointer: `${pointer}/${key}/${index}`, schema: record(entry) ?? {} }));
 			if (types.length > 0) parts.push(`(${types.join(key === "allOf" ? " & " : " | ")})`);
 		}
 		return parts.length === 0 ? "unknown" : parts.map((part) => `(${part})`).join(" & ");
 	}
 
-	private valueType(schema: Schema, file: string): string | undefined {
+	private valueType(located: LocatedSchema): string | undefined {
+		const { schema, file, pointer } = located;
 		if (Array.isArray(schema.type)) {
-			return schema.type.map((type) => this.valueType({ ...schema, type }, file) ?? "unknown").join(" | ");
+			return schema.type.map((type) => this.valueType({ ...located, schema: { ...schema, type } }) ?? "unknown").join(" | ");
 		}
 		if (schema.type === "string") return "string";
 		if (schema.type === "number" || schema.type === "integer") return "number";
 		if (schema.type === "boolean") return "boolean";
 		if (schema.type === "null") return "null";
-		if (schema.type === "array") return `ReadonlyArray<${this.render(record(schema.items) ?? {}, file)}>`;
-		if (schema.type === "object" || schema.properties !== undefined || schema.required !== undefined) return this.objectType(schema, file);
+		if (schema.type === "array") return `ReadonlyArray<${this.render({ file, pointer: `${pointer}/items`, schema: record(schema.items) ?? {} })}>`;
+		if (schema.type === "object" || schema.properties !== undefined || schema.required !== undefined) return this.objectType(located);
 		return undefined;
 	}
 
-	private objectType(schema: Schema, file: string): string {
+	private objectType({ schema, file, pointer }: LocatedSchema): string {
 		const properties = record(schema.properties) ?? {};
 		const required = new Set(Array.isArray(schema.required) ? schema.required.filter((value): value is string => typeof value === "string") : []);
 		const names = [...new Set([...Object.keys(properties), ...required])].sort();
-		const fields = names.map((name) => `readonly ${JSON.stringify(name)}${required.has(name) ? "" : "?"}: ${this.render(record(properties[name]) ?? {}, file)};`);
+		const fields = names.map((name) => `readonly ${JSON.stringify(name)}${required.has(name) ? "" : "?"}: ${this.render({ file, pointer: `${pointer}/properties/${name.replaceAll("~", "~0").replaceAll("/", "~1")}`, schema: record(properties[name]) ?? {} })};`);
 		const excluded = record(schema.not)?.required;
 		if (Array.isArray(excluded) && excluded.length === 1 && typeof excluded[0] === "string") {
 			fields.push(`readonly ${JSON.stringify(excluded[0])}?: never;`);
 		}
 		const additional = record(schema.additionalProperties);
-		if (additional !== undefined) fields.push(`readonly [key: string]: ${this.render(additional, file)};`);
+		if (additional !== undefined) fields.push(`readonly [key: string]: ${this.render({ file, pointer: `${pointer}/additionalProperties`, schema: additional })};`);
 		if (fields.length === 0 && schema.additionalProperties !== false) return "Readonly<Record<string, unknown>>";
 		return `{ ${fields.join(" ")} }`;
 	}

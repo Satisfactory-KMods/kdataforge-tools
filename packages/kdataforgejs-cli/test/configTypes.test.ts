@@ -31,12 +31,14 @@ describe("pack config declarations", () => {
 		writeFileSync(join(root, "settings", "invalid.config.yml"), `type: config\nfields:\n  - {id: "bad:id", type: boolean, default: true}\n`);
 		assert.throws(() => syncConfigTypes(root), /config id/);
 	});
-	it("uses declared select valueType rather than option literal types", () => {
+	it("emits real select enums with the declared valueType", () => {
 		const root = pack();
 		writeFileSync(join(root, "select.config.yml"), `fields:\n  - {id: numericText, type: select, options: [{value: 2, label: Two}], default: 2}\n  - {id: numeric, type: select, valueType: int32, options: [{value: 2, label: Two}], default: 2}\n`);
 		const output = readFileSync(syncConfigTypes(root), "utf8");
-		assert.match(output, /readonly numericText: string/);
-		assert.match(output, /readonly numeric: number/);
+		assert.match(output, /readonly numericText: import\([^)]*\)\.ConfigNumericText_/);
+		const runtime = readFileSync(join(root, "scripts/generated/kdataforgejs-config-enums.ts"), "utf8");
+		assert.match(runtime, /export enum ConfigNumericText_[^{]+\{\s*Value0 = "2"/);
+		assert.match(runtime, /export enum ConfigNumeric_[^{]+\{\s*Value0 = 2/);
 	});
 	it("rejects duplicate config ids", () => {
 		const root = pack();

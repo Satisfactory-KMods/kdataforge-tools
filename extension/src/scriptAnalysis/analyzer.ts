@@ -63,13 +63,21 @@ function isConst(declaration: ts.VariableDeclaration): boolean {
 }
 
 type Origin = Omit<ApiBinding, 'operation'>;
+function externalOrigin(module: string, exportName: string): Origin {
+  return module === SDK_MODULE && exportName === 'ctx'
+    ? { kind: 'context', module, exportName: 'Context', members: [] }
+    : { kind: 'export', module, exportName, members: [] };
+}
 class SymbolResolver {
   readonly checker: ts.TypeChecker;
   private readonly globals = new Set<string>();
-  constructor(readonly program: ts.Program, readonly graph: ScriptGraph, metadata: ApiPolicyMetadata) {
+  private readonly numericReads = new Set<string>();
+  constructor(readonly program: ts.Program, readonly graph: ScriptGraph, readonly metadata: ApiPolicyMetadata) {
     this.checker = program.getTypeChecker();
     for (const symbol of metadata.symbols) if (authoritative(symbol.binding) && symbol.binding.value.kind === 'global'
       && symbol.binding.value.module === GLOBAL_MODULE) this.globals.add(symbol.binding.value.exportName);
+    for (const symbol of metadata.symbols) if (authoritative(symbol.binding) && symbol.binding.value.operation === 'read')
+      this.numericReads.add(bindingKey(symbol.binding.value));
   }
 
   private importOrigin(declaration: ts.ImportSpecifier | ts.ImportClause | ts.NamespaceImport
@@ -82,7 +90,7 @@ class SymbolResolver {
     const exportName = ts.isImportSpecifier(declaration) || ts.isExportSpecifier(declaration)
       ? (declaration.propertyName ?? declaration.name).text : ts.isImportClause(declaration) ? 'default' : '*';
     const edge = moduleEdge(this.graph, owner.getSourceFile().fileName, module);
-    if (edge?.external) return { kind: 'export', module, exportName, members: [] };
+    if (edge?.external) return externalOrigin(module, exportName);
     if (!edge?.to || exportName === '*') return;
     const sourceFile = this.program.getSourceFile(edge.to);
     const symbol = sourceFile && this.checker.getSymbolAtLocation(sourceFile);
@@ -151,11 +159,16 @@ class SymbolResolver {
       return constructor?.kind === 'global' ? { ...constructor, kind: 'instance' } : undefined;
     }
     if (ts.isPropertyAccessExpression(expression) || ts.isElementAccessExpression(expression)) {
+      const base = this.origin(expression.expression, seen);
+      if (ts.isElementAccessExpression(expression) && ts.isNumericLiteral(expression.argumentExpression)) {
+        if (!base || operationOf(expression) !== 'read') return;
+        const indexed = { ...base, members: [...base.members, expression.argumentExpression.text] };
+        return this.numericReads.has(bindingKey({ ...indexed, operation: 'read' })) ? indexed : undefined;
+      }
       const name = ts.isPropertyAccessExpression(expression) ? expression.name.text
         : expression.argumentExpression && ts.isStringLiteralLike(expression.argumentExpression) ? expression.argumentExpression.text : undefined;
       if (name === undefined) return;
-      const base = this.origin(expression.expression, seen);
-      if (base) return base.exportName === '*' ? { ...base, exportName: name }
+      if (base) return base.exportName === '*' ? externalOrigin(base.module, name)
         : { ...base, members: [...base.members, name] };
       if (!this.isPackNamespace(expression.expression)) return;
       const symbol = this.checker.getSymbolAtLocation(ts.isPropertyAccessExpression(expression) ? expression.name : expression);
@@ -233,10 +246,29 @@ function metaCapabilities(file: ts.SourceFile, resolver: SymbolResolver): Policy
   if (!ts.isPropertyAssignment(property) || propertyName(property.name) !== 'capabilities')
     return unknownPolicy('Capabilities contain a computed property, getter or spread');
   const array = unwrap(property.initializer);
-  if (!ts.isArrayLiteralExpression(array) || !array.elements.every(ts.isStringLiteral)) return unknownPolicy('Capabilities are not literal strings');
-  const values = array.elements.map(value => (value as ts.StringLiteral).text);
+  if (!ts.isArrayLiteralExpression(array)) return unknownPolicy('Capabilities are not a static array');
+  const values = array.elements.map(value => {
+    if (ts.isStringLiteral(value)) return value.text;
+    if (!ts.isPropertyAccessExpression(value) || !ts.isIdentifier(value.expression)) return undefined;
+    const declarations = resolver.checker.getSymbolAtLocation(value.expression)?.getDeclarations();
+    if (declarations?.length !== 1 || !ts.isImportSpecifier(declarations[0]) || declarations[0].isTypeOnly
+      || declarations[0].parent.parent.isTypeOnly) return undefined;
+    const origin = resolver.origin(value);
+    if (origin?.kind !== 'export' || origin.module !== SDK_MODULE || origin.exportName !== 'Capability' || origin.members.length !== 1)
+      return undefined;
+    const members = resolver.metadata.enumValues?.Capability;
+    if (!members || !Object.prototype.hasOwnProperty.call(members, origin.members[0])) return undefined;
+    if (!resolver.metadata.symbols.some(symbol => authoritative(symbol.binding)
+      && symbol.binding.value.kind === 'export' && symbol.binding.value.module === SDK_MODULE
+      && symbol.binding.value.exportName === 'Capability' && symbol.binding.value.operation === 'read'
+      && symbol.binding.value.members.length === 1 && symbol.binding.value.members[0] === origin.members[0])) return undefined;
+    const result = members[origin.members[0]];
+    return typeof result === 'string' ? result : undefined;
+  });
+  if (values.some(value => value === undefined)) return unknownPolicy('Capabilities require literal IDs or direct SDK Capability members');
+  const resolved = values.filter((value): value is string => value !== undefined);
   if (new Set(values).size !== values.length) return unknownPolicy('Duplicate declared capability');
-  return known(values);
+  return known(resolved);
 }
 
 export function analysisIsCurrent(analysis: ScriptAnalysis): boolean {
@@ -274,7 +306,8 @@ export function analyzeScriptGraph(graph: ScriptGraph, metadata: ApiPolicyMetada
     for (const node of nodes) {
       if (!graph.ticket.isCurrent()) { addIssue('stale-generation', node); break; }
       if (ts.isElementAccessExpression(node) && resolver.origin(node.expression)
-        && !ts.isStringLiteralLike(node.argumentExpression)) addIssue('dynamic-api-access', node);
+        && !ts.isStringLiteralLike(node.argumentExpression)
+        && !(ts.isNumericLiteral(node.argumentExpression) && resolver.origin(node))) addIssue('dynamic-api-access', node);
       if (ts.isVariableDeclaration(node) && !ts.isIdentifier(node.name) && node.initializer && resolver.origin(node.initializer))
         addIssue('unsupported-api-destructuring', node);
       if (ts.isNewExpression(node) && resolver.origin(node)?.kind === 'instance'

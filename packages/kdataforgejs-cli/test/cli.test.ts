@@ -127,15 +127,15 @@ describe("validate", () => {
 		writeFileSync(manifest, readFileSync(manifest, "utf8").replace("    entry: scripts/main.ts", "    entry: scripts/main.ts\n    realm: server"));
 		const entry = join(directory, "DataForge/scripts/main.ts");
 		writeFileSync(entry, readFileSync(entry, "utf8")
-			.replace("import { defineHandler }", "import { defineHandler, defineMeta }")
-			.replace("export default", "export const meta = defineMeta({ capabilities: ['kdf.reflection.write'] });\n\nexport default"));
+			.replace("capabilities: []", "capabilities: ['kdf.reflection.write']"));
 		assert.ok(codes(directory).includes("script.deterministic-lane"));
 	});
 	it("rejects meta without the built-in defineMeta import", () => {
 		const directory = newProject();
 		const entry = join(directory, "DataForge/scripts/main.ts");
 		writeFileSync(entry, readFileSync(entry, "utf8")
-			.replace("export default", "const defineMeta = <T>(value: T): T => value;\nexport const meta = defineMeta({ capabilities: [] });\n\nexport default"));
+			.replace(", defineMeta }", " }")
+			.replace("export const meta", "const defineMeta = <T>(value: T): T => value;\nexport const meta"));
 		assert.ok(codes(directory).includes("entry.meta"));
 	});
 });
@@ -205,7 +205,7 @@ patches:
 const file = "notes.txt";
 export default defineHandler(async (ctx) => { ctx.import("text", file); });
 `);
-		assert.throws(() => syncProject(directory), /literal kind and path/);
+		assert.throws(() => syncProject(directory), /ImportKind member and a literal path/);
 	});
 });
 

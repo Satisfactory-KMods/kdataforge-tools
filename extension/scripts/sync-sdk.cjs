@@ -16,10 +16,16 @@ for (const [from, to] of [
   ['lib/kdfjs-es2020.d.ts', 'types/lib/kdfjs-es2020.d.ts'],
   ['tsconfig.base.json', 'types/tsconfig.base.json'],
   ['authoring.kdfjs.json', 'authoring-metadata.json'],
+  ['enums.kdfjs.json', 'types/enums.kdfjs.json'],
+  ['declarations.json', 'types/declarations.json'],
+  ['editor.kdfjs.json', 'types/editor.kdfjs.json'],
+  ['authoring.kdfjs.json', 'types/authoring.kdfjs.json'],
 ]) fs.copyFileSync(path.join(types, from), path.join(target, to));
 fs.writeFileSync(path.join(target, 'types/package.json'), JSON.stringify({
   name: '@sf-kmods/kdataforgejs', version: manifest.version, private: true, types: 'index.d.ts',
-  exports: { './tsconfig.base.json': './tsconfig.base.json', './package.json': './package.json' },
+  exports: { './tsconfig.base.json': './tsconfig.base.json', './package.json': './package.json',
+    './enums.kdfjs.json': './enums.kdfjs.json', './authoring.kdfjs.json': './authoring.kdfjs.json',
+    './declarations.json': './declarations.json' },
 }, null, 2) + '\n');
 fs.writeFileSync(path.join(target, 'manifest.json'), JSON.stringify({ version: manifest.version }, null, 2) + '\n');
 console.log(`Synced KDataForgeJS SDK ${manifest.version}`);

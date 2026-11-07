@@ -4,6 +4,7 @@ import ts from "typescript";
 import { parse } from "yaml";
 import { RUNTIME_MODULE, SATISFACTORY_MODULE } from "../conventions.js";
 import { isInside } from "./discover.js";
+import { sdkEnumLiteral } from "./capabilityEnums.js";
 
 export interface DiscoveredImport {
 	readonly kind: string;
@@ -53,10 +54,10 @@ export function discoverPackUsage(packRoot: string, entry: string): PackUsage {
 			if (!ts.isCallExpression(node) || !ts.isPropertyAccessExpression(node.expression)) return;
 			const method = node.expression.name.text;
 			if (method === "import") {
-				const kind = stringLiteral(node.arguments[0]);
+				const kind = node.arguments[0] && sdkEnumLiteral(node.arguments[0], source, "ImportKind");
 				const path = stringLiteral(node.arguments[1]);
 				if (kind === undefined || path === undefined) {
-					throw new Error(`${shownPath(packRoot, file)}: ctx.import requires literal kind and path so CLI can secure manifest imports.`);
+					throw new Error(`${shownPath(packRoot, file)}: ctx.import requires a literal or imported ImportKind member and a literal path so CLI can secure manifest imports.`);
 				}
 				imports.set(`${kind}\n${path}`, { kind, path });
 			} else if (REFLECTION_METHODS.has(method)) {

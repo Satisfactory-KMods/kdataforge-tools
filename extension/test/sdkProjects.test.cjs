@@ -30,6 +30,9 @@ test('SDK templates replace known placeholders and preserve unknown ones', () =>
 test('new script uses current typed SDK handler contract', () => {
   const content = newScriptContent();
   assert.match(content, /defineHandler/);
+  assert.match(content, /import \{ ctx, defineHandler, defineMeta \}/);
+  assert.match(content, /export const meta = defineMeta\(\{ capabilities: \[\] \}\)/);
+  assert.match(content, /defineHandler\(async \(\) =>/);
   assert.match(content, /ctx\.catalog\(\)\.digest/);
   assert.match(content, /Promise\.resolve/);
 });

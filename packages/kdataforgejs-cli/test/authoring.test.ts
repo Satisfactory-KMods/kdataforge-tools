@@ -53,6 +53,8 @@ it("creates each scaffold once and keeps its manifest valid", () => {
 		const root = project();
 		const path = addScaffold(root, kind, "example");
 		assert.ok(existsSync(path));
+		assert.match(readFileSync(join(root, "DataForge/scripts/main.ts"), "utf8"),
+			/import \{ ctx, defineHandler, defineMeta \} from "@sf-kmods\/kdataforgejs"/u);
 		assert.throws(() => addScaffold(root, kind, "example"), /Refusing to overwrite/);
 		syncProject(root);
 		assert.deepEqual(validateProject(root).map((item) => item.code), []);
@@ -66,10 +68,9 @@ it("rejects computed metadata before creating a file", () => {
 	const root = project();
 	const entry = join(root, "DataForge/scripts/main.ts");
 	const before = readFileSync(entry, "utf8")
-		.replace("import { defineHandler }", "import { defineHandler, defineMeta }")
-		.replace("export default", "export const meta = defineMeta({ capabilities: requested });\nexport default");
+		.replace("capabilities: []", "capabilities: requested");
 	writeFileSync(entry, before);
-	assert.throws(() => addScaffold(root, "item", "newItem"), /Computed or nonliteral/);
+	assert.throws(() => addScaffold(root, "item", "newItem"), /Computed or unresolved/);
 	assert.equal(readFileSync(entry, "utf8"), before);
 	assert.equal(existsSync(join(root, "DataForge/scripts/newItem.ts")), false);
 });
@@ -77,7 +78,7 @@ it("rejects computed metadata before creating a file", () => {
 it("normalizes mixed-case scaffold names into valid function names", () => {
 	const root = project();
 	addScaffold(root, "handler", "My-Handler");
-	assert.match(readFileSync(join(root, "DataForge/scripts/main.ts"), "utf8"), /addMyHandler\(ctx\)/u);
+	assert.match(readFileSync(join(root, "DataForge/scripts/main.ts"), "utf8"), /addMyHandler\(\)/u);
 	assert.deepEqual(validateProject(root).map((item) => item.code), []);
 });
 
@@ -95,15 +96,60 @@ it("adds two documents with one HandlerDocument import", () => {
 	assert.deepEqual(checkProject(root).map((item) => item.code), []);
 });
 
+it("adds parameterless helpers to existing context-parameter handlers", () => {
+	const root = project();
+	const entry = join(root, "DataForge/scripts/main.ts");
+	writeFileSync(entry, `import { defineHandler } from "@sf-kmods/kdataforgejs";
+export default defineHandler(async (context) => { console.info(context.catalog().digest); });\n`);
+	const helper = addScaffold(root, "handler", "helper");
+	assert.match(readFileSync(entry, "utf8"), /addHelper\(\)/u);
+	assert.match(readFileSync(helper, "utf8"), /import \{ ctx \}/u);
+	assert.match(readFileSync(helper, "utf8"), /function addHelper\(\)/u);
+	addScaffold(root, "document", "example");
+	assert.match(readFileSync(entry, "utf8"), /context\.applyDocument/u);
+	assert.match(readFileSync(entry, "utf8"), /import \{ defineHandler, defineMeta \} from "@sf-kmods\/kdataforgejs"/u);
+	syncProject(root);
+	writeFileSync(join(root, "tsconfig.json"), JSON.stringify({ extends: TYPES_BASE, include: ["DataForge/**/*.ts"] }));
+	assert.deepEqual(checkProject(root).map((item) => `${item.code}: ${item.message}`), []);
+});
+
+it("adds documents to imported-context handlers and avoids shadowed import names", () => {
+	for (const [imports, body, expected] of [
+		['import { ctx as context, defineHandler } from "@sf-kmods/kdataforgejs";', '', 'context'],
+		['import { defineHandler } from "@sf-kmods/kdataforgejs";', '', 'ctx'],
+		['import { ctx, defineHandler } from "@sf-kmods/kdataforgejs";', 'const ctx = "local"; console.info(ctx);', 'kdfContext'],
+	]) {
+		const root = project();
+		const entry = join(root, "DataForge/scripts/main.ts");
+		writeFileSync(entry, `${imports}\nexport default defineHandler(async () => { ${body} });\n`);
+		addScaffold(root, "document", "example");
+		assert.ok(readFileSync(entry, "utf8").includes(`${expected}.applyDocument`));
+		syncProject(root);
+		writeFileSync(join(root, "tsconfig.json"), JSON.stringify({ extends: TYPES_BASE, include: ["DataForge/**/*.ts"] }));
+		assert.deepEqual(checkProject(root).map((item) => `${item.code}: ${item.message}`), []);
+	}
+});
+
+it("refuses helper names shadowed by default imports or handler locals before writing", () => {
+	for (const binding of ['import addExample from "./lib";', 'const addExample = () => {};']) {
+		const root = project();
+		const entry = join(root, "DataForge/scripts/main.ts");
+		const before = `${binding}\n${readFileSync(entry, "utf8")}`;
+		writeFileSync(entry, before);
+		assert.throws(() => addScaffold(root, "handler", "example"), /already declares/u);
+		assert.equal(readFileSync(entry, "utf8"), before);
+		assert.equal(existsSync(join(root, "DataForge/scripts/example.ts")), false);
+	}
+});
+
 it("adds capability after a trailing comma without making an array hole", () => {
 	const root = project();
 	const path = join(root, "DataForge/scripts/main.ts");
 	writeFileSync(path, readFileSync(path, "utf8")
-		.replace("import { defineHandler }", "import { defineHandler, defineMeta }")
-		.replace("export default", "export const meta = defineMeta({ capabilities: [\"kdf.imports.read\",] });\nexport default"));
+		.replace("capabilities: []", "capabilities: [\"kdf.imports.read\",]"));
 	addScaffold(root, "item", "ExampleItem");
 	const entry = readFileSync(path, "utf8");
-	assert.match(entry, /capabilities: \["kdf\.imports\.read", "kdf\.items\.define"\]/u);
+	assert.match(entry, /capabilities: \["kdf\.imports\.read", Capability\.ItemsDefine\]/u);
 	assert.deepEqual(validateProject(root).map((item) => item.code), []);
 });
 

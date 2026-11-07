@@ -4,6 +4,7 @@ import ts from "typescript";
 import { RUNTIME_MODULE, SATISFACTORY_MODULE } from "../conventions.js";
 import type { Diagnostic } from "../diagnostics.js";
 import { isInside } from "./discover.js";
+import { capabilityLiteral } from "./capabilityEnums.js";
 
 /** Walks the static import graph from the entry and reports everything the runtime would reject. */
 export function checkSourceGraph(packRoot: string, entry: string): Diagnostic[] {
@@ -96,7 +97,7 @@ export function checkEntryShape(packRoot: string, entry: string): Diagnostic[] {
 		if (ts.isExportAssignment(statement) && !statement.isExportEquals) hasDefault = true;
 	}
 	const diagnostics: Diagnostic[] = [];
-	if (!hasDefault) diagnostics.push({ severity: "error", code: "entry.handler", file: entry, message: "Entry must default-export `defineHandler(async (ctx) => ...)`." });
+	if (!hasDefault) diagnostics.push({ severity: "error", code: "entry.handler", file: entry, message: "Entry must default-export `defineHandler(async () => ...)`." });
 	return diagnostics;
 }
 
@@ -105,7 +106,7 @@ export interface EntryMeta {
 	readonly diagnostics: readonly Diagnostic[];
 }
 
-/** Mirrors runtime's literal-only optional defineMeta contract without executing pack code. */
+/** Resolves the runtime's static optional defineMeta contract without executing pack code. */
 export function readEntryMeta(packRoot: string, entry: string): EntryMeta {
 	const file = resolve(packRoot, entry);
 	if (!existsSync(file)) return { capabilities: [], diagnostics: [] };
@@ -113,8 +114,9 @@ export function readEntryMeta(packRoot: string, entry: string): EntryMeta {
 	const diagnostics: Diagnostic[] = [];
 	const hasDefineMetaImport = source.statements.some((statement) => ts.isImportDeclaration(statement) &&
 		ts.isStringLiteral(statement.moduleSpecifier) && statement.moduleSpecifier.text === RUNTIME_MODULE &&
+		!statement.importClause?.isTypeOnly &&
 		statement.importClause?.namedBindings && ts.isNamedImports(statement.importClause.namedBindings) &&
-		statement.importClause.namedBindings.elements.some((element) => !element.propertyName && element.name.text === "defineMeta"));
+		statement.importClause.namedBindings.elements.some((element) => !element.isTypeOnly && !element.propertyName && element.name.text === "defineMeta"));
 	const metaDeclarations = source.statements.flatMap((statement) =>
 		ts.isVariableStatement(statement) && ts.getModifiers(statement)?.some((modifier) => modifier.kind === ts.SyntaxKind.ExportKeyword)
 			? statement.declarationList.declarations.filter((declaration) => ts.isIdentifier(declaration.name) && declaration.name.text === "meta")
@@ -123,6 +125,11 @@ export function readEntryMeta(packRoot: string, entry: string): EntryMeta {
 	if (!hasDefineMetaImport) diagnostics.push({ severity: "error", code: "entry.meta", file: entry,
 		message: "Optional meta requires an unaliased defineMeta import from @sf-kmods/kdataforgejs." });
 	const declaration = metaDeclarations.length === 1 ? metaDeclarations[0] : undefined;
+	if (!declaration || !ts.isVariableDeclarationList(declaration.parent) ||
+		(declaration.parent.flags & ts.NodeFlags.Const) === 0 || declaration.parent.declarations.length !== 1) {
+		diagnostics.push({ severity: "error", code: "entry.meta", file: entry, message: "Meta must be one exported const declaration." });
+		return { capabilities: [], diagnostics };
+	}
 	const call = declaration?.initializer;
 	const argument = call && ts.isCallExpression(call) ? call.arguments.at(0) : undefined;
 	const object = call && ts.isCallExpression(call) && ts.isIdentifier(call.expression) && call.expression.text === "defineMeta" &&
@@ -131,13 +138,14 @@ export function readEntryMeta(packRoot: string, entry: string): EntryMeta {
 	const property = object?.properties.length === 1 && firstProperty && ts.isPropertyAssignment(firstProperty) &&
 		ts.isIdentifier(firstProperty.name) && firstProperty.name.text === "capabilities" ? firstProperty : undefined;
 	const array = property && ts.isArrayLiteralExpression(property.initializer) ? property.initializer : undefined;
-	if (!array || array.elements.some((element) => !ts.isStringLiteral(element))) {
+	const resolved = array?.elements.map((element) => capabilityLiteral(element, source));
+	if (!resolved || resolved.some((value) => value === undefined)) {
 		diagnostics.push({ severity: "error", code: "entry.meta", file: entry,
-			message: "Optional meta must be `defineMeta({ capabilities: [literal ids] })`." });
+			message: "Optional meta requires literal capability IDs or direct SDK Capability members." });
 		return { capabilities: [], diagnostics };
 	}
-	const capabilities = array.elements.map((element) => (element as ts.StringLiteral).text);
+	const capabilities = resolved.filter((value): value is string => value !== undefined);
 	if (new Set(capabilities).size !== capabilities.length) diagnostics.push({ severity: "error", code: "entry.meta", file: entry,
 		message: "Meta capability ids must be unique." });
-	return { capabilities, diagnostics };
+	return { capabilities: diagnostics.length === 0 ? capabilities : [], diagnostics };
 }

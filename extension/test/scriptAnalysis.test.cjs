@@ -242,6 +242,118 @@ test('capability accounting follows imports and SDK reexports by symbol', async 
   assert.equal(model.unneeded, null, 'passing context to a helper is conservatively incomplete');
 });
 
+test('imported context aliases, namespaces and reexports preserve capabilities and references', async () => {
+  for (const [imports, expression, bridge] of [
+    [`import { ctx } from '${api.SDK_MODULE}';`, 'ctx'],
+    [`import { ctx as context } from '${api.SDK_MODULE}';`, 'context'],
+    [`import * as sdk from '${api.SDK_MODULE}';`, 'sdk.ctx'],
+    [`import * as sdk from '${api.SDK_MODULE}';`, 'sdk["ctx"]'],
+    [`import { context } from './bridge';`, 'context', `export { ctx as context } from '${api.SDK_MODULE}';`],
+    [`import * as bridge from './bridge';`, 'bridge.context', `export { ctx as context } from '${api.SDK_MODULE}';`],
+  ]) {
+    const files = { [packPath('main.ts')]: `${imports}\n${prelude}
+      export const meta = defineMeta({ capabilities: [] });
+      export default defineHandler(async () => { ${expression}.removeItem('Old'); });` };
+    if (bridge) files[packPath('bridge.ts')] = bridge;
+    const result = await analyze(files);
+    const model = api.buildCapabilityLensModel(result, packPath('main.ts'));
+    assert.deepEqual(model.used, ['delete'], expression);
+    assert.deepEqual(model.missing, ['delete'], expression);
+    assert.equal(result.references[0]?.value, 'Old', expression);
+    assert.equal(result.references[0]?.status, 'static', expression);
+  }
+});
+
+test('shadowing an imported context never grants its policy identity to a local parameter', async () => {
+  const result = await analyze({ [packPath('main.ts')]: `import { ctx } from '${api.SDK_MODULE}';
+    function fake(ctx) { ctx.removeItem('Wrong'); }
+    ctx.removeItem('Old');` });
+  assert.deepEqual(result.references.map(reference => reference.value), ['Old']);
+});
+
+async function enumPolicy() {
+  return api.readApiPolicyMetadata(await fs.readFile(path.resolve(__dirname,
+    '../../packages/kdataforgejs-types/authoring.kdfjs.json'), 'utf8'));
+}
+
+test('Capability enum meta resolves direct aliases; invalid bindings and duplicate IDs remain unknown', async () => {
+  const policy = await enumPolicy();
+  for (const [imports, values, expected] of [
+    [`import { Capability as Cap } from '${api.SDK_MODULE}';`, 'Cap.ImportsRead', ['kdf.imports.read']],
+    [`import type { Capability as Cap } from '${api.SDK_MODULE}';`, 'Cap.ImportsRead', null],
+    [`import { type Capability as Cap } from '${api.SDK_MODULE}';`, 'Cap.ImportsRead', null],
+    [`import { Capability as Cap } from '${api.SDK_MODULE}';`, 'Cap.Missing', null],
+    [`import { Capability as Cap } from '${api.SDK_MODULE}';`, 'Cap["ImportsRead"]', null],
+    [`import { Capability as Cap } from '${api.SDK_MODULE}';`, 'Cap.ImportsRead, Cap.ImportsRead', null],
+    ['const Cap = {ImportsRead: "kdf.imports.read"};', 'Cap.ImportsRead', null],
+  ]) {
+    const source = prelude + imports + `\nexport const meta = defineMeta({capabilities:[${values}]});\nexport default defineHandler(async () => {});`;
+    const result = await analyze({[packPath('main.ts')]:source}, policy);
+    const declared = result.declaredCapabilities.get(packPath('main.ts'));
+    assert.equal(declared.status, expected ? 'known' : 'unknown', source);
+    if (expected) assert.deepEqual(declared.value, expected);
+  }
+  const transformed = buildSdkAuthoringMetadata(JSON.stringify(policy));
+  assert.deepEqual(transformed.enumValues, policy.enumValues);
+});
+
+test('authoritative enum reads require no capabilities through aliases, namespaces and reexports', async () => {
+  const policy = await enumPolicy();
+  for (const [imports, expression, bridge] of [
+    [`import { TypeKind } from '${api.SDK_MODULE}';`, 'TypeKind.Struct'],
+    [`import { TypeKind as Kind } from '${api.SDK_MODULE}';`, 'Kind.Struct'],
+    [`import * as sdk from '${api.SDK_MODULE}';`, 'sdk.TypeKind.Struct'],
+    [`import { Kind } from './bridge';`, 'Kind.Struct', `export { TypeKind as Kind } from '${api.SDK_MODULE}';`],
+    [`import * as bridge from './bridge';`, 'bridge.Kind.Struct', `export { TypeKind as Kind } from '${api.SDK_MODULE}';`],
+    [`import { TypeKind } from '${api.SDK_MODULE}';`, 'TypeKind[1]'],
+    [`import * as sdk from '${api.SDK_MODULE}';`, 'sdk.TypeKind[1]'],
+    [`import { TypeKind } from '${api.SDK_MODULE}';`, 'TypeKind["1"]'],
+    [`import { CompareOperator } from '${api.SDK_MODULE}';`, 'CompareOperator.Less'],
+  ]) {
+    const files = { [packPath('main.ts')]: `${imports}\nconst value = ${expression};` };
+    if (bridge) files[packPath('bridge.ts')] = bridge;
+    const result = await analyze(files, policy);
+    assert.equal(result.complete, true, JSON.stringify(result.issues));
+    assert.equal(result.uses.length, 1, expression);
+    assert.equal(result.uses[0].status, 'known', expression);
+    assert.deepEqual(result.uses[0].policy.capabilities.value, [], expression);
+    assert.deepEqual(api.buildCapabilityLensModel(result, packPath('main.ts')).used, [], expression);
+  }
+});
+
+test('enum names do not authorize unknown members, dynamic indexes, calls, writes or local lookalikes', async () => {
+  const policy = await enumPolicy();
+  for (const expression of ['TypeKind.Missing', 'TypeKind[99]', 'TypeKind[index]',
+    'TypeKind.Struct()', 'TypeKind.Struct = 0', 'TypeKind[1] = "Changed"', 'CompareOperator[0]']) {
+    const result = await analyze({ [packPath('main.ts')]:
+      `import { TypeKind, CompareOperator } from '${api.SDK_MODULE}'; ${expression};` }, policy);
+    assert.equal(result.complete, false, expression);
+    assert.ok(result.issues.some(issue => ['unknown-api-policy', 'dynamic-api-access'].includes(issue.code)), expression);
+  }
+  const shadowed = await analyze({ [packPath('main.ts')]: `import { TypeKind } from '${api.SDK_MODULE}';
+    function local(TypeKind) { return TypeKind.Struct; }
+    const value = TypeKind.Struct;` }, policy);
+  assert.equal(shadowed.uses.length, 1);
+  assert.equal(shadowed.uses[0].symbolId, 'enum.TypeKind.Struct');
+});
+
+test('enum reads stay unknown without authoritative policy bindings', async () => {
+  const files = { [packPath('main.ts')]: `import { TypeKind } from '${api.SDK_MODULE}';
+    const value = TypeKind.Struct; const name = TypeKind[1];` };
+  const unproven = await analyze(files);
+  assert.equal(unproven.complete, false);
+  assert.ok(unproven.issues.some(issue => issue.code === 'unknown-api-policy'));
+  assert.ok(unproven.issues.some(issue => issue.code === 'dynamic-api-access'));
+  const policy = await enumPolicy();
+  const informational = { ...policy, symbols: policy.symbols.map(symbol => symbol.symbolId.startsWith('enum.')
+    ? { ...symbol, binding: { ...symbol.binding, provenance: { ...symbol.binding.provenance, authority: 'informational' } } }
+    : symbol) };
+  const untrusted = await analyze(files, informational);
+  assert.equal(untrusted.complete, false);
+  assert.ok(untrusted.issues.some(issue => issue.code === 'unknown-api-policy'));
+  assert.ok(untrusted.issues.some(issue => issue.code === 'dynamic-api-access'));
+});
+
 test('Q15 literal-slot completion filters kind/prefix, caps 200 and requires exact catalog version', async () => {
   const source = script(`ctx.removeItem('Pack/'); ctx.getClass(null, '/Game/'); ctx.getObject(null, '/Asset/');`);
   const result = await analyze({ [packPath('main.ts')]: source });

@@ -51,6 +51,7 @@ export interface ApiPolicyMetadata {
   readonly defaultGrants: PolicyFact<readonly string[]>;
   readonly symbols: readonly ApiPolicy[];
   readonly replacements: readonly ApiReplacement[];
+  readonly enumValues?: Readonly<Record<string, Readonly<Record<string, string | number>>>>;
 }
 export type PolicyInputFact<T> = { readonly value: T; readonly provenance: Provenance }
   | { readonly status: 'unknown'; readonly reason?: string };
@@ -64,6 +65,7 @@ export interface ApiPolicyMetadataInput {
   readonly defaultGrants?: PolicyInputFact<readonly string[]>;
   readonly symbols: readonly ApiPolicyInput[];
   readonly replacements?: readonly ApiReplacement[];
+  readonly enumValues?: Readonly<Record<string, Readonly<Record<string, string | number>>>>;
 }
 export interface PolicyVersions { readonly sdkVersion: string; readonly catalogVersion: string | null; }
 
@@ -112,6 +114,12 @@ export function readApiPolicyMetadata(json: string): ApiPolicyMetadata {
     || !Array.isArray(data.symbols) || data.symbols.length > 20_000 || !Array.isArray(data.replacements))
     throw new Error('Invalid policy metadata header');
   const ids = new Set<string>();
+  if (data.enumValues !== undefined && (!record(data.enumValues)
+    || Object.keys(data.enumValues).length > 256
+    || Object.entries(data.enumValues).some(([name, members]) => !/^[A-Z][A-Za-z0-9]*$/.test(name) || !record(members)
+      || Object.keys(members).length > 2048 || Object.entries(members).some(([member, value]) =>
+        !/^[A-Z][A-Za-z0-9]*$/.test(member) || !(typeof value === 'string' || Number.isSafeInteger(value))))))
+    throw new Error('Invalid enum metadata');
   for (const symbol of data.symbols) {
     if (!record(symbol) || !text(symbol.symbolId) || ids.has(symbol.symbolId)
       || !oneOf(symbol.kind, ['context', 'reflected', 'global']) || !fact(symbol.binding, binding)

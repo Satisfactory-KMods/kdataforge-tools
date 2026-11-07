@@ -1,37 +1,363 @@
 /** UE class handle. Generated declarations merge this global shape for ergonomic `Class<T>` use. */
 /** Vendored KDataForgeJS runtime declaration. No package manager or node_modules required. */
 declare module "@sf-kmods/kdataforgejs" {
+    export enum TypeKind {
+        Value = 0,
+        Struct = 1,
+        Object = 2,
+        Class = 3,
+        Enum = 4,
+    }
+    export enum MemberAccess {
+        None = 0,
+        Read = 1,
+        Write = 2,
+        ReadWrite = 3,
+    }
+    export enum InvocationKind {
+        None = 0,
+        Static = 1,
+        Member = 2,
+        Custom = 3,
+    }
+    export enum CallEffect {
+        None = 0,
+        ReadOnly = 1,
+        ReversibleMutation = 2,
+        IrreversibleMutation = 3,
+    }
+    export enum TargetKind {
+        Realm = 0,
+        Class = 1,
+        CDO = 2,
+        Actor = 3,
+        Behavior = 4,
+    }
+    export enum TargetCardinality {
+        One = 0,
+        Many = 1,
+    }
+    export enum Authority {
+        Server = 0,
+        ClientCosmetic = 1,
+        Both = 2,
+    }
+    export enum ThreadAffinity {
+        GameThreadOnly = 0,
+        AnyThread = 1,
+    }
+    export enum LifecyclePhase {
+        Initialization = 0,
+        WorldReady = 1,
+        Runtime = 2,
+    }
+    export enum CompareOperator {
+        Equal = "equals",
+        EqualSymbol = "==",
+        NotEqual = "notEquals",
+        NotEqualSymbol = "!=",
+        Less = "less",
+        LessSymbol = "<",
+        LessOrEqual = "lessOrEqual",
+        LessOrEqualSymbol = "<=",
+        Greater = "greater",
+        GreaterThan = "greaterThan",
+        GreaterSymbol = ">",
+        GreaterOrEqual = "greaterOrEqual",
+        GreaterOrEqualSymbol = ">=",
+    }
+    export enum ImportKind {
+        Text = "text",
+        Yaml = "yaml",
+        Binary = "binary",
+        Image = "image",
+        Audio = "audio",
+    }
+    export enum HookPhase {
+        Before = "before",
+        After = "after",
+        Replace = "replace",
+    }
+    export enum ConditionBehavior {
+        And = "AND",
+        Or = "OR",
+    }
+    export enum TagMatch {
+        All = "all",
+        Any = "any",
+    }
+    export enum ConditionOutcome {
+        Match = "match",
+        NoMatch = "noMatch",
+        Deferred = "deferred",
+        Invalid = "invalid",
+    }
+    export enum EventScalarType {
+        Boolean = "boolean",
+        Int64 = "int64",
+        Number = "number",
+        String = "string",
+        UInt64 = "uint64",
+    }
+    export enum NumericSign {
+        Negative = -1,
+        Positive = 1,
+    }
+    export enum Ordering {
+        Less = -1,
+        Equal = 0,
+        Greater = 1,
+    }
+    export enum SemVerRelease {
+        Major = "major",
+        Minor = "minor",
+        Patch = "patch",
+        Prerelease = "prerelease",
+    }
+    export enum ResourceForm {
+        Solid = "solid",
+        Liquid = "liquid",
+        Gas = "gas",
+    }
+    export enum StackSize {
+        One = "one",
+        Small = "small",
+        Medium = "medium",
+        Big = "big",
+        Huge = "huge",
+        Fluid = "fluid",
+    }
+    export enum ContentKind {
+        Item = "item",
+        Recipe = "recipe",
+    }
+    export enum DiagnosticSeverity {
+        Info = "info",
+        Warning = "warning",
+        Error = "error",
+    }
+    export enum DeliveryMode {
+        Immediate = "immediate",
+        Debounce = "debounce",
+        Throttle = "throttle",
+    }
+    export enum ActorChangeKind {
+        Added = "added",
+        Removed = "removed",
+    }
+    export enum AsyncResultStatus {
+        Fulfilled = "fulfilled",
+        Rejected = "rejected",
+    }
+    export enum LifecycleEvent {
+        WorldReady = "worldReady",
+        Travel = "travel",
+        Shutdown = "shutdown",
+    }
+    export enum DocumentType {
+        Asset = "asset",
+        CategoryReorder = "category_reorder",
+        Cdo = "cdo",
+        Class = "class",
+        Config = "config",
+        Curve = "curve",
+        Localization = "localization",
+        Item = "item",
+        Resource = "resource",
+        Building = "building",
+        Unlock = "unlock",
+        Recipe = "recipe",
+        Schematic = "schematic",
+        Research = "research",
+        Mam = "mam",
+        Sound = "sound",
+        Sublevel = "sublevel",
+        DataAsset = "dataasset",
+        EventRule = "eventrule",
+        GameTag = "gametag",
+        ResourceNode = "resourcenode",
+        SinkPoints = "sinkpoints",
+    }
+    export enum CurveType {
+        Float = "float",
+        Vector = "vector",
+    }
+    export enum CategoryKind {
+        Items = "items",
+        Recipe = "recipe",
+        Schematic = "schematic",
+        Settings = "settings",
+    }
+    export enum ActorAction {
+        Destroy = "destroy",
+        Dismantle = "dismantle",
+    }
+    export enum ClassScope {
+        Any = "any",
+        Blueprint = "blueprint",
+        Native = "native",
+    }
+    export enum PropertyOperation {
+        Add = "add",
+        Append = "append",
+        AppendUnique = "append_unique",
+        Clamp = "clamp",
+        Clear = "clear",
+        Copy = "copy",
+        Divide = "divide",
+        Duplicate = "duplicate",
+        Insert = "insert",
+        Max = "max",
+        Min = "min",
+        Move = "move",
+        Multiply = "multiply",
+        Prepend = "prepend",
+        Remove = "remove",
+        RemoveAt = "remove_at",
+        ReplaceRefs = "replace_refs",
+        Replace = "replace",
+        Reverse = "reverse",
+        Set = "set",
+        Sort = "sort",
+        Subtract = "subtract",
+        Swap = "swap",
+        Unique = "unique",
+        UpdateWhere = "update_where",
+    }
+    export enum ConfigFieldKind {
+        Text = "text",
+        Number = "number",
+        Boolean = "boolean",
+        Select = "select",
+    }
+    export enum ConfigApplyMode {
+        Hot = "hot",
+        Cold = "cold",
+    }
+    export enum ConfigValueType {
+        String = "string",
+        Text = "text",
+        Name = "name",
+        Tag = "tag",
+        Int8 = "int8",
+        Int16 = "int16",
+        Int32 = "int32",
+        Int64 = "int64",
+        Uint8 = "uint8",
+        Float = "float",
+        Double = "double",
+        Bool = "bool",
+    }
+    export enum NumberDisplayMode {
+        Slider = "slider",
+        Input = "input",
+    }
+    export enum CurveExtrapolation {
+        None = "none",
+        Constant = "constant",
+        Linear = "linear",
+        Cycle = "cycle",
+        CycleWithOffset = "cycleWithOffset",
+        Oscillate = "oscillate",
+    }
+    export enum CurveInterpolation {
+        Constant = "constant",
+        Linear = "linear",
+        Cubic = "cubic",
+    }
+    export enum CurveTangentMode {
+        Auto = "auto",
+        SmartAuto = "smartAuto",
+        User = "user",
+        Break = "break",
+    }
+    export enum CurveTangentWeightMode {
+        None = "none",
+        Arrive = "arrive",
+        Leave = "leave",
+        Both = "both",
+    }
+    export enum EventRuleEvent {
+        WorldReady = "worldReady",
+        SchematicPurchased = "schematicPurchased",
+    }
+    export enum ResourcePurity {
+        Impure = "Impure",
+        Normal = "Normal",
+        Pure = "Pure",
+    }
+    export enum ResourceNodeKind {
+        Node = "Node",
+        FrackingSatellite = "FrackingSatellite",
+        FrackingCore = "FrackingCore",
+        Geyser = "Geyser",
+        Deposit = "Deposit",
+    }
+    export enum SinkTrack {
+        Default = "Default",
+        Exploration = "Exploration",
+    }
+    export enum Capability {
+        SchematicsRead = "kdf.schematics.read",
+        OverridesTemporary = "kdf.overrides.temporary",
+        FilesWrite = "kdf.files.write",
+        DatatablesWrite = "kdf.datatables.write",
+        DatatablesRead = "kdf.datatables.read",
+        BehaviorRuntime = "kdf.behavior.runtime",
+        ClassesDefine = "kdf.classes.define",
+        ConfigRead = "kdf.config.read",
+        ConditionsEvaluate = "kdf.conditions.evaluate",
+        DiagnosticsWrite = "kdf.diagnostics.write",
+        DocumentsApply = "kdf.documents.apply",
+        EventsCustom = "kdf.events.custom",
+        ImportsRead = "kdf.imports.read",
+        ItemsDefine = "kdf.items.define",
+        ItemsRead = "kdf.items.read",
+        NativeCall = "kdf.native.call",
+        NativeHook = "kdf.native.hook",
+        NativeRead = "kdf.native.read",
+        NativeWrite = "kdf.native.write",
+        RecipesDefine = "kdf.recipes.define",
+        RecipesRead = "kdf.recipes.read",
+        ReflectionCall = "kdf.reflection.call",
+        ReflectionRead = "kdf.reflection.read",
+        ReflectionWrite = "kdf.reflection.write",
+        ScriptAdmin = "kdf.script.admin",
+        WorldRead = "kdf.world.read",
+    }
     /** Capability ids for `defineMeta`. Reading and writing reflected values is always granted. */
     export interface CapabilityMap {
-        readonly "kdf.schematics.read": true;
-        readonly "kdf.overrides.temporary": true;
-        readonly "kdf.files.write": true;
-        readonly "kdf.datatables.write": true;
-        readonly "kdf.datatables.read": true;
-        readonly "kdf.behavior.runtime": true;
-        readonly "kdf.classes.define": true;
-        readonly "kdf.config.read": true;
-        readonly "kdf.conditions.evaluate": true;
-        readonly "kdf.diagnostics.write": true;
-        readonly "kdf.documents.apply": true;
-        readonly "kdf.events.custom": true;
-        readonly "kdf.imports.read": true;
-        readonly "kdf.items.define": true;
-        readonly "kdf.items.read": true;
-        readonly "kdf.native.call": true;
-        readonly "kdf.native.hook": true;
-        readonly "kdf.native.read": true;
-        readonly "kdf.native.write": true;
-        readonly "kdf.recipes.define": true;
-        readonly "kdf.recipes.read": true;
-        readonly "kdf.reflection.call": true;
-        readonly "kdf.reflection.read": true;
-        readonly "kdf.reflection.write": true;
-        readonly "kdf.script.admin": true;
-        readonly "kdf.world.read": true;
+        readonly [Capability.SchematicsRead]: true;
+        readonly [Capability.OverridesTemporary]: true;
+        readonly [Capability.FilesWrite]: true;
+        readonly [Capability.DatatablesWrite]: true;
+        readonly [Capability.DatatablesRead]: true;
+        readonly [Capability.BehaviorRuntime]: true;
+        readonly [Capability.ClassesDefine]: true;
+        readonly [Capability.ConfigRead]: true;
+        readonly [Capability.ConditionsEvaluate]: true;
+        readonly [Capability.DiagnosticsWrite]: true;
+        readonly [Capability.DocumentsApply]: true;
+        readonly [Capability.EventsCustom]: true;
+        readonly [Capability.ImportsRead]: true;
+        readonly [Capability.ItemsDefine]: true;
+        readonly [Capability.ItemsRead]: true;
+        readonly [Capability.NativeCall]: true;
+        readonly [Capability.NativeHook]: true;
+        readonly [Capability.NativeRead]: true;
+        readonly [Capability.NativeWrite]: true;
+        readonly [Capability.RecipesDefine]: true;
+        readonly [Capability.RecipesRead]: true;
+        readonly [Capability.ReflectionCall]: true;
+        readonly [Capability.ReflectionRead]: true;
+        readonly [Capability.ReflectionWrite]: true;
+        readonly [Capability.ScriptAdmin]: true;
+        readonly [Capability.WorldRead]: true;
     }
-    export type Capability = keyof CapabilityMap & string;
-    export interface Meta { readonly capabilities: readonly Capability[]; }
+    export type CapabilityId = keyof CapabilityMap & string;
+    export interface Meta { readonly capabilities: readonly CapabilityId[]; }
+    /** The current script realm's shared context. Import it in entry points and helper modules. */
+    export const ctx: Context;
     export type Main = (ctx: Context) => Promise<void>;
     export function defineMeta(meta: Meta): Readonly<Meta>;
     export function defineHandler(handler: (ctx: Context) => Promise<void>): (ctx: Context) => Promise<void>;
@@ -48,16 +374,6 @@ declare module "@sf-kmods/kdataforgejs" {
     export type InputValue = null | undefined | boolean | bigint | number | string;
     /** Scalar neutral values returned by property reads and calls. */
     export type Value = null | boolean | bigint | number | string;
-    export type TypeKind = 0 | 1 | 2 | 3 | 4;
-    export type MemberAccess = 0 | 1 | 2 | 3;
-    export type InvocationKind = 0 | 1 | 2 | 3;
-    export type CallEffect = 0 | 1 | 2 | 3;
-    export type TargetKind = 0 | 1 | 2 | 3 | 4;
-    export type TargetCardinality = 0 | 1;
-    export type Authority = 0 | 1 | 2;
-    export type ThreadAffinity = 0 | 1;
-    export type LifecyclePhase = 0 | 1 | 2;
-    export type CompareOperator = "equals" | "==" | "notEquals" | "!=" | "less" | "<" | "lessOrEqual" | "<=" | "greater" | "greaterThan" | ">" | "greaterOrEqual" | ">=";
 
     export interface ExecutableDescriptor { readonly providerId: string; readonly adapterId: string; readonly targetId: string; readonly targetKind: TargetKind; readonly authority: Authority; readonly threadAffinity: ThreadAffinity; readonly lifecyclePhase: LifecyclePhase; }
     export interface TypeDescriptor { readonly id: string; readonly kind: TypeKind; readonly baseTypeId: string; readonly capabilities: readonly string[]; readonly providerId: string; readonly nativeTypeScriptName: string; }
@@ -91,7 +407,12 @@ declare module "@sf-kmods/kdataforgejs" {
     }[keyof NativeClassPathMap & string];
     export interface ClassSearchParams {
         readonly pathPrefix?: string;
+        readonly pathContains?: string;
+        readonly namePrefix?: string;
         readonly nameContains?: string;
+        readonly exactName?: string;
+        readonly exactClass?: boolean;
+        readonly caseSensitive?: boolean;
         readonly includeNative?: boolean;
         readonly includeBlueprints?: boolean;
         readonly limit?: number;
@@ -152,7 +473,6 @@ declare module "@sf-kmods/kdataforgejs" {
     export interface EventArgs { readonly [field: string]: Value | undefined; }
     export type NamedEventCallback = (args: EventArgs) => void;
     export type PositionalEventCallback = (value: Value, ...values: readonly Value[]) => void;
-    export type HookPhase = "before" | "after" | "replace";
     /** Typed handle to one hookable function of a class; `Class.hooks.<Name>` is the only way to obtain one. */
     export interface Hook<TTarget extends UObject = UObject, TArgs extends readonly Value[] = readonly Value[], TReturn = void> {
         readonly [hookBrand]: never;
@@ -190,7 +510,7 @@ declare module "@sf-kmods/kdataforgejs" {
     export interface Conditions {
         all(conditions: readonly boolean[]): boolean;
         any(conditions: readonly boolean[]): boolean;
-        evaluate(conditions: ConditionMap | readonly ConditionMap[], behavior?: "AND" | "OR"): boolean;
+        evaluate(conditions: ConditionMap | readonly ConditionMap[], behavior?: ConditionBehavior): boolean;
         evaluate(conditions: ConditionMap | readonly ConditionMap[], any: boolean): ConditionResult;
         evaluateResult(conditions: ConditionMap | readonly ConditionMap[], any?: boolean): ConditionResult;
     }
@@ -207,12 +527,18 @@ declare module "@sf-kmods/kdataforgejs" {
         onChange<K extends keyof ConfigValueMap & string>(id: K, callback: (change: ConfigChange<ConfigValueMap[K]>) => void): Subscription;
         onChange(id: string, callback: (change: ConfigChange) => void): Subscription;
     }
-    export interface ActorQuery { readonly limit?: number; readonly after?: string; }
+    export interface ActorFilter {
+        readonly nameContains?: string; readonly pathPrefix?: string;
+        readonly tags?: string | readonly string[]; readonly tagMatch?: TagMatch;
+        readonly exactClass?: boolean; readonly caseSensitive?: boolean;
+    }
+    export interface ActorQuery extends ActorFilter { readonly limit?: number; readonly after?: string; }
+    export interface WorldActorQuery extends ActorFilter { readonly limit?: number; }
     export interface ActorPage<T extends UObject> { readonly actors: readonly T[]; readonly nextCursor: string | null; }
-    export type ActorChange<T extends UObject> = Readonly<{ kind: "added"; actor: T; path: string }> | Readonly<{ kind: "removed"; actor: null; path: string }>;
+    export type ActorChange<T extends UObject> = Readonly<{ kind: ActorChangeKind.Added; actor: T; path: string }> | Readonly<{ kind: ActorChangeKind.Removed; actor: null; path: string }>;
     export interface ActorObservationOptions { readonly includeExisting?: boolean; }
     export interface ConditionResult {
-        readonly outcome: "match" | "noMatch" | "deferred" | "invalid";
+        readonly outcome: ConditionOutcome;
         readonly readConfigKeys: readonly string[];
     }
     export interface ConfigSnapshot {
@@ -237,15 +563,14 @@ declare module "@sf-kmods/kdataforgejs" {
     }
     export interface WorldAccess {
         info(): { readonly mapName: string; readonly dedicatedServer: boolean; readonly gameTimeSeconds: number };
-        findActors<C extends Class<UObject>>(type: C, limit?: number): WorldQueryResult<ClassValue<C>>;
+        findActors<C extends Class<UObject>>(type: C, query?: number | WorldActorQuery): WorldQueryResult<ClassValue<C>>;
         /** Requires an imported PlayerState-derived class and runtime server authority. */
-        players(limit?: number): WorldQueryResult<UObject>;
+        players(query?: number | WorldActorQuery): WorldQueryResult<UObject>;
     }
-    export type EventScalarType = "boolean" | "int64" | "uint64" | "number" | "string";
     export type EventSchema = Readonly<Record<string, EventScalarType>>;
     export type EventPayload<S extends EventSchema> = {
-        readonly [K in keyof S]: S[K] extends "boolean" ? boolean :
-            S[K] extends "int64" | "uint64" ? bigint : S[K] extends "number" ? number : string;
+        readonly [K in keyof S]: S[K] extends EventScalarType.Boolean ? boolean :
+            S[K] extends EventScalarType.Int64 | EventScalarType.UInt64 ? bigint : S[K] extends EventScalarType.Number ? number : string;
     };
     const customEventBrand: unique symbol;
     export interface CustomEvent<S extends EventSchema> { readonly [customEventBrand]: S; }
@@ -254,6 +579,10 @@ declare module "@sf-kmods/kdataforgejs" {
     export type Truthy<T> = T extends Falsy ? never : T;
     export type OmitKeys<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
     export interface ArrayHelpers {
+        range(end: number): number[]; range(start: number, end: number, step?: number): number[];
+        sample<T>(values: readonly T[], random?: () => number): T | undefined;
+        shuffle<T>(values: readonly T[], random?: () => number): T[];
+        windowed<T>(values: readonly T[], size: number, step?: number): T[][];
         chunk<T>(values: readonly T[], size: number): T[][];
         compact<T>(values: readonly T[]): Array<Truthy<T>>;
         unique<T>(values: readonly T[]): T[];
@@ -301,12 +630,14 @@ declare module "@sf-kmods/kdataforgejs" {
         remap(value: number, sourceStart: number, sourceEnd: number, targetStart: number, targetEnd: number): number;
         wrap(value: number, minimum: number, maximum: number): number; roundTo(value: number, step?: number): number;
         floorTo(value: number, step?: number): number; ceilTo(value: number, step?: number): number;
-        sum(values: readonly number[]): number; average(values: readonly number[]): number | undefined;
+        sum(values: readonly number[]): number; sumBy<T>(values: readonly T[], select: (value: T, index: number) => number): number;
+        average(values: readonly number[]): number | undefined;
+        averageBy<T>(values: readonly T[], select: (value: T, index: number) => number): number | undefined;
         median(values: readonly number[]): number | undefined; mode(values: readonly number[]): number | undefined;
         min(values: readonly number[]): number | undefined; max(values: readonly number[]): number | undefined;
         product(values: readonly number[]): number; percentage(value: number, total: number): number;
         percentOf(percent: number, total: number): number; nearlyEqual(left: number, right: number, epsilon?: number): boolean;
-        signNonZero(value: number): -1 | 1; inRange(value: number, minimum: number, maximum: number, inclusive?: boolean): boolean;
+        signNonZero(value: number): NumericSign; inRange(value: number, minimum: number, maximum: number, inclusive?: boolean): boolean;
     }
     export interface ObjectHelpers {
         pick<T extends object, K extends keyof T>(value: T, keys: readonly K[]): Pick<T, K>;
@@ -361,18 +692,24 @@ declare module "@sf-kmods/kdataforgejs" {
         times<T>(count: number, callback: (index: number) => T): T[];
         tryOr<T>(callback: () => T, fallback: T | ((error: unknown) => T)): T;
     }
+    export type Settled<T> = Readonly<{ status: AsyncResultStatus.Fulfilled; value: T }> | Readonly<{ status: AsyncResultStatus.Rejected; reason: unknown }>;
+    export interface PromiseHelpers {
+        mapSeries<T, R>(values: readonly T[], transform: (value: T, index: number) => R | PromiseLike<R>): Promise<R[]>;
+        filterSeries<T>(values: readonly T[], predicate: (value: T, index: number) => unknown | PromiseLike<unknown>): Promise<T[]>;
+        eachSeries<T>(values: readonly T[], effect: (value: T, index: number) => unknown | PromiseLike<unknown>): Promise<void>;
+        settle<T>(value: T | PromiseLike<T>): Promise<Settled<T>>;
+    }
     export interface SemVer {
         readonly major: number; readonly minor: number; readonly patch: number;
         readonly prerelease: readonly (string | number)[]; readonly build: readonly string[];
     }
     export type SemVerInput = string | SemVer;
-    export type SemVerRelease = "major" | "minor" | "patch" | "prerelease";
     /** Semantic Versioning 2.0 with npm-style ranges: `^`, `~`, `>=`, `1.x`, `1.2 - 1.4`, `||`, space for AND. */
     export interface SemVerHelpers {
         parse(value: string): SemVer | null;
         create(major: number, minor?: number, patch?: number, prerelease?: readonly (string | number)[], build?: readonly string[]): SemVer;
         format(version: SemVerInput): string; isValid(value: unknown): boolean; coerce(value: unknown): SemVer | null;
-        compare(left: SemVerInput, right: SemVerInput): -1 | 0 | 1;
+        compare(left: SemVerInput, right: SemVerInput): Ordering;
         eq(left: SemVerInput, right: SemVerInput): boolean; neq(left: SemVerInput, right: SemVerInput): boolean;
         gt(left: SemVerInput, right: SemVerInput): boolean; gte(left: SemVerInput, right: SemVerInput): boolean;
         lt(left: SemVerInput, right: SemVerInput): boolean; lte(left: SemVerInput, right: SemVerInput): boolean;
@@ -388,6 +725,7 @@ declare module "@sf-kmods/kdataforgejs" {
     export const guards: Readonly<GuardHelpers>;
     export const collections: Readonly<CollectionHelpers>;
     export const functions: Readonly<FunctionHelpers>;
+    export const promises: Readonly<PromiseHelpers>;
     export const semver: Readonly<SemVerHelpers>;
     /** Canonical descriptor identity. `id` names authored content; `classPath` names an existing soft class path. */
     export type ItemReference = Readonly<{ id: string }> | Readonly<{ classPath: string }>;
@@ -402,8 +740,8 @@ declare module "@sf-kmods/kdataforgejs" {
     export interface ItemDefinition<C extends Class<UObject> = Class<UObject>> {
         /** Pass the exported parent class (for example `FGConsumableDescriptor`) to type `properties` from its members. */
         readonly id: string; readonly parent: ItemReference | C; readonly displayName: LocalizedText;
-        readonly form: "solid" | "liquid" | "gas";
-        readonly stackSize: "one" | "small" | "medium" | "big" | "huge" | "fluid";
+        readonly form: ResourceForm;
+        readonly stackSize: StackSize;
         readonly description?: LocalizedText; readonly energyValueMJ?: number; readonly radioactiveDecay?: number;
         readonly canBeDiscarded?: boolean; readonly categories?: readonly string[];
         /** Typed writes on the generated class, limited to what the parent's exported descriptor exposes. */
@@ -422,12 +760,12 @@ declare module "@sf-kmods/kdataforgejs" {
         /** Property writes on the generated recipe class that the fixed fields do not cover. */
         readonly extra?: ExtraWrites;
     }
-    export interface ContentRef<K extends "item" | "recipe"> { readonly kind: K; readonly id: string; }
+    export interface ContentRef<K extends ContentKind> { readonly kind: K; readonly id: string; }
     /** Generic bounded document shape used by catalog tooling. Authors should prefer HandlerDocument<K>. */
-    export interface KDFDocument extends StructuredInputObject { readonly type: string; }
+    export interface KDFDocument extends StructuredInputObject { readonly type: HandlerKey; }
     /** One bounded handler-owned map entry. Handler validation still enforces its detailed native schema. */
     export type KDFDocumentEntry = Readonly<Record<string, StructuredInputValue>>;
-    export interface KDFPropertyOperation extends KDFDocumentEntry { readonly path: string; readonly op?: string; readonly value?: StructuredInputValue; }
+    export interface KDFPropertyOperation extends KDFDocumentEntry { readonly path: string; readonly op?: PropertyOperation; readonly value?: StructuredInputValue; }
     /** Shared create/update schema used by the native content-class handlers. Property paths stay handler-validated. */
     export interface GeneratedContentEntry extends KDFDocumentEntry {
         readonly id: string; readonly parent?: string; readonly properties?: readonly KDFPropertyOperation[];
@@ -440,53 +778,113 @@ declare module "@sf-kmods/kdataforgejs" {
     /** Native removal filters are validated by the selected handler and use the same transactional document seam. */
     export type ContentRemoval = string | KDFDocumentEntry;
     export interface KDFCdoPatch extends KDFDocumentEntry { readonly target?: string; readonly properties: readonly KDFPropertyOperation[]; }
-    export interface CdoDocument extends KDFDocument { readonly type: "cdo"; readonly patches: readonly KDFCdoPatch[]; }
-    export interface AssetDocument extends KDFDocument { readonly type: "asset"; readonly assets: readonly KDFDocumentEntry[]; }
-    export interface DataAssetDocument extends KDFDocument { readonly type: "dataasset"; readonly assets: readonly KDFDocumentEntry[]; }
-    export interface ItemDocument extends KDFDocument { readonly type: "item"; readonly items: readonly GeneratedContentEntry[]; }
-    export interface ResourceDocument extends KDFDocument { readonly type: "resource"; readonly resources: readonly GeneratedContentEntry[]; }
-    export interface BuildingDocument extends KDFDocument { readonly type: "building"; readonly buildings: readonly GeneratedContentEntry[]; }
-    export interface UnlockDocument extends KDFDocument { readonly type: "unlock"; readonly unlocks: readonly GeneratedContentEntry[]; }
-    export interface RecipeDocument extends KDFDocument { readonly type: "recipe"; readonly recipes?: readonly ContentClassEntry[]; readonly remove?: readonly ContentRemoval[]; }
-    export interface SchematicDocument extends KDFDocument { readonly type: "schematic"; readonly schematics?: readonly ContentClassEntry[]; readonly remove?: readonly ContentRemoval[]; }
-    export interface ResearchDocument extends KDFDocument { readonly type: "research"; readonly research?: readonly ContentClassEntry[]; readonly remove?: readonly ContentRemoval[]; }
-    export interface CurveDocument extends KDFDocument { readonly type: "curve"; readonly curveType: "float" | "vector"; readonly curves: readonly KDFDocumentEntry[]; }
-    export interface LocalizationDocument extends KDFDocument { readonly type: "localization"; readonly namespace: string; readonly culture?: string; readonly entries: Readonly<Record<string, StructuredInputValue>>; }
-    export interface GameTagDocument extends KDFDocument { readonly type: "gametag"; readonly tags: readonly StructuredInputValue[]; }
-    export interface SinkPointsDocument extends KDFDocument { readonly type: "sinkpoints"; readonly entries: readonly KDFDocumentEntry[]; readonly track?: string; }
-    export interface ResourceNodeDocument extends KDFDocument { readonly type: "resourcenode"; }
-    export interface SoundDocument extends KDFDocument { readonly type: "sound"; readonly sounds: readonly KDFDocumentEntry[]; }
-    export interface SublevelDocument extends KDFDocument { readonly type: "sublevel"; readonly block: readonly StructuredInputValue[]; }
-    export interface EventRuleDocument extends KDFDocument { readonly type: "eventrule"; readonly rules: readonly KDFDocumentEntry[]; }
-    export interface CategoryReorderDocument extends KDFDocument { readonly type: "category_reorder"; readonly subType: "items" | "recipe" | "schematic" | "settings"; readonly category: string; readonly order: readonly string[]; readonly subCategory?: string; readonly categoryPriority?: number; readonly subCategoryPriority?: number; }
+    export interface CdoDocument extends KDFDocument { readonly type: DocumentType.Cdo; readonly patches: readonly KDFCdoPatch[]; }
+    export interface AssetDocument extends KDFDocument { readonly type: DocumentType.Asset; readonly assets: readonly KDFDocumentEntry[]; }
+    export interface DataAssetDocument extends KDFDocument { readonly type: DocumentType.DataAsset; readonly assets: readonly KDFDocumentEntry[]; }
+    export interface ItemDocument extends KDFDocument { readonly type: DocumentType.Item; readonly items: readonly GeneratedContentEntry[]; }
+    export interface ResourceDocument extends KDFDocument { readonly type: DocumentType.Resource; readonly resources: readonly GeneratedContentEntry[]; }
+    export interface BuildingDocument extends KDFDocument { readonly type: DocumentType.Building; readonly buildings: readonly GeneratedContentEntry[]; }
+    export interface UnlockDocument extends KDFDocument { readonly type: DocumentType.Unlock; readonly unlocks: readonly GeneratedContentEntry[]; }
+    export interface RecipeDocument extends KDFDocument { readonly type: DocumentType.Recipe; readonly recipes?: readonly ContentClassEntry[]; readonly remove?: readonly ContentRemoval[]; }
+    export interface SchematicDocument extends KDFDocument { readonly type: DocumentType.Schematic; readonly schematics?: readonly ContentClassEntry[]; readonly remove?: readonly ContentRemoval[]; }
+    export interface ResearchDocument extends KDFDocument { readonly type: DocumentType.Research; readonly research?: readonly ContentClassEntry[]; readonly remove?: readonly ContentRemoval[]; }
+    export interface CurveDocument extends KDFDocument { readonly type: DocumentType.Curve; readonly curveType: CurveType; readonly curves: readonly KDFDocumentEntry[]; }
+    export interface LocalizationDocument extends KDFDocument { readonly type: DocumentType.Localization; readonly namespace: string; readonly culture?: string; readonly entries: Readonly<Record<string, StructuredInputValue>>; }
+    export interface GameTagDocument extends KDFDocument { readonly type: DocumentType.GameTag; readonly tags: readonly StructuredInputValue[]; }
+    export interface SinkPointsDocument extends KDFDocument { readonly type: DocumentType.SinkPoints; readonly entries: readonly KDFDocumentEntry[]; readonly track?: SinkTrack; }
+    export interface ResourceNodeDocument extends KDFDocument { readonly type: DocumentType.ResourceNode; }
+    export interface SoundDocument extends KDFDocument { readonly type: DocumentType.Sound; readonly sounds: readonly KDFDocumentEntry[]; }
+    export interface SublevelDocument extends KDFDocument { readonly type: DocumentType.Sublevel; readonly block: readonly StructuredInputValue[]; }
+    export interface EventRuleDocument extends KDFDocument { readonly type: DocumentType.EventRule; readonly rules: readonly KDFDocumentEntry[]; }
+    export interface CategoryReorderDocument extends KDFDocument { readonly type: DocumentType.CategoryReorder; readonly subType: CategoryKind; readonly category: string; readonly order: readonly string[]; readonly subCategory?: string; readonly categoryPriority?: number; readonly subCategoryPriority?: number; }
     export interface ClassEntryDefinition extends StructuredInputObject {
         readonly id: string; readonly parent: string; readonly properties?: readonly StructuredInputValue[];
-        readonly registerAs?: "recipe" | "schematic" | "research";
+        readonly registerAs?: DocumentType.Recipe | DocumentType.Schematic | DocumentType.Research;
     }
     /** DynamicContent class document. Script methods are supplied separately through defineBehavior. */
-    export interface ClassDefinition extends KDFDocument { readonly type: "class"; readonly classes: readonly [ClassEntryDefinition]; }
+    export interface ClassDefinition extends KDFDocument { readonly type: DocumentType.Class; readonly classes: readonly [ClassEntryDefinition]; }
     export interface DynamicClassHandle { readonly id: string; }
     export interface HandlerDocumentMap {
-        readonly asset: AssetDocument; readonly category_reorder: CategoryReorderDocument;
-        readonly cdo: CdoDocument; readonly class: ClassDefinition; readonly curve: CurveDocument;
-        readonly dataasset: DataAssetDocument; readonly eventrule: EventRuleDocument; readonly gametag: GameTagDocument;
-        readonly localization: LocalizationDocument; readonly item: ItemDocument; readonly resource: ResourceDocument;
-        readonly building: BuildingDocument; readonly unlock: UnlockDocument; readonly recipe: RecipeDocument;
-        readonly schematic: SchematicDocument; readonly research: ResearchDocument;
-        readonly resourcenode: ResourceNodeDocument; readonly sinkpoints: SinkPointsDocument;
-        readonly sound: SoundDocument; readonly sublevel: SublevelDocument;
+        readonly [DocumentType.Asset]: AssetDocument; readonly [DocumentType.CategoryReorder]: CategoryReorderDocument;
+        readonly [DocumentType.Cdo]: CdoDocument; readonly [DocumentType.Class]: ClassDefinition; readonly [DocumentType.Curve]: CurveDocument;
+        readonly [DocumentType.DataAsset]: DataAssetDocument; readonly [DocumentType.EventRule]: EventRuleDocument; readonly [DocumentType.GameTag]: GameTagDocument;
+        readonly [DocumentType.Localization]: LocalizationDocument; readonly [DocumentType.Item]: ItemDocument; readonly [DocumentType.Resource]: ResourceDocument;
+        readonly [DocumentType.Building]: BuildingDocument; readonly [DocumentType.Unlock]: UnlockDocument; readonly [DocumentType.Recipe]: RecipeDocument;
+        readonly [DocumentType.Schematic]: SchematicDocument; readonly [DocumentType.Research]: ResearchDocument;
+        readonly [DocumentType.ResourceNode]: ResourceNodeDocument; readonly [DocumentType.SinkPoints]: SinkPointsDocument;
+        readonly [DocumentType.Sound]: SoundDocument; readonly [DocumentType.Sublevel]: SublevelDocument;
     }
     export type HandlerKey = keyof HandlerDocumentMap & string;
     export type HandlerDocument<K extends HandlerKey> = HandlerDocumentMap[K];
 
     /** Frozen context supplied to default main. Every member below is installed by KDFJSRuntime. */
+    export type Promisify<F> = F extends (...args: infer A) => infer R ? (...args: A) => Promise<Awaited<R>> : never;
+    export interface PromiseMethodMap { readonly catalog: true; readonly runtimeStats: true; readonly lookupItem: true; readonly lookupRecipe: true; readonly resolve: true; readonly removeItem: true; readonly removeRecipe: true; readonly defineClass: true; readonly import: true; readonly listMods: true; readonly getModMeta: true; readonly isModLoaded: true; readonly listPacks: true; readonly getPackMeta: true; readonly isPackLoaded: true; readonly gameVersion: true; readonly spawnActorById: true; readonly destroyActor: true; readonly modifyActorById: true; readonly createBehavior: true; readonly destroyBehavior: true; readonly unregisterBehavior: true; readonly unregisterBehaviorClass: true; }
+    export type PromiseRootMethod = keyof PromiseMethodMap;
+    /** Settled wrappers around immediate host calls. Calls still execute synchronously; rejection captures thrown KDF errors. */
+    export type PromiseContext = Readonly<{ [K in PromiseRootMethod]: Promisify<Context[K]> }> & {
+        readonly getClass: {
+            <C extends Class<UObject>, P extends NativeClassPathFor<C>>(type: C, path: P, options: CheckedLookupOptions): Promise<C>;
+            <C extends Class<UObject>, P extends NativeClassPathFor<C>>(type: C, path: P, options?: LookupOptions): Promise<C | null>;
+        };
+        readonly getObject: {
+            <C extends Class<UObject>>(type: C, path: string, options: CheckedLookupOptions): Promise<ClassValue<C>>;
+            <C extends Class<UObject>>(type: C, path: string, options?: LookupOptions): Promise<ClassValue<C> | null>;
+        };
+        readonly getDataAsset: {
+            <C extends Class<UObject>>(type: C, path: string, options: CheckedLookupOptions): Promise<ClassValue<C>>;
+            <C extends Class<UObject>>(type: C, path: string, options?: LookupOptions): Promise<ClassValue<C> | null>;
+        };
+        readonly cast: {
+            <C extends Class<UObject>>(type: C, value: Class<UObject>, options: CheckedLookupOptions): Promise<Class<ClassValue<C>>>;
+            <C extends Class<UObject>>(type: C, value: Class<UObject>, options?: LookupOptions): Promise<Class<ClassValue<C>> | null>;
+            <C extends Class<UObject>>(type: C, value: UObject, options: CheckedLookupOptions): Promise<ClassValue<C>>;
+            <C extends Class<UObject>>(type: C, value: UObject, options?: LookupOptions): Promise<ClassValue<C> | null>;
+        };
+        readonly findClasses: <C extends Class<UObject>>(type: C, search?: ClassSearchParams) => Promise<readonly C[]>;
+        readonly findActors: <C extends Class<UObject>>(type: C, query?: ActorQuery) => Promise<ActorPage<ClassValue<C>>>;
+        readonly batch: <T extends readonly InputValue[]>(writes: {
+            readonly [K in keyof T]: { readonly property: WritableValueRef<T[K]>; readonly value: NoInfer<T[K]> };
+        }) => Promise<void>;
+        readonly createItem: <C extends Class<UObject> = Class<UObject>>(definition: ItemDefinition<C>) => Promise<ContentRef<ContentKind.Item>>;
+        readonly updateItem: <C extends Class<UObject> = Class<UObject>>(definition: ItemDefinition<C>) => Promise<ContentRef<ContentKind.Item>>;
+        readonly createRecipe: <C extends Class<UObject> = Class<UObject>>(definition: RecipeDefinition<C>) => Promise<ContentRef<ContentKind.Recipe>>;
+        readonly updateRecipe: <C extends Class<UObject> = Class<UObject>>(definition: RecipeDefinition<C>) => Promise<ContentRef<ContentKind.Recipe>>;
+        readonly applyDocument: <K extends HandlerKey>(handlerId: K, document: HandlerDocumentMap[NoInfer<K>]) => Promise<void>;
+        readonly spawnActor: <K extends ActorClassKey>(
+            classDescriptorId: K, initialWrites?: ActorInitialWrites<K>
+        ) => Promise<CatalogActor<K>>;
+        readonly modifyActor: <K extends ActorClassKey, P extends ActorPropertyKey<K>>(
+            actor: CatalogActor<K>, propertyId: P, value: ActorPropertyValue<K, P>
+        ) => Promise<void>;
+        readonly config: Readonly<{
+            has(id: string): Promise<boolean>; snapshot(id: string): Promise<ConfigSnapshot>;
+            get<K extends keyof ConfigValueMap & string>(id: K): Promise<ConfigValueMap[K] | null>;
+            get(id: string): Promise<ConfigValue | null>;
+        }>;
+        readonly world: Readonly<{
+            info(): Promise<{ readonly mapName: string; readonly dedicatedServer: boolean; readonly gameTimeSeconds: number }>;
+            findActors<C extends Class<UObject>>(type: C, query?: number | WorldActorQuery): Promise<WorldQueryResult<ClassValue<C>>>;
+            players(query?: number | WorldActorQuery): Promise<WorldQueryResult<UObject>>;
+        }>;
+        readonly conditions: Readonly<{
+            evaluate(conditions: ConditionMap | readonly ConditionMap[], behavior?: ConditionBehavior): Promise<boolean>;
+            evaluate(conditions: ConditionMap | readonly ConditionMap[], any: boolean): Promise<ConditionResult>;
+            evaluateResult(conditions: ConditionMap | readonly ConditionMap[], any?: boolean): Promise<ConditionResult>;
+        }>;
+        readonly diagnostics: Readonly<{
+            add(severity: DiagnosticSeverity, message: string, authoredPath?: string): Promise<void>;
+        }>;
+    };
+
     export interface Context {
         readonly catalog: () => Catalog;
         /** Bounded, side-effect-free summary: no getters, proxies, toJSON or object coercion. */
         readonly inspect: (value: unknown) => string;
         readonly runtimeStats: () => RuntimeStats;
-        readonly diagnostics: { add(severity: "info" | "warning" | "error", message: string, authoredPath?: string): void; };
+        readonly diagnostics: { add(severity: DiagnosticSeverity, message: string, authoredPath?: string): void; };
         readonly world: WorldAccess;
+        readonly promises: PromiseContext;
         /** Local game time, affected by pause/dilation; never a cross-peer deterministic clock. */
         readonly now: () => number;
         readonly random: (seed: string) => SeededRandom;
@@ -499,7 +897,7 @@ declare module "@sf-kmods/kdataforgejs" {
         }) => void;
         readonly lookupItem: (id: string, pack?: string) => Class<UObject> | null;
         readonly lookupRecipe: (id: string, pack?: string) => Class<UObject> | null;
-        readonly resolve: (reference: ContentRef<"item" | "recipe">, pack?: string) => Class<UObject> | null;
+        readonly resolve: (reference: ContentRef<ContentKind>, pack?: string) => Class<UObject> | null;
         /** Lowercase MD5 digest of UTF-8 text. */
         readonly md5: (text: string) => string;
         /** Lowercase SHA-1 digest of UTF-8 text. */
@@ -535,15 +933,15 @@ declare module "@sf-kmods/kdataforgejs" {
         readonly config: PackConfig;
         readonly findActors: <C extends Class<UObject>>(type: C, query?: ActorQuery) => ActorPage<ClassValue<C>>;
         readonly observeActors: <C extends Class<UObject>>(type: C, callback: (change: ActorChange<ClassValue<C>>) => void, options?: ActorObservationOptions) => Subscription;
-        readonly createItem: <C extends Class<UObject> = Class<UObject>>(definition: ItemDefinition<C>) => ContentRef<"item">;
-        readonly updateItem: <C extends Class<UObject> = Class<UObject>>(definition: ItemDefinition<C>) => ContentRef<"item">;
-        readonly removeItem: (id: string) => ContentRef<"item">;
-        readonly createRecipe: <C extends Class<UObject> = Class<UObject>>(definition: RecipeDefinition<C>) => ContentRef<"recipe">;
-        readonly updateRecipe: <C extends Class<UObject> = Class<UObject>>(definition: RecipeDefinition<C>) => ContentRef<"recipe">;
-        readonly removeRecipe: (id: string) => ContentRef<"recipe">;
+        readonly createItem: <C extends Class<UObject> = Class<UObject>>(definition: ItemDefinition<C>) => ContentRef<ContentKind.Item>;
+        readonly updateItem: <C extends Class<UObject> = Class<UObject>>(definition: ItemDefinition<C>) => ContentRef<ContentKind.Item>;
+        readonly removeItem: (id: string) => ContentRef<ContentKind.Item>;
+        readonly createRecipe: <C extends Class<UObject> = Class<UObject>>(definition: RecipeDefinition<C>) => ContentRef<ContentKind.Recipe>;
+        readonly updateRecipe: <C extends Class<UObject> = Class<UObject>>(definition: RecipeDefinition<C>) => ContentRef<ContentKind.Recipe>;
+        readonly removeRecipe: (id: string) => ContentRef<ContentKind.Recipe>;
         readonly applyDocument: <K extends HandlerKey>(handlerId: K, document: HandlerDocumentMap[NoInfer<K>]) => void;
         readonly defineClass: (definition: ClassDefinition) => DynamicClassHandle;
-        readonly import: (kind: "text" | "yaml" | "binary" | "image" | "audio", path: string) => StructuredValue;
+        readonly import: (kind: ImportKind, path: string) => StructuredValue;
         readonly compare: (left: InputValue, operator: CompareOperator, right: InputValue) => boolean;
         readonly isAuthority: () => boolean;
         /** True when SML loaded the mod. With `range` (same syntax as the `modVersion` condition, e.g. `^3.12.0`) its version must match too. */
@@ -569,8 +967,8 @@ declare module "@sf-kmods/kdataforgejs" {
         readonly unregisterEvent: (key: string) => void;
         readonly hook: {
             <T extends UObject, A extends readonly Value[], R>(target: Class<T>, hook: Hook<T, A, R>, callback: (call: HookCall<T, A, R>) => void, options?: HookOptions<A>): Subscription;
-            <T extends UObject, A extends readonly Value[], R>(target: Class<T>, hook: Hook<T, A, R>, phase: "before" | "after", callback: (call: HookCall<T, A, R>) => void, options?: HookOptions<A>): Subscription;
-            <T extends UObject, A extends readonly Value[], R>(target: Class<T>, hook: Hook<T, A, R>, phase: "replace", callback: (call: HookCall<T, A, R>) => R | void): Subscription;
+            <T extends UObject, A extends readonly Value[], R>(target: Class<T>, hook: Hook<T, A, R>, phase: HookPhase.Before | HookPhase.After, callback: (call: HookCall<T, A, R>) => void, options?: HookOptions<A>): Subscription;
+            <T extends UObject, A extends readonly Value[], R>(target: Class<T>, hook: Hook<T, A, R>, phase: HookPhase.Replace, callback: (call: HookCall<T, A, R>) => R | void): Subscription;
         };
         readonly unhook: (subscription: Subscription) => void;
         readonly onTyped: {
@@ -611,7 +1009,7 @@ declare module "@sf-kmods/kdataforgejs" {
 
 /** ABI 13 / declaration format 10 authoring extensions. Native limits and phase checks apply at every use. */
 declare module "@sf-kmods/kdataforgejs" {
-    export type Delivery = { readonly mode: "immediate" } | { readonly mode: "debounce" | "throttle"; readonly seconds: number };
+    export type Delivery = { readonly mode: DeliveryMode.Immediate } | { readonly mode: DeliveryMode.Debounce | DeliveryMode.Throttle; readonly seconds: number };
     export interface EventOptions<P = Readonly<Record<string, Value>>> {
         readonly priority?: number;
         readonly once?: boolean;
@@ -649,19 +1047,19 @@ declare module "@sf-kmods/kdataforgejs" {
     export type ValueProperties<T> = T extends ValuePropertyTag<infer P> ? P : { readonly [K in keyof T as T[K] extends ReadonlyValueRef<unknown> ? K : never]: T[K] };
     /** Explicit initialization-only scalar CDO sets. No selectors, insertion, generation or registration. */
     export interface ReversibleCdoDocument {
-        readonly type: "cdo";
-        readonly patches: readonly { readonly target: string; readonly properties: readonly { readonly path: string; readonly op?: "set"; readonly value: Exclude<InputValue, null | undefined> }[] }[];
+        readonly type: DocumentType.Cdo;
+        readonly patches: readonly { readonly target: string; readonly properties: readonly { readonly path: string; readonly op?: PropertyOperation.Set; readonly value: Exclude<InputValue, null | undefined> }[] }[];
     }
     export interface LifecyclePayloads {
-        readonly worldReady: { readonly worldGeneration: bigint };
-        readonly travel: { readonly worldGeneration: bigint };
-        readonly shutdown: { readonly worldGeneration: bigint; readonly reason: "shutdown" };
+        readonly [LifecycleEvent.WorldReady]: { readonly worldGeneration: bigint };
+        readonly [LifecycleEvent.Travel]: { readonly worldGeneration: bigint };
+        readonly [LifecycleEvent.Shutdown]: { readonly worldGeneration: bigint; readonly reason: "shutdown" };
     }
     export interface TemporaryOverride extends Subscription { restore(): void; }
     export interface Context {
         readonly hookOnce: {
             <T extends UObject, A extends readonly Value[], R>(target: Class<T>, hook: Hook<T,A,R>, callback: (call: HookCall<T,A,R>) => void, options?: Omit<HookOptions<A>,"once">): Subscription;
-            <T extends UObject, A extends readonly Value[], R>(target: Class<T>, hook: Hook<T,A,R>, phase: "before" | "after", callback: (call: HookCall<T,A,R>) => void, options?: Omit<HookOptions<A>,"once">): Subscription;
+            <T extends UObject, A extends readonly Value[], R>(target: Class<T>, hook: Hook<T,A,R>, phase: HookPhase.Before | HookPhase.After, callback: (call: HookCall<T,A,R>) => void, options?: Omit<HookOptions<A>,"once">): Subscription;
         };
         readonly observeHook: <T extends UObject, A extends readonly Value[], R>(target: Class<T>, hook: Hook<T,A,R>, key: string, callback: (call: HookObservation<A,R>) => void, options?: HookOptions<A> & { readonly delivery?: Delivery }) => Subscription;
         readonly lifecycle: { on<K extends keyof LifecyclePayloads>(event: K, key: string, callback: (event: LifecyclePayloads[K]) => void): Subscription };

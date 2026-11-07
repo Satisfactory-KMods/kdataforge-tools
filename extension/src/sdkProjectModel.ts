@@ -20,5 +20,5 @@ export function renderSdkTemplate(content: string, values: Readonly<Record<strin
 }
 
 export function newScriptContent(): string {
-  return `import { defineHandler } from "@sf-kmods/kdataforgejs";\n\nexport default defineHandler(async (ctx) => {\n    console.info("KDataForgeJS script started", ctx.catalog().digest);\n    await Promise.resolve();\n});\n`;
+  return `import { ctx, defineHandler, defineMeta } from "@sf-kmods/kdataforgejs";\n\nexport const meta = defineMeta({ capabilities: [] });\n\nexport default defineHandler(async () => {\n    console.info("KDataForgeJS script started", ctx.catalog().digest);\n    await Promise.resolve();\n});\n`;
 }

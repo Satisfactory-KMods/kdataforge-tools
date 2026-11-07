@@ -5,6 +5,8 @@ import ts from "typescript";
 import { parseDocument } from "yaml";
 import { RUNTIME_MODULE } from "../conventions.js";
 import { assertSafeWrite } from "../pack/transaction.js";
+import { capabilityLiteral, sdkEnumLiteral } from "../pack/capabilityEnums.js";
+import { apiEnums, enumMember } from "../types/apiEnums.js";
 
 export type AddKind = "handler" | "hook" | "item" | "recipe" | "document";
 const CAPABILITY: Partial<Record<AddKind, string>> = {
@@ -53,13 +55,52 @@ function scaffold(kind: AddKind, name: string, functionName: string, documentTyp
 		if (!field) throw new Error(`Document type '${documentType}' has no minimal scaffold; create it manually.`);
 		return `type: ${documentType}\n${field}: []\n`;
 	}
-	if (kind === "item") return `import type { Context } from "${RUNTIME_MODULE}";\n\nexport function ${functionName}(ctx: Context): void {\n\tctx.createItem({\n\t\tid: "${name}",\n\t\tparent: { classPath: "/Script/FactoryGame.FGItemDescriptor" },\n\t\tdisplayName: { namespace: "${name}", key: "name", source: "${name}" },\n\t\tform: "solid",\n\t\tstackSize: "small",\n\t});\n}\n`;
-	if (kind === "recipe") return `import type { Context } from "${RUNTIME_MODULE}";\n\nexport function ${functionName}(ctx: Context): void {\n\tctx.createRecipe({\n\t\tid: "${name}",\n\t\tingredients: [],\n\t\tproducts: [],\n\t\tproducedIn: [],\n\t\tdurationSeconds: 1,\n\t});\n}\n`;
-	if (kind === "hook") return `import type { Context } from "${RUNTIME_MODULE}";\n\nexport function ${functionName}(ctx: Context): void {\n\t// Add ctx.hook(target, hook, callback) after selecting a reflected native target.\n\tvoid ctx;\n}\n`;
-	return `import type { Context } from "${RUNTIME_MODULE}";\n\nexport function ${functionName}(ctx: Context): void {\n\tconsole.info(ctx.catalog().digest);\n}\n`;
+	if (kind === "item") return `import { ctx, ResourceForm, StackSize } from "${RUNTIME_MODULE}";\n\nexport function ${functionName}(): void {\n\tctx.createItem({\n\t\tid: "${name}",\n\t\tparent: { classPath: "/Script/FactoryGame.FGItemDescriptor" },\n\t\tdisplayName: { namespace: "${name}", key: "name", source: "${name}" },\n\t\tform: ResourceForm.Solid,\n\t\tstackSize: StackSize.Small,\n\t});\n}\n`;
+	if (kind === "recipe") return `import { ctx } from "${RUNTIME_MODULE}";\n\nexport function ${functionName}(): void {\n\tctx.createRecipe({\n\t\tid: "${name}",\n\t\tingredients: [],\n\t\tproducts: [],\n\t\tproducedIn: [],\n\t\tdurationSeconds: 1,\n\t});\n}\n`;
+	if (kind === "hook") return `import { ctx } from "${RUNTIME_MODULE}";\n\nexport function ${functionName}(): void {\n\t// Add ctx.hook(target, hook, callback) after selecting a reflected native target.\n\tvoid ctx;\n}\n`;
+	return `import { ctx } from "${RUNTIME_MODULE}";\n\nexport function ${functionName}(): void {\n\tconsole.info(ctx.catalog().digest);\n}\n`;
 }
 
 interface Edit { readonly start: number; readonly end: number; readonly text: string }
+
+function bindingNames(node: ts.Node): Set<string> {
+	const names = new Set<string>();
+	const binding = (name: ts.BindingName): void => {
+		if (ts.isIdentifier(name)) names.add(name.text);
+		else for (const element of name.elements) if (ts.isBindingElement(element)) binding(element.name);
+	};
+	const visit = (current: ts.Node): void => {
+		if (ts.isVariableDeclaration(current) || ts.isParameter(current)) binding(current.name);
+		else if ((ts.isFunctionDeclaration(current) || ts.isClassDeclaration(current) || ts.isEnumDeclaration(current) ||
+			ts.isImportSpecifier(current) || ts.isNamespaceImport(current) || ts.isImportClause(current)) && current.name)
+			names.add(current.name.text);
+		ts.forEachChild(current, visit);
+	};
+	visit(node);
+	return names;
+}
+
+function documentContext(source: ts.SourceFile, callback: ts.ArrowFunction | ts.FunctionExpression, edits: Edit[]): string {
+	const parameter = callback.parameters[0]?.name;
+	if (parameter) {
+		if (!ts.isIdentifier(parameter)) throw new Error("Cannot identify handler context parameter.");
+		return parameter.text;
+	}
+	const locals = bindingNames(callback);
+	for (const node of source.statements) {
+		if (!ts.isImportDeclaration(node) || !ts.isStringLiteral(node.moduleSpecifier) ||
+			node.moduleSpecifier.text !== RUNTIME_MODULE || node.importClause?.isTypeOnly ||
+			!node.importClause?.namedBindings || !ts.isNamedImports(node.importClause.namedBindings)) continue;
+		const imported = node.importClause.namedBindings.elements.find((element) =>
+			!element.isTypeOnly && (element.propertyName ?? element.name).text === "ctx" && !locals.has(element.name.text));
+		if (imported) return imported.name.text;
+	}
+	const names = bindingNames(source);
+	let name = "ctx";
+	for (let suffix = 1; names.has(name); suffix++) name = `kdfContext${suffix === 1 ? "" : suffix}`;
+	edits.push({ start: 0, end: 0, text: `import { ${name === "ctx" ? "ctx" : `ctx as ${name}`} } from "${RUNTIME_MODULE}";\n` });
+	return name;
+}
 
 function editEntry(before: string, kind: AddKind, name: string, functionName: string, documentType: string): string {
 	const source = ts.createSourceFile("main.ts", before, ts.ScriptTarget.ES2022, true);
@@ -68,11 +109,7 @@ function editEntry(before: string, kind: AddKind, name: string, functionName: st
 		throw new Error("Entry has syntax errors; refusing to edit it.");
 	}
 	const edits: Edit[] = [];
-	if (kind !== "document" && source.statements.some((node) =>
-		(ts.isFunctionDeclaration(node) && node.name?.text === functionName) ||
-		(ts.isVariableStatement(node) && node.declarationList.declarations.some((declaration) => ts.isIdentifier(declaration.name) && declaration.name.text === functionName)) ||
-		(ts.isImportDeclaration(node) && node.importClause?.namedBindings && ts.isNamedImports(node.importClause.namedBindings) &&
-			node.importClause.namedBindings.elements.some((element) => element.name.text === functionName)))) {
+	if (kind !== "document" && bindingNames(source).has(functionName)) {
 		throw new Error(`Entry already declares '${functionName}'; refusing ambiguous edit.`);
 	}
 	const capability = CAPABILITY[kind];
@@ -86,11 +123,13 @@ function editEntry(before: string, kind: AddKind, name: string, functionName: st
 	if (!callback || (!ts.isArrowFunction(callback) && !ts.isFunctionExpression(callback)) || !ts.isBlock(callback.body)) {
 		throw new Error("defineHandler callback must have a block body; refusing ambiguous edit.");
 	}
-	const ctx = callback.parameters[0]?.name;
-	if (!ctx || !ts.isIdentifier(ctx)) throw new Error("Cannot identify handler context parameter.");
+	const ctx = kind === "document" ? documentContext(source, callback, edits) : undefined;
+	const documentEnum = kind === "document" ? enumBinding(source, "DocumentType", edits) : "";
+	const importEnum = kind === "document" ? enumBinding(source, "ImportKind", edits) : "";
+	const documentMember = kind === "document" ? enumMember("DocumentType", documentType).split(".")[1] : "";
 	const invocation = kind === "document"
-		? `${ctx.text}.applyDocument("${documentType}", ${ctx.text}.import("yaml", "${name}.yml") as HandlerDocument<"${documentType}">);`
-		: `${functionName}(${ctx.text});`;
+		? `${ctx}.applyDocument(${documentEnum}.${documentMember}, ${ctx}.import(${importEnum}.Yaml, "${name}.yml") as HandlerDocument<${documentEnum}.${documentMember}>);`
+		: `${functionName}();`;
 	edits.push({ start: callback.body.end - 1, end: callback.body.end - 1, text: `\n\t${invocation}\n` });
 	if (kind === "document") {
 		const hasHandlerDocument = source.statements.some((node) => ts.isImportDeclaration(node) &&
@@ -104,24 +143,29 @@ function editEntry(before: string, kind: AddKind, name: string, functionName: st
 }
 
 function addCapability(source: ts.SourceFile, capability: string, edits: Edit[]): void {
-	const imported = source.statements.some((node) => ts.isImportDeclaration(node) &&
+	const handlerImports = source.statements.flatMap((node) => ts.isImportDeclaration(node) &&
 		ts.isStringLiteral(node.moduleSpecifier) && node.moduleSpecifier.text === RUNTIME_MODULE &&
 		!node.importClause?.isTypeOnly && node.importClause?.namedBindings && ts.isNamedImports(node.importClause.namedBindings) &&
-		node.importClause.namedBindings.elements.some((element) => element.name.text === "defineMeta" && !element.propertyName && !element.isTypeOnly));
+		node.importClause.namedBindings.elements.some((element) => element.name.text === "defineHandler" && !element.propertyName && !element.isTypeOnly)
+		? [node.importClause.namedBindings] : []);
+	const handlerImport = handlerImports[0];
+	if (handlerImports.length !== 1 || !handlerImport) throw new Error("Entry needs one unaliased value defineHandler import.");
+	const imported = handlerImport.elements.some((element) => element.name.text === "defineMeta" && !element.propertyName && !element.isTypeOnly);
 	const meta = source.statements.flatMap((node) => ts.isVariableStatement(node) &&
 		node.modifiers?.some((modifier) => modifier.kind === ts.SyntaxKind.ExportKeyword)
 		? node.declarationList.declarations.filter((declaration) => ts.isIdentifier(declaration.name) && declaration.name.text === "meta") : []);
 	if (meta.length > 1) throw new Error("Multiple exported meta declarations; refusing ambiguous edit.");
 	if (meta.length === 0) {
-		if (!imported && source.statements.some((node) => ts.isVariableStatement(node) &&
-			node.declarationList.declarations.some((declaration) => ts.isIdentifier(declaration.name) && declaration.name.text === "defineMeta"))) {
+		if (!imported && bindingNames(source).has("defineMeta")) {
 			throw new Error("Local defineMeta binding conflicts with required import; refusing ambiguous edit.");
 		}
-		if (!imported) edits.push({ start: 0, end: 0, text: `import { defineMeta } from "${RUNTIME_MODULE}";\n` });
+		if (!imported) edits.push({ start: handlerImport.elements.end, end: handlerImport.elements.end,
+			text: `${handlerImport.elements.hasTrailingComma ? " " : ", "}defineMeta` });
 		const assignment = source.statements.find((node) => ts.isExportAssignment(node));
 		if (!assignment) throw new Error("No default export for metadata insertion.");
+		const value = `${enumBinding(source, "Capability", edits)}.${enumMember("Capability", capability).split(".")[1]}`;
 		edits.push({ start: assignment.getStart(source), end: assignment.getStart(source),
-			text: `export const meta = defineMeta({ capabilities: ["${capability}"] });\n\n` });
+			text: `export const meta = defineMeta({ capabilities: [${value}] });\n\n` });
 		return;
 	}
 	if (!imported) throw new Error("Existing meta lacks an unaliased value defineMeta import; refusing ambiguous edit.");
@@ -131,10 +175,28 @@ function addCapability(source: ts.SourceFile, capability: string, edits: Edit[])
 	const property = arg && ts.isObjectLiteralExpression(arg) && arg.properties.length === 1 ? arg.properties[0] : undefined;
 	const array = property && ts.isPropertyAssignment(property) && ts.isIdentifier(property.name) &&
 		property.name.text === "capabilities" && ts.isArrayLiteralExpression(property.initializer) ? property.initializer : undefined;
-	if (!array || array.elements.some((element) => !ts.isStringLiteral(element))) {
-		throw new Error("Computed or nonliteral defineMeta capabilities; refusing ambiguous edit.");
+	if (!array || array.elements.some((element) => capabilityLiteral(element, source) === undefined)) {
+		throw new Error("Computed or unresolved defineMeta capabilities; refusing ambiguous edit.");
 	}
-	if (array.elements.some((element) => ts.isStringLiteral(element) && element.text === capability)) return;
+	if (array.elements.some((element) => capabilityLiteral(element, source) === capability)) return;
+	const value = `${enumBinding(source, "Capability", edits)}.${enumMember("Capability", capability).split(".")[1]}`;
 	edits.push({ start: array.end - 1, end: array.end - 1,
-		text: `${array.elements.hasTrailingComma ? " " : array.elements.length > 0 ? ", " : ""}"${capability}"` });
+		text: `${array.elements.hasTrailingComma ? " " : array.elements.length > 0 ? ", " : ""}${value}` });
+}
+
+function enumBinding(source: ts.SourceFile, name: string, edits: Edit[]): string {
+	const member = Object.keys(apiEnums.enums.find((entry) => entry.name === name)?.members ?? {})[0];
+	if (!member) throw new Error(`Unknown SDK enum '${name}'.`);
+	for (const statement of source.statements) {
+		if (!ts.isImportDeclaration(statement) || !statement.importClause?.namedBindings || !ts.isNamedImports(statement.importClause.namedBindings)) continue;
+		for (const element of statement.importClause.namedBindings.elements) {
+			if ((element.propertyName ?? element.name).text !== name) continue;
+			if (sdkEnumLiteral(ts.factory.createPropertyAccessExpression(ts.factory.createIdentifier(element.name.text), member), source, name) !== undefined) return element.name.text;
+		}
+	}
+	const names = bindingNames(source);
+	let alias = name;
+	for (let index = 1; names.has(alias); ++index) alias = `kdf${name}${index}`;
+	edits.push({ start: 0, end: 0, text: `import { ${alias === name ? name : `${name} as ${alias}`} } from "${RUNTIME_MODULE}";\n` });
+	return alias;
 }

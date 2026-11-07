@@ -16,9 +16,9 @@ function diagnostics(code: string, declaration?: string): readonly ts.Diagnostic
 	const root = mkdtempSync(join(tmpdir(), "kdf-content-types-"));
 	roots.push(root);
 	const file = join(root, "example.ts");
-	const source = declaration ?? 'declare module "@sf-kmods/kdataforgejs" { export interface SchematicDocument { readonly type: "schematic"; readonly schematics: readonly Record<string, unknown>[]; } }';
+	const source = declaration ?? readFileSync(new URL("../../../kdataforgejs-types/index.d.ts", import.meta.url), "utf8");
 	writeFileSync(join(root, "types.d.ts"), strictContentDeclarations(source));
-	writeFileSync(file, `import type { SchematicDocument } from "@sf-kmods/kdataforgejs";\n${code}`);
+	writeFileSync(file, `import { DocumentType, type SchematicDocument } from "@sf-kmods/kdataforgejs";\n${code}`);
 	return ts.getPreEmitDiagnostics(ts.createProgram([file, join(root, "types.d.ts")], { target: ts.ScriptTarget.ES2020, strict: true, noEmit: true, skipLibCheck: false, types: [] }));
 }
 
@@ -41,16 +41,16 @@ describe("optional schema-derived content types", () => {
 		}
 	});
 	it("accepts a schematic with declared unlock fields", () => {
-		assert.deepEqual(diagnostics('const doc: SchematicDocument = {type:"schematic", schematics:[{id:"Demo", inventorySlots:3}]};').map((item) => item.messageText), []);
+		assert.deepEqual(diagnostics('const doc: SchematicDocument = {type:DocumentType.Schematic, schematics:[{id:"Demo", inventorySlots:3}]};').map((item) => item.messageText), []);
 	});
 	it("rejects an unknown schematic property", () => {
-		assert.ok(diagnostics('const doc: SchematicDocument = {type:"schematic", schematics:[{id:"Demo", inventroySlots:3}]};').some((item) => ts.flattenDiagnosticMessageText(item.messageText, " ").includes("inventroySlots")));
+		assert.ok(diagnostics('const doc: SchematicDocument = {type:DocumentType.Schematic, schematics:[{id:"Demo", inventroySlots:3}]};').some((item) => ts.flattenDiagnosticMessageText(item.messageText, " ").includes("inventroySlots")));
 	});
 	it("rejects a missing schematic identity", () => {
-		assert.ok(diagnostics('const doc: SchematicDocument = {type:"schematic", schematics:[{inventorySlots:3}]};').length > 0);
+		assert.ok(diagnostics('const doc: SchematicDocument = {type:DocumentType.Schematic, schematics:[{inventorySlots:3}]};').length > 0);
 	});
 	it("rejects wrong property types", () => {
-		assert.ok(diagnostics('const doc: SchematicDocument = {type:"schematic", schematics:[{id:"Demo", inventorySlots:"three"}]};').length > 0);
+		assert.ok(diagnostics('const doc: SchematicDocument = {type:DocumentType.Schematic, schematics:[{id:"Demo", inventorySlots:"three"}]};').length > 0);
 	});
 	it("forwards --content-types only when requested", async () => {
 		const captured: boolean[] = [];

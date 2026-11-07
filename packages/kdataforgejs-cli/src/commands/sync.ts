@@ -40,18 +40,18 @@ export function prepareSync(projectRoot: string, packRef?: string): PreparedSync
 	const outputs = discoverPacks(projectRoot, packRef).packs.map((pack) => syncPack(pack.root));
 	for (const output of outputs) {
 		assertSafeWrite(output.root, output.manifest.path);
-		assertSafeWrite(output.root, output.config.path);
+		for (const config of output.config) assertSafeWrite(output.root, config.path);
 	}
 	return {
 		result: { changedPacks: outputs.filter((output) => output.manifest.changed).map((output) => output.root),
-			changedTypes: outputs.filter((output) => output.config.changed).map((output) => output.config.path) },
-		files: outputs.flatMap((output) => [output.manifest, output.config].filter((file) => file.changed)
+			changedTypes: outputs.flatMap((output) => output.config.filter((file) => file.changed).map((file) => file.path)) },
+		files: outputs.flatMap((output) => [output.manifest, ...output.config].filter((file) => file.changed)
 			.map((file) => ({ path: file.path, content: file.content,
 				...(existsSync(file.path) ? { expected: readFileSync(file.path, "utf8") } : {}) }))),
 	};
 }
 
-function syncPack(packRoot: string): { root: string; manifest: Output; config: Output } {
+function syncPack(packRoot: string): { root: string; manifest: Output; config: readonly Output[] } {
 	const manifestFile = join(packRoot, "pack.yml");
 	const before = readFileSync(manifestFile, "utf8");
 	const document = parseDocument(before);
@@ -70,7 +70,7 @@ function syncPack(packRoot: string): { root: string; manifest: Output; config: O
 	const after = document.toString();
 	return { root: packRoot,
 		manifest: { path: manifestFile, content: after, changed: after !== before },
-		config: { ...config, changed: !existsSync(config.path) || readFileSync(config.path, "utf8") !== config.content } };
+		config: [config, ...config.runtimeFiles].map((file) => ({ ...file, changed: !existsSync(file.path) || readFileSync(file.path, "utf8") !== file.content })) };
 }
 
 interface Output { readonly path: string; readonly content: string; readonly changed: boolean }

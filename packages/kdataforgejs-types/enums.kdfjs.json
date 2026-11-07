@@ -1,0 +1,754 @@
+{
+  "formatVersion": 1,
+  "declarationFormat": 11,
+  "enums": [
+    {
+      "name": "TypeKind",
+      "nativeType": "EKDFScriptTypeKind",
+      "members": {
+        "Value": 0,
+        "Struct": 1,
+        "Object": 2,
+        "Class": 3,
+        "Enum": 4
+      }
+    },
+    {
+      "name": "MemberAccess",
+      "nativeType": "EKDFScriptMemberAccess",
+      "members": {
+        "None": 0,
+        "Read": 1,
+        "Write": 2,
+        "ReadWrite": 3
+      }
+    },
+    {
+      "name": "InvocationKind",
+      "nativeType": "EKDFScriptInvocationKind",
+      "members": {
+        "None": 0,
+        "Static": 1,
+        "Member": 2,
+        "Custom": 3
+      }
+    },
+    {
+      "name": "CallEffect",
+      "nativeType": "EKDFScriptCallEffect",
+      "members": {
+        "None": 0,
+        "ReadOnly": 1,
+        "ReversibleMutation": 2,
+        "IrreversibleMutation": 3
+      }
+    },
+    {
+      "name": "TargetKind",
+      "nativeType": "EKDFScriptTargetKind",
+      "members": {
+        "Realm": 0,
+        "Class": 1,
+        "CDO": 2,
+        "Actor": 3,
+        "Behavior": 4
+      }
+    },
+    {
+      "name": "TargetCardinality",
+      "nativeType": "EKDFScriptTargetCardinality",
+      "members": {
+        "One": 0,
+        "Many": 1
+      }
+    },
+    {
+      "name": "Authority",
+      "nativeType": "EKDFScriptAuthority",
+      "members": {
+        "Server": 0,
+        "ClientCosmetic": 1,
+        "Both": 2
+      }
+    },
+    {
+      "name": "ThreadAffinity",
+      "nativeType": "EKDFScriptThreadAffinity",
+      "members": {
+        "GameThreadOnly": 0,
+        "AnyThread": 1
+      }
+    },
+    {
+      "name": "LifecyclePhase",
+      "nativeType": "EKDFScriptLifecyclePhase",
+      "members": {
+        "Initialization": 0,
+        "WorldReady": 1,
+        "Runtime": 2
+      }
+    },
+    {
+      "name": "CompareOperator",
+      "members": {
+        "Equal": "equals",
+        "EqualSymbol": "==",
+        "NotEqual": "notEquals",
+        "NotEqualSymbol": "!=",
+        "Less": "less",
+        "LessSymbol": "<",
+        "LessOrEqual": "lessOrEqual",
+        "LessOrEqualSymbol": "<=",
+        "Greater": "greater",
+        "GreaterThan": "greaterThan",
+        "GreaterSymbol": ">",
+        "GreaterOrEqual": "greaterOrEqual",
+        "GreaterOrEqualSymbol": ">="
+      }
+    },
+    {
+      "name": "ImportKind",
+      "members": {
+        "Text": "text",
+        "Yaml": "yaml",
+        "Binary": "binary",
+        "Image": "image",
+        "Audio": "audio"
+      }
+    },
+    {
+      "name": "HookPhase",
+      "members": {
+        "Before": "before",
+        "After": "after",
+        "Replace": "replace"
+      }
+    },
+    {
+      "name": "ConditionBehavior",
+      "members": {
+        "And": "AND",
+        "Or": "OR"
+      }
+    },
+    {
+      "name": "TagMatch",
+      "members": {
+        "All": "all",
+        "Any": "any"
+      }
+    },
+    {
+      "name": "ConditionOutcome",
+      "members": {
+        "Match": "match",
+        "NoMatch": "noMatch",
+        "Deferred": "deferred",
+        "Invalid": "invalid"
+      }
+    },
+    {
+      "name": "EventScalarType",
+      "members": {
+        "Boolean": "boolean",
+        "Int64": "int64",
+        "Number": "number",
+        "String": "string",
+        "UInt64": "uint64"
+      }
+    },
+    {
+      "name": "NumericSign",
+      "members": {
+        "Negative": -1,
+        "Positive": 1
+      }
+    },
+    {
+      "name": "Ordering",
+      "members": {
+        "Less": -1,
+        "Equal": 0,
+        "Greater": 1
+      }
+    },
+    {
+      "name": "SemVerRelease",
+      "members": {
+        "Major": "major",
+        "Minor": "minor",
+        "Patch": "patch",
+        "Prerelease": "prerelease"
+      }
+    },
+    {
+      "name": "ResourceForm",
+      "members": {
+        "Solid": "solid",
+        "Liquid": "liquid",
+        "Gas": "gas"
+      }
+    },
+    {
+      "name": "StackSize",
+      "members": {
+        "One": "one",
+        "Small": "small",
+        "Medium": "medium",
+        "Big": "big",
+        "Huge": "huge",
+        "Fluid": "fluid"
+      }
+    },
+    {
+      "name": "ContentKind",
+      "members": {
+        "Item": "item",
+        "Recipe": "recipe"
+      }
+    },
+    {
+      "name": "DiagnosticSeverity",
+      "members": {
+        "Info": "info",
+        "Warning": "warning",
+        "Error": "error"
+      }
+    },
+    {
+      "name": "DeliveryMode",
+      "members": {
+        "Immediate": "immediate",
+        "Debounce": "debounce",
+        "Throttle": "throttle"
+      }
+    },
+    {
+      "name": "ActorChangeKind",
+      "members": {
+        "Added": "added",
+        "Removed": "removed"
+      }
+    },
+    {
+      "name": "AsyncResultStatus",
+      "members": {
+        "Fulfilled": "fulfilled",
+        "Rejected": "rejected"
+      }
+    },
+    {
+      "name": "LifecycleEvent",
+      "members": {
+        "WorldReady": "worldReady",
+        "Travel": "travel",
+        "Shutdown": "shutdown"
+      }
+    },
+    {
+      "name": "DocumentType",
+      "members": {
+        "Asset": "asset",
+        "CategoryReorder": "category_reorder",
+        "Cdo": "cdo",
+        "Class": "class",
+        "Config": "config",
+        "Curve": "curve",
+        "Localization": "localization",
+        "Item": "item",
+        "Resource": "resource",
+        "Building": "building",
+        "Unlock": "unlock",
+        "Recipe": "recipe",
+        "Schematic": "schematic",
+        "Research": "research",
+        "Mam": "mam",
+        "Sound": "sound",
+        "Sublevel": "sublevel",
+        "DataAsset": "dataasset",
+        "EventRule": "eventrule",
+        "GameTag": "gametag",
+        "ResourceNode": "resourcenode",
+        "SinkPoints": "sinkpoints"
+      }
+    },
+    {
+      "name": "CurveType",
+      "members": {
+        "Float": "float",
+        "Vector": "vector"
+      }
+    },
+    {
+      "name": "CategoryKind",
+      "members": {
+        "Items": "items",
+        "Recipe": "recipe",
+        "Schematic": "schematic",
+        "Settings": "settings"
+      }
+    },
+    {
+      "name": "ActorAction",
+      "members": {
+        "Destroy": "destroy",
+        "Dismantle": "dismantle"
+      }
+    },
+    {
+      "name": "ClassScope",
+      "members": {
+        "Any": "any",
+        "Blueprint": "blueprint",
+        "Native": "native"
+      }
+    },
+    {
+      "name": "PropertyOperation",
+      "members": {
+        "Add": "add",
+        "Append": "append",
+        "AppendUnique": "append_unique",
+        "Clamp": "clamp",
+        "Clear": "clear",
+        "Copy": "copy",
+        "Divide": "divide",
+        "Duplicate": "duplicate",
+        "Insert": "insert",
+        "Max": "max",
+        "Min": "min",
+        "Move": "move",
+        "Multiply": "multiply",
+        "Prepend": "prepend",
+        "Remove": "remove",
+        "RemoveAt": "remove_at",
+        "ReplaceRefs": "replace_refs",
+        "Replace": "replace",
+        "Reverse": "reverse",
+        "Set": "set",
+        "Sort": "sort",
+        "Subtract": "subtract",
+        "Swap": "swap",
+        "Unique": "unique",
+        "UpdateWhere": "update_where"
+      }
+    },
+    {
+      "name": "ConfigFieldKind",
+      "members": {
+        "Text": "text",
+        "Number": "number",
+        "Boolean": "boolean",
+        "Select": "select"
+      }
+    },
+    {
+      "name": "ConfigApplyMode",
+      "members": {
+        "Hot": "hot",
+        "Cold": "cold"
+      }
+    },
+    {
+      "name": "ConfigValueType",
+      "members": {
+        "String": "string",
+        "Text": "text",
+        "Name": "name",
+        "Tag": "tag",
+        "Int8": "int8",
+        "Int16": "int16",
+        "Int32": "int32",
+        "Int64": "int64",
+        "Uint8": "uint8",
+        "Float": "float",
+        "Double": "double",
+        "Bool": "bool"
+      }
+    },
+    {
+      "name": "NumberDisplayMode",
+      "members": {
+        "Slider": "slider",
+        "Input": "input"
+      }
+    },
+    {
+      "name": "CurveExtrapolation",
+      "members": {
+        "None": "none",
+        "Constant": "constant",
+        "Linear": "linear",
+        "Cycle": "cycle",
+        "CycleWithOffset": "cycleWithOffset",
+        "Oscillate": "oscillate"
+      }
+    },
+    {
+      "name": "CurveInterpolation",
+      "members": {
+        "Constant": "constant",
+        "Linear": "linear",
+        "Cubic": "cubic"
+      }
+    },
+    {
+      "name": "CurveTangentMode",
+      "members": {
+        "Auto": "auto",
+        "SmartAuto": "smartAuto",
+        "User": "user",
+        "Break": "break"
+      }
+    },
+    {
+      "name": "CurveTangentWeightMode",
+      "members": {
+        "None": "none",
+        "Arrive": "arrive",
+        "Leave": "leave",
+        "Both": "both"
+      }
+    },
+    {
+      "name": "EventRuleEvent",
+      "members": {
+        "WorldReady": "worldReady",
+        "SchematicPurchased": "schematicPurchased"
+      }
+    },
+    {
+      "name": "ResourcePurity",
+      "members": {
+        "Impure": "Impure",
+        "Normal": "Normal",
+        "Pure": "Pure"
+      }
+    },
+    {
+      "name": "ResourceNodeKind",
+      "members": {
+        "Node": "Node",
+        "FrackingSatellite": "FrackingSatellite",
+        "FrackingCore": "FrackingCore",
+        "Geyser": "Geyser",
+        "Deposit": "Deposit"
+      }
+    },
+    {
+      "name": "SinkTrack",
+      "members": {
+        "Default": "Default",
+        "Exploration": "Exploration"
+      }
+    },
+    {
+      "name": "Capability",
+      "members": {
+        "SchematicsRead": "kdf.schematics.read",
+        "OverridesTemporary": "kdf.overrides.temporary",
+        "FilesWrite": "kdf.files.write",
+        "DatatablesWrite": "kdf.datatables.write",
+        "DatatablesRead": "kdf.datatables.read",
+        "BehaviorRuntime": "kdf.behavior.runtime",
+        "ClassesDefine": "kdf.classes.define",
+        "ConfigRead": "kdf.config.read",
+        "ConditionsEvaluate": "kdf.conditions.evaluate",
+        "DiagnosticsWrite": "kdf.diagnostics.write",
+        "DocumentsApply": "kdf.documents.apply",
+        "EventsCustom": "kdf.events.custom",
+        "ImportsRead": "kdf.imports.read",
+        "ItemsDefine": "kdf.items.define",
+        "ItemsRead": "kdf.items.read",
+        "NativeCall": "kdf.native.call",
+        "NativeHook": "kdf.native.hook",
+        "NativeRead": "kdf.native.read",
+        "NativeWrite": "kdf.native.write",
+        "RecipesDefine": "kdf.recipes.define",
+        "RecipesRead": "kdf.recipes.read",
+        "ReflectionCall": "kdf.reflection.call",
+        "ReflectionRead": "kdf.reflection.read",
+        "ReflectionWrite": "kdf.reflection.write",
+        "ScriptAdmin": "kdf.script.admin",
+        "WorldRead": "kdf.world.read"
+      }
+    }
+  ],
+  "schemaBindings": [
+    {
+      "file": "category_reorder.schema.yml",
+      "pointer": "/allOf/1/properties/subType",
+      "enum": "CategoryKind"
+    },
+    {
+      "file": "cdo.schema.yml",
+      "pointer": "/allOf/1/properties/patches/items/properties/actorAction",
+      "enum": "ActorAction"
+    },
+    {
+      "file": "class.schema.yml",
+      "pointer": "/allOf/1/properties/classes/items/properties/registerAs",
+      "enum": "DocumentType"
+    },
+    {
+      "file": "common.schema.yml",
+      "pointer": "/$defs/scopeFilters/properties/classType",
+      "enum": "ClassScope"
+    },
+    {
+      "file": "common.schema.yml",
+      "pointer": "/$defs/operation/properties/op",
+      "enum": "PropertyOperation"
+    },
+    {
+      "file": "common.schema.yml",
+      "pointer": "/$defs/operation/allOf/0/then/properties/op",
+      "enum": "PropertyOperation"
+    },
+    {
+      "file": "common.schema.yml",
+      "pointer": "/$defs/operation/allOf/1/if/properties/op",
+      "enum": "PropertyOperation"
+    },
+    {
+      "file": "common.schema.yml",
+      "pointer": "/$defs/mappingOperation/properties/$op",
+      "enum": "PropertyOperation"
+    },
+    {
+      "file": "common.schema.yml",
+      "pointer": "/$defs/mappingOperation/allOf/0/if/properties/$op",
+      "enum": "PropertyOperation"
+    },
+    {
+      "file": "config.schema.yml",
+      "pointer": "/$defs/field/properties/type",
+      "enum": "ConfigFieldKind"
+    },
+    {
+      "file": "config.schema.yml",
+      "pointer": "/$defs/field/properties/apply",
+      "enum": "ConfigApplyMode"
+    },
+    {
+      "file": "config.schema.yml",
+      "pointer": "/$defs/whenText/then/properties/valueType",
+      "enum": "ConfigValueType"
+    },
+    {
+      "file": "config.schema.yml",
+      "pointer": "/$defs/whenNumber/then/properties/valueType",
+      "enum": "ConfigValueType"
+    },
+    {
+      "file": "config.schema.yml",
+      "pointer": "/$defs/whenNumber/then/properties/display",
+      "enum": "NumberDisplayMode"
+    },
+    {
+      "file": "config.schema.yml",
+      "pointer": "/$defs/whenNumber/then/allOf/2/if/anyOf/1/properties/valueType",
+      "enum": "ConfigValueType"
+    },
+    {
+      "file": "config.schema.yml",
+      "pointer": "/$defs/whenBoolean/then/properties/valueType",
+      "enum": "ConfigValueType"
+    },
+    {
+      "file": "config.schema.yml",
+      "pointer": "/$defs/whenSelect/then/properties/valueType",
+      "enum": "ConfigValueType"
+    },
+    {
+      "file": "curve.schema.yml",
+      "pointer": "/allOf/1/properties/curveType",
+      "enum": "CurveType"
+    },
+    {
+      "file": "curve.schema.yml",
+      "pointer": "/allOf/1/properties/curves/items/properties/preInfinityExtrap",
+      "enum": "CurveExtrapolation"
+    },
+    {
+      "file": "curve.schema.yml",
+      "pointer": "/allOf/1/properties/curves/items/properties/postInfinityExtrap",
+      "enum": "CurveExtrapolation"
+    },
+    {
+      "file": "curve.schema.yml",
+      "pointer": "/allOf/1/properties/curves/items/properties/keys/items/properties/interpMode",
+      "enum": "CurveInterpolation"
+    },
+    {
+      "file": "curve.schema.yml",
+      "pointer": "/allOf/1/properties/curves/items/properties/keys/items/properties/tangentMode",
+      "enum": "CurveTangentMode"
+    },
+    {
+      "file": "curve.schema.yml",
+      "pointer": "/allOf/1/properties/curves/items/properties/keys/items/properties/tangentWeightMode",
+      "enum": "CurveTangentWeightMode"
+    },
+    {
+      "file": "eventrule.schema.yml",
+      "pointer": "/allOf/1/properties/rules/items/properties/event",
+      "enum": "EventRuleEvent"
+    },
+    {
+      "file": "research.schema.yml",
+      "pointer": "/allOf/1/properties/type",
+      "enum": "DocumentType"
+    },
+    {
+      "file": "resourcenode.schema.yml",
+      "pointer": "/$defs/placement/properties/purity",
+      "enum": "ResourcePurity"
+    },
+    {
+      "file": "schematic.schema.yml",
+      "pointer": "/$defs/entry/properties/scannableResources/items/properties/nodeType",
+      "enum": "ResourceNodeKind"
+    },
+    {
+      "file": "sinkpoints.schema.yml",
+      "pointer": "/allOf/1/properties/track",
+      "enum": "SinkTrack"
+    },
+    {
+      "file": "asset.schema.yml",
+      "pointer": "/allOf/1/properties/type",
+      "enum": "DocumentType"
+    },
+    {
+      "file": "building.schema.yml",
+      "pointer": "/allOf/1/properties/type",
+      "enum": "DocumentType"
+    },
+    {
+      "file": "category_reorder.schema.yml",
+      "pointer": "/allOf/1/properties/type",
+      "enum": "DocumentType"
+    },
+    {
+      "file": "cdo.schema.yml",
+      "pointer": "/allOf/1/properties/type",
+      "enum": "DocumentType"
+    },
+    {
+      "file": "class.schema.yml",
+      "pointer": "/allOf/1/properties/type",
+      "enum": "DocumentType"
+    },
+    {
+      "file": "common.schema.yml",
+      "pointer": "/$defs/operation/allOf/2/then/properties/op",
+      "enum": "PropertyOperation"
+    },
+    {
+      "file": "common.schema.yml",
+      "pointer": "/$defs/mappingOperation/allOf/1/then/properties/$op",
+      "enum": "PropertyOperation"
+    },
+    {
+      "file": "config.schema.yml",
+      "pointer": "/allOf/1/properties/type",
+      "enum": "DocumentType"
+    },
+    {
+      "file": "config.schema.yml",
+      "pointer": "/$defs/whenText/if/properties/type",
+      "enum": "ConfigFieldKind"
+    },
+    {
+      "file": "config.schema.yml",
+      "pointer": "/$defs/whenText/then/allOf/0/then/properties/valueType",
+      "enum": "ConfigValueType"
+    },
+    {
+      "file": "config.schema.yml",
+      "pointer": "/$defs/whenNumber/if/properties/type",
+      "enum": "ConfigFieldKind"
+    },
+    {
+      "file": "config.schema.yml",
+      "pointer": "/$defs/whenBoolean/if/properties/type",
+      "enum": "ConfigFieldKind"
+    },
+    {
+      "file": "config.schema.yml",
+      "pointer": "/$defs/whenSelect/if/properties/type",
+      "enum": "ConfigFieldKind"
+    },
+    {
+      "file": "curve.schema.yml",
+      "pointer": "/allOf/1/properties/type",
+      "enum": "DocumentType"
+    },
+    {
+      "file": "dataasset.schema.yml",
+      "pointer": "/allOf/1/properties/type",
+      "enum": "DocumentType"
+    },
+    {
+      "file": "eventrule.schema.yml",
+      "pointer": "/allOf/1/properties/type",
+      "enum": "DocumentType"
+    },
+    {
+      "file": "gametag.schema.yml",
+      "pointer": "/allOf/1/properties/type",
+      "enum": "DocumentType"
+    },
+    {
+      "file": "item.schema.yml",
+      "pointer": "/allOf/1/properties/type",
+      "enum": "DocumentType"
+    },
+    {
+      "file": "localization.schema.yml",
+      "pointer": "/allOf/1/properties/type",
+      "enum": "DocumentType"
+    },
+    {
+      "file": "recipe.schema.yml",
+      "pointer": "/allOf/1/properties/type",
+      "enum": "DocumentType"
+    },
+    {
+      "file": "resource.schema.yml",
+      "pointer": "/allOf/1/properties/type",
+      "enum": "DocumentType"
+    },
+    {
+      "file": "resourcenode.schema.yml",
+      "pointer": "/allOf/1/properties/type",
+      "enum": "DocumentType"
+    },
+    {
+      "file": "schematic.schema.yml",
+      "pointer": "/allOf/1/properties/type",
+      "enum": "DocumentType"
+    },
+    {
+      "file": "sinkpoints.schema.yml",
+      "pointer": "/allOf/1/properties/type",
+      "enum": "DocumentType"
+    },
+    {
+      "file": "sound.schema.yml",
+      "pointer": "/allOf/1/properties/type",
+      "enum": "DocumentType"
+    },
+    {
+      "file": "sublevel.schema.yml",
+      "pointer": "/allOf/1/properties/type",
+      "enum": "DocumentType"
+    },
+    {
+      "file": "unlock.schema.yml",
+      "pointer": "/allOf/1/properties/type",
+      "enum": "DocumentType"
+    }
+  ]
+}
