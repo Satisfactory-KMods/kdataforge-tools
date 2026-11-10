@@ -186,6 +186,44 @@ fn check_expression(
     };
     let mut types: HashMap<String, ExprType> = HashMap::new();
     for operand in expression::operands(&expr) {
+        if let OperandKind::Setting { provider, .. } = &operand.kind {
+            if !["session", "ags", "option"].contains(&provider.as_str()) {
+                if let Some(decl) = env
+                    .registry
+                    .providers()
+                    .iter()
+                    .find(|d| d.prefix == *provider)
+                {
+                    if let Some(kind) = decl.value_type.as_deref() {
+                        let ty = match kind {
+                            "bool" => ExprType::Bool,
+                            "number" => ExprType::Number,
+                            "string" => ExprType::String,
+                            _ => ExprType::Unknown,
+                        };
+                        types.insert(operand.key(), ty);
+                    }
+                } else {
+                    let suggestion = env
+                        .registry
+                        .providers()
+                        .iter()
+                        .map(|d| d.prefix.as_str())
+                        .chain(["cfg", "session", "ags", "option"])
+                        .find(|p| p.eq_ignore_ascii_case(provider));
+                    let message = suggestion.map_or_else(
+                        || format!("unknown condition provider {provider:?}; its owning mod can declare it for tooling"),
+                        |name| format!("unknown condition provider {provider:?}; declared spelling is {name:?}"));
+                    push(
+                        Severity::Error,
+                        "template.unknown-provider",
+                        operand.span,
+                        message,
+                    );
+                }
+                continue;
+            }
+        }
         let (resolved, problem) = resolve_target(env, &target_of(&operand));
         if let Some(problem) = problem {
             push(

@@ -31,7 +31,7 @@ fn contract_version_is_one() {
 fn expression_parse_vectors() {
     let root = vectors();
     let list = items(&root, "/expression/parse");
-    assert_eq!(list.len(), 22);
+    assert_eq!(list.len(), 24);
     for vector in list {
         let src = text(vector, "src");
         let expr = expression::parse(src)
@@ -44,8 +44,13 @@ fn expression_parse_vectors() {
 fn expression_error_vectors() {
     let root = vectors();
     let list = items(&root, "/expression/errors");
-    assert_eq!(list.len(), 24);
+    assert_eq!(list.len(), 27);
     for vector in list {
+        // e022 records the previous tokenizer; the runtime now parses every prefix.
+        if vector["id"] == "e022" {
+            assert!(expression::parse(text(vector, "src")).is_ok());
+            continue;
+        }
         let src = text(vector, "src");
         let error = expression::parse(src)
             .expect_err(&format!("{} {src:?} should not parse", vector["id"]));

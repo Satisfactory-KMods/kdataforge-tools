@@ -273,7 +273,9 @@ pub(crate) fn validate_one(
                 Severity::Error
             },
             "schema.unknown-type",
-            format!("no schema registered for root type {kind:?}"),
+            format!(
+                "no schema registered for root type {kind:?}; its owning mod can ship a schema"
+            ),
             result,
         );
         return outcome;

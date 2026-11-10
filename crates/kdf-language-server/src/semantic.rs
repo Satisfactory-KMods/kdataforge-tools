@@ -27,6 +27,13 @@ pub(crate) struct Env<'a> {
 }
 
 impl Env<'_> {
+    pub(crate) fn condition_providers(&self) -> Vec<kdf_validation::ProviderDeclaration> {
+        let root = self.workspace.root().unwrap_or(self.path);
+        kdf_validation::SchemaRegistry::for_root(&Default::default(), Some(root))
+            .map(|registry| registry.providers().to_vec())
+            .unwrap_or_default()
+    }
+
     /// `ref` of the pack that owns the document.
     pub(crate) fn own_pack(&self) -> Option<&str> {
         self.workspace.pack_of(self.path)

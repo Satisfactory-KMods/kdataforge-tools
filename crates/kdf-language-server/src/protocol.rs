@@ -410,8 +410,47 @@ impl LanguageServer for Backend {
             let services = self.services().await;
             let env = env(&path, &text, &services);
             let resolved = context::resolve(&path, &text, position);
-            let native =
+            let mut native =
                 crate::intellisense::completion_resolved(&text, &resolved, &services.reflection);
+            if resolved.path() == ["type"] {
+                if let context::Place::Value(slot) = &resolved.place {
+                    let options = self.authoring_options(services.reflection.clone()).await;
+                    let root = self.root().await.unwrap_or_else(|| path.clone());
+                    let kinds = tokio::task::spawn_blocking(move || {
+                        kdf_validation::SchemaRegistry::for_root(&options, Some(&root))
+                            .map(|registry| registry.kinds())
+                    })
+                    .await
+                    .ok()
+                    .and_then(|result| result.ok())
+                    .unwrap_or_default();
+                    let fragment = slot.scalar.before_cursor().to_lowercase();
+                    let extras = kinds
+                        .into_iter()
+                        .filter(|kind| {
+                            kind != "pack"
+                                && !kdf_validation::CANONICAL_TYPES.contains(&kind.as_str())
+                                && kind.contains(&fragment)
+                        })
+                        .map(|kind| CompletionItem {
+                            label: kind.clone(),
+                            kind: Some(CompletionItemKind::ENUM_MEMBER),
+                            text_edit: Some(CompletionTextEdit::Edit(TextEdit {
+                                range: slot.scalar.range(0, slot.scalar.units()),
+                                new_text: slot.scalar.encode(&kind),
+                            })),
+                            ..Default::default()
+                        })
+                        .collect::<Vec<_>>();
+                    if !extras.is_empty() {
+                        match &mut native {
+                            Some(CompletionResponse::Array(items)) => items.extend(extras),
+                            Some(CompletionResponse::List(list)) => list.items.extend(extras),
+                            None => native = Some(CompletionResponse::Array(extras)),
+                        }
+                    }
+                }
+            }
             // Specialized config/template/category/path contexts have precedence. Ordinary
             // class/property/op completion keeps native filtering, common-target semantics,
             // existing-use labels, exact replacements and bounded incomplete lists.

@@ -1778,6 +1778,15 @@ fn expression_items(env: &Env<'_>, scalar: &Scalar) -> Completions {
                         "",
                         &|field| type_fits(wanted.as_ref(), &field_expr_type(field)),
                     );
+                    for provider in env.condition_providers() {
+                        let text = format!("{}:", provider.prefix);
+                        entries.push(
+                            Entry::new(text.clone(), CompletionItemKind::KEYWORD, range, text)
+                                .detail(provider.description)
+                                .sort(3, 0)
+                                .suggest(),
+                        );
+                    }
                     for provider in template::PREPASS_PREFIXES {
                         let text = format!("{provider}:");
                         entries.push(

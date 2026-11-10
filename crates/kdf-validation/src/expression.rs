@@ -7,7 +7,7 @@
 //! cmp_op := == != < <= > >= contains in ; unary := '!' unary | primary
 //! primary := '(' or ')' | '[' [literal (',' literal)*] ']' | literal | operand
 //! literal := number (optional '-', digits, optional '.' digits, NO exponent) | 'str' | "str" | true | false
-//! operand := config_id | cfg:[pack:]config_id | session:K | ags:K | option:K
+//! operand := config_id | cfg:[pack:]config_id | prefix:key
 //! ```
 //!
 //! All spans and offsets are UTF-16 code units relative to the start of the expression string.
@@ -91,7 +91,7 @@ impl CmpOp {
 pub enum TokenKind {
     /// Bare dotted identifier (`features.value`).
     Ident,
-    /// `cfg:`, `session:`, `ags:` or `option:` reference (whole run, including the prefix).
+    /// `prefix:key` reference (whole run, including the prefix).
     Reference,
     Number,
     /// A number followed by junk (`1.`, `1e5`, `12abc`).
@@ -180,7 +180,7 @@ pub enum Literal {
 pub enum OperandKind {
     /// `id`, `cfg:id` (own pack, `pack == None`) or `cfg:Pack:id`.
     Config { pack: Option<String>, id: String },
-    /// `session:K`, `ags:K`, `option:K` (provider is lowercase).
+    /// `prefix:key`; provider spelling is case-sensitive.
     Setting { provider: String, key: String },
 }
 
@@ -498,9 +498,7 @@ pub fn tokenize(src: &str) -> Vec<Token> {
                     }
                 }
                 let run = text.slice(start, i);
-                if matches!(run.as_str(), "cfg" | "session" | "ags" | "option")
-                    && text.at(i) == Some(':')
-                {
+                if text.at(i) == Some(':') {
                     i += 1;
                     while text.at(i).is_some_and(is_ref_body) {
                         i += 1;
@@ -1816,14 +1814,10 @@ mod tests {
                 ErrorCode::ReservedId
             );
         }
-        // Wrong-case prefixes are not references.
+        // Prefix spelling is preserved so resolution can reject incorrect case.
         for src in ["Cfg:x", "CFG:x", "Session:K", "AGS:K", "Option:K"] {
-            let tokens = tokenize(src);
-            assert!(
-                tokens.iter().all(|t| t.kind != TokenKind::Reference),
-                "{src}"
-            );
-            assert_eq!(parse(src).unwrap_err().code, ErrorCode::UnexpectedChar);
+            let parsed = parse(src).unwrap();
+            assert_eq!(operands(&parsed)[0].canonical(), src);
         }
     }
 

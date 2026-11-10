@@ -1,0 +1,5 @@
+providers:
+  - prefix: sfp
+    description: SatisfactoryPlus module availability.
+    valueType: bool
+    freeFormKeys: true

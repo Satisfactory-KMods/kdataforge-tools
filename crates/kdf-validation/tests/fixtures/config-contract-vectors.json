@@ -34,6 +34,8 @@
       { "id": "p019", "src": "x in []", "ast": ["cmp", "in", ["cfg", null, "x"], ["list", []]] },
       { "id": "p020", "src": "option:FG.Gameplay.Fov >= 90", "ast": ["cmp", ">=", ["setting", "option", "FG.Gameplay.Fov"], ["num", 90]] },
       { "id": "p021", "src": "True == 1", "ast": ["cmp", "==", ["cfg", null, "True"], ["num", 1]] },
+      { "id": "p024", "src": "Cfg:x", "ast": ["setting", "Cfg", "x"] },
+      { "id": "p023", "src": "sfp:module.SFPAddonIndustrialFermentation == true", "ast": ["cmp", "==", ["setting", "sfp", "module.SFPAddonIndustrialFermentation"], ["bool", true]] },
       { "id": "p022", "src": "In != Contains && !FALSE", "ast": ["and", ["cmp", "!=", ["cfg", null, "In"], ["cfg", null, "Contains"]], ["not", ["cfg", null, "FALSE"]]] }
     ],
     "errors": [
@@ -60,6 +62,9 @@
       { "id": "e021", "src": "!(!(!(!(!(!(!(!(!(!(!(!(!(!(!(!(!(!(!(!(!(!(!(!(!(!(!(!(!(!(!(!(!(a)))))))))))))))))))))))))))))))))", "error": { "code": "too-deep", "at": 64 } },
       { "id": "e022", "src": "Cfg:x", "error": { "code": "unexpected-char", "at": 3 } },
       { "id": "e023", "src": "a IN [1]", "error": { "code": "trailing-input", "at": 2 } },
+      { "id": "e025", "src": "sfp:", "error": { "code": "invalid-ref", "at": 0 } },
+      { "id": "e026", "src": "sfp:a:b", "error": { "code": "invalid-ref", "at": 0 } },
+      { "id": "e027", "src": "{sfp:a} == true", "error": { "code": "unexpected-char", "at": 0 } },
       { "id": "e024", "src": "cfg:True == cfg:true", "error": { "code": "reserved-id", "at": 16 } }
     ],
     "typecheck": [

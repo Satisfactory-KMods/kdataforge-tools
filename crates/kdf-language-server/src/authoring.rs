@@ -306,8 +306,9 @@ impl Backend {
             self.semantic_snapshot(has_snapshot_guard(&params)).await?;
         check_params(&snapshot, &params)?;
         let options = self.authoring_options(reflection).await;
+        let root = snapshot.root.clone();
         let mut result = tokio::task::spawn_blocking(move || {
-            kdf_validation::SchemaRegistry::new(&options).and_then(|registry| {
+            kdf_validation::SchemaRegistry::for_root(&options, Some(&root)).and_then(|registry| {
                 registry
                     .export(&kind)
                     .ok_or_else(|| "unknown schema kind".into())

@@ -248,7 +248,15 @@ mod canonical_file_path_tests {
 
 static DEFAULT_REGISTRY: OnceLock<Result<Arc<SchemaRegistry>, String>> = OnceLock::new();
 
-fn registry_for(options: &LintOptions) -> Result<Arc<SchemaRegistry>, String> {
+fn registry_for(options: &LintOptions, root: &Path) -> Result<Arc<SchemaRegistry>, String> {
+    if root.ancestors().any(|p| {
+        p.join("Mods").is_dir()
+            || p.join("Resources/KDataForge").is_dir()
+            || p.join("FactoryGame/Mods").is_dir()
+            || p.join("tools").is_dir()
+    }) {
+        return SchemaRegistry::for_root(options, Some(root)).map(Arc::new);
+    }
     if options.schema_dirs.is_empty() {
         DEFAULT_REGISTRY
             .get_or_init(|| SchemaRegistry::new(&LintOptions::default()).map(Arc::new))
@@ -295,8 +303,9 @@ fn lint_workspace_scoped(
     options: &LintOptions,
     selected: Option<&Path>,
 ) -> Result<LintResult, String> {
-    let registry = registry_for(options)?;
+    let registry = registry_for(options, root)?;
     let mut result = LintResult::default();
+    result.diagnostics.extend_from_slice(registry.diagnostics());
     if !root.is_dir() {
         result.diagnostics.push(Diagnostic::new(
             Severity::Error,
@@ -583,6 +592,7 @@ fn lint_workspace_scoped(
                 file,
                 document,
                 source.as_ref(),
+                &registry,
                 options,
                 datapack,
                 Some(&config_index),
@@ -760,6 +770,7 @@ fn lint_workspace_scoped(
                     config: Some(&config_index),
                     datapack,
                     options,
+                    registry: &registry,
                 };
                 check_document_references(&env, &registry, &working, &sites, &outcome, &mut result);
             }
@@ -770,9 +781,13 @@ fn lint_workspace_scoped(
     } else if let Some(selected) = selected {
         // The manifest supplies pack identity and policy, but only this file's
         // diagnostics belong to an explicitly selected file run.
-        result
-            .diagnostics
-            .retain(|diagnostic| diagnostic.file.as_deref() == Some(selected));
+        result.diagnostics.retain(|diagnostic| {
+            diagnostic.file.as_deref() == Some(selected)
+                || matches!(
+                    diagnostic.code.as_str(),
+                    "provider.duplicate-prefix" | "provider.builtin-shadow"
+                )
+        });
     }
     crate::reflection_validation::apply_policy(options, &mut result);
     result.finish();
@@ -800,8 +815,9 @@ pub fn validate_document(
     text: &str,
     options: &LintOptions,
 ) -> Result<LintResult, String> {
-    let registry = registry_for(options)?;
+    let registry = registry_for(options, path)?;
     let mut result = LintResult::default();
+    result.diagnostics.extend_from_slice(registry.diagnostics());
     if let Some(root) = path.ancestors().find(|parent| {
         parent.file_name().is_some_and(|name| {
             name.eq_ignore_ascii_case("DataForge") || name.eq_ignore_ascii_case("data-editor")
@@ -871,6 +887,7 @@ pub fn validate_document(
                             &file,
                             document,
                             source.as_ref(),
+                            &registry,
                             options,
                             datapack,
                             None,
@@ -897,6 +914,7 @@ pub fn validate_document(
                                 config: None,
                                 datapack,
                                 options,
+                                registry: &registry,
                             };
                             check_document_references(
                                 &env,
@@ -1009,6 +1027,7 @@ fn check_manifest(
     file: &ParsedFile,
     document: &Value,
     source: Option<&SourceMap<'_>>,
+    registry: &SchemaRegistry,
     options: &LintOptions,
     datapack: Option<&ReflectionIndex>,
     config: Option<&ConfigIndex>,
@@ -1029,6 +1048,7 @@ fn check_manifest(
             config,
             datapack,
             options,
+            registry,
         };
         check_conditions(
             &env,

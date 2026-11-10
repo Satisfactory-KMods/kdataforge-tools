@@ -44,6 +44,13 @@ pub(crate) fn operand_card(env: &Env<'_>, operand: &Operand) -> Option<String> {
             }
         }
         OperandKind::Setting { provider, key } => {
+            if let Some(decl) = env
+                .condition_providers()
+                .into_iter()
+                .find(|d| d.prefix == *provider)
+            {
+                return Some(format!("`{provider}:{key}`\n\n{}", decl.description));
+            }
             let settings = env.reflection.settings()?;
             match settings.find(provider, key) {
                 Some(setting) => Some(setting_card(setting)),

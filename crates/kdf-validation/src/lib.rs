@@ -90,7 +90,7 @@ pub use reflection_query::{
     MemberKind, ParamInfo, PropertyInfo, PropertyKind, ReloadClassifier, ResolvedClass, TargetKind,
 };
 pub use rules::{generated_identity, property_path_identity, GeneratedNamespace};
-pub use schema::{infer_type, SchemaRegistry, CANONICAL_TYPES, ROOT_TYPES};
+pub use schema::{infer_type, ProviderDeclaration, SchemaRegistry, CANONICAL_TYPES, ROOT_TYPES};
 pub use setting_index::{
     SettingCategory, SettingPlacement, SettingProvider, SettingRecord, SettingValueType,
     SettingsIndex,

@@ -19,3 +19,7 @@ Without a datapack the language server stays in schema-only mode. Runtime-depend
 unknown instead of being treated as valid.
 
 Licensed under the MIT License.
+
+Mod-provided schemas in `Resources/KDataForge/Schemas` are used by shared linting and
+root `type` completion. Hover documentation and static snippets remain built-in catalogs.
+See the validation core README for discovery roots and conflict handling.

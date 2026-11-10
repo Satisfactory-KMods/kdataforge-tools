@@ -1,0 +1,52 @@
+$schema: https://json-schema.org/draft/2020-12/schema
+$id: https://example.invalid/satisfactoryplus/sfpmodule.schema.yml
+x-kdf-type: sfpmodule
+title: SatisfactoryPlus module
+type: object
+additionalProperties: false
+required:
+  - type
+  - id
+  - name
+  - description
+properties:
+  type:
+    const: sfpmodule
+  id:
+    $ref: '#/$defs/id'
+  name:
+    $ref: '#/$defs/text'
+  description:
+    $ref: '#/$defs/text'
+  icon:
+    type: string
+    minLength: 1
+    pattern: '^[A-Za-z0-9_][A-Za-z0-9_.-]*(/[A-Za-z0-9_][A-Za-z0-9_.-]*)*$'
+  dependencies:
+    type: array
+    items:
+      $ref: '#/$defs/id'
+  conflicts:
+    type: array
+    items:
+      $ref: '#/$defs/id'
+  defaultEnabled:
+    type: boolean
+    default: false
+$defs:
+  id:
+    type: string
+    pattern: '^[A-Za-z][A-Za-z0-9_.-]*$'
+  text:
+    type: object
+    additionalProperties: false
+    required:
+      - key
+    properties:
+      ns:
+        type: string
+      key:
+        type: string
+        minLength: 1
+      source:
+        type: string

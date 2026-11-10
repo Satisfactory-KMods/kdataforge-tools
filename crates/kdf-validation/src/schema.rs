@@ -186,6 +186,8 @@ pub struct SchemaRegistry {
     schemas: HashMap<String, Value>,
     /// Validates lifted element-level condition keys (`common#/$defs/conditionHolder`).
     holder: Option<Validator>,
+    diagnostics: Vec<Diagnostic>,
+    providers: Vec<ProviderDeclaration>,
 }
 
 /// A schema `type` error at an unquoted typed reference. The reference resolves to a config value
@@ -197,14 +199,96 @@ pub(crate) struct TypeConflict {
     pub(crate) expected: Vec<String>,
 }
 
+#[derive(Clone, Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct ProviderDeclaration {
+    pub prefix: String,
+    pub description: String,
+    #[serde(default)]
+    pub value_type: Option<String>,
+    #[serde(default)]
+    pub free_form_keys: Option<bool>,
+}
+
+#[derive(serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+struct ProviderFile {
+    providers: Vec<ProviderDeclaration>,
+}
+
 const COMMON_SCHEMA_SUFFIX: &str = "/common.schema.yml";
 
 impl SchemaRegistry {
     pub fn new(options: &LintOptions) -> Result<Self, String> {
+        Self::for_root(options, None)
+    }
+
+    /// Loads mod-owned schemas visible from a workspace or authored file.
+    pub fn for_root(options: &LintOptions, root: Option<&Path>) -> Result<Self, String> {
         let mut loaded = HashMap::<String, Loaded>::new();
         let mut ids = HashMap::<String, Value>::new();
         for (name, body) in BUILTIN {
             insert_schema(name, body, false, &mut loaded, &mut ids)?;
+        }
+        let mut diagnostics = Vec::new();
+        let providers = if let Some(root) = root {
+            load_providers(root, &mut diagnostics)?
+        } else {
+            Vec::new()
+        };
+        if let Some(root) = root {
+            for path in discover_mod_schemas(root) {
+                let body = fs::read_to_string(&path)
+                    .map_err(|e| format!("cannot read {}: {e}", path.display()))?;
+                let yaml: serde_yaml::Value = serde_yaml::from_str(&body)
+                    .map_err(|e| format!("invalid schema YAML {}: {e}", path.display()))?;
+                let schema = serde_json::to_value(yaml).map_err(|e| e.to_string())?;
+                let kind = schema
+                    .get("x-kdf-type")
+                    .and_then(Value::as_str)
+                    .unwrap_or("")
+                    .to_lowercase();
+                if kind == "mam" {
+                    diagnostics.push(Diagnostic::new(
+                        Severity::Error,
+                        "schema.builtin-shadow",
+                        format!(
+                            "schema type {kind:?} in {} conflicts with built-in mam.schema.yml",
+                            path.display()
+                        ),
+                        Some(path.clone()),
+                        None,
+                        "$",
+                        crate::Range::default(),
+                        "schema",
+                    ));
+                    continue;
+                }
+                let previous = loaded.get(&kind);
+                if let Some(previous) = previous {
+                    let builtin = BUILTIN.iter().any(|(name, _)| *name == previous.name);
+                    diagnostics.push(Diagnostic::new(
+                        Severity::Error,
+                        if builtin {
+                            "schema.builtin-shadow"
+                        } else {
+                            "schema.duplicate-type"
+                        },
+                        format!(
+                            "schema type {kind:?} in {} conflicts with {}; first schema wins",
+                            path.display(),
+                            previous.name
+                        ),
+                        Some(path.clone()),
+                        None,
+                        "$",
+                        crate::Range::default(),
+                        "schema",
+                    ));
+                    continue;
+                }
+                insert_schema(&path.to_string_lossy(), &body, false, &mut loaded, &mut ids)?;
+            }
         }
         for dir in &options.schema_dirs {
             if !dir.is_dir() {
@@ -301,7 +385,17 @@ impl SchemaRegistry {
             names,
             schemas,
             holder,
+            diagnostics,
+            providers,
         })
+    }
+
+    pub fn providers(&self) -> &[ProviderDeclaration] {
+        &self.providers
+    }
+
+    pub fn diagnostics(&self) -> &[Diagnostic] {
+        &self.diagnostics
     }
 
     pub fn kinds(&self) -> Vec<String> {
@@ -561,6 +655,120 @@ fn schema_declares_root_property(schema: &Value, field: &str) -> bool {
                     .any(|branch| schema_declares_root_property(branch, field))
             })
     })
+}
+
+/// Search known source and installed-game mod containers without walking pack trees.
+fn discover_mod_dirs(root: &Path) -> std::collections::BTreeSet<PathBuf> {
+    let mut dirs = std::collections::BTreeSet::new();
+    for ancestor in root.ancestors() {
+        dirs.insert(ancestor.join("Resources/KDataForge"));
+        for container in ["Mods", "Mods/GameFeatures", "FactoryGame/Mods", "tools"] {
+            if let Ok(entries) = fs::read_dir(ancestor.join(container)) {
+                for entry in entries.flatten() {
+                    dirs.insert(entry.path().join("Resources/KDataForge"));
+                }
+            }
+        }
+    }
+    dirs
+}
+
+fn discover_mod_schemas(root: &Path) -> Vec<PathBuf> {
+    let mut paths = std::collections::BTreeSet::new();
+    for dir in discover_mod_dirs(root) {
+        if let Ok(entries) = fs::read_dir(dir.join("Schemas")) {
+            for entry in entries.flatten() {
+                let path = entry.path();
+                if path.is_file()
+                    && path
+                        .file_name()
+                        .and_then(|s| s.to_str())
+                        .is_some_and(|s| s.ends_with(".schema.yml") || s.ends_with(".schema.yaml"))
+                {
+                    paths.insert(dunce::canonicalize(&path).unwrap_or(path));
+                }
+            }
+        }
+    }
+    paths.into_iter().collect()
+}
+
+fn load_providers(
+    root: &Path,
+    diagnostics: &mut Vec<Diagnostic>,
+) -> Result<Vec<ProviderDeclaration>, String> {
+    let mut files = std::collections::BTreeSet::new();
+    for dir in discover_mod_dirs(root) {
+        let path = dir.join("providers.yml");
+        if path.is_file() {
+            files.insert(dunce::canonicalize(&path).unwrap_or(path));
+        }
+    }
+    let mut owners = HashMap::<String, PathBuf>::new();
+    let mut result = Vec::new();
+    for path in files {
+        let text = fs::read_to_string(&path)
+            .map_err(|e| format!("cannot read {}: {e}", path.display()))?;
+        let file: ProviderFile = serde_yaml::from_str(&text)
+            .map_err(|e| format!("invalid provider declaration {}: {e}", path.display()))?;
+        for provider in file.providers {
+            if provider.prefix.is_empty()
+                || !provider
+                    .prefix
+                    .chars()
+                    .next()
+                    .is_some_and(|c| c.is_ascii_alphabetic() || c == '_')
+                || provider.prefix.split('.').any(|segment| {
+                    segment.is_empty()
+                        || !segment
+                            .chars()
+                            .all(|c| c.is_ascii_alphanumeric() || c == '_')
+                })
+                || provider.description.trim().is_empty()
+                || provider
+                    .value_type
+                    .as_deref()
+                    .is_some_and(|v| !["bool", "number", "string"].contains(&v))
+            {
+                return Err(format!(
+                    "invalid provider declaration in {}",
+                    path.display()
+                ));
+            }
+            let builtin = ["cfg", "session", "ags", "option"].contains(&provider.prefix.as_str());
+            let previous = owners.get(&provider.prefix);
+            if builtin || previous.is_some() {
+                let code = if builtin {
+                    "provider.builtin-shadow"
+                } else {
+                    "provider.duplicate-prefix"
+                };
+                let other = previous.map_or_else(
+                    || "built-in provider".to_owned(),
+                    |p| p.display().to_string(),
+                );
+                diagnostics.push(Diagnostic::new(
+                    Severity::Error,
+                    code,
+                    format!(
+                        "provider {:?} in {} conflicts with {}; first declaration wins",
+                        provider.prefix,
+                        path.display(),
+                        other
+                    ),
+                    Some(path.clone()),
+                    None,
+                    "$",
+                    crate::Range::default(),
+                    "schema",
+                ));
+                continue;
+            }
+            owners.insert(provider.prefix.clone(), path.clone());
+            result.push(provider);
+        }
+    }
+    Ok(result)
 }
 
 fn insert_schema(

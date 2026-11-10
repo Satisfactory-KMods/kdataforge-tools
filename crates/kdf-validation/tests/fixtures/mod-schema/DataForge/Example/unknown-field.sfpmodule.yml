@@ -1,0 +1,12 @@
+type: sfpmodule
+id: example
+name:
+  ns: SatisfactoryPlus
+  key: example.name
+  source: Example
+description:
+  ns: SatisfactoryPlus
+  key: example.description
+  source: Example module
+defaultEnabled: false
+extra: true

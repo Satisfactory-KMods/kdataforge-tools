@@ -42,6 +42,7 @@ pub(crate) struct Env<'a> {
     pub(crate) config: Option<&'a ConfigIndex>,
     pub(crate) datapack: Option<&'a ReflectionIndex>,
     pub(crate) options: &'a LintOptions,
+    pub(crate) registry: &'a crate::SchemaRegistry,
 }
 
 impl<'a> Env<'a> {

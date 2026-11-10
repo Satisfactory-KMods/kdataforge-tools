@@ -24,7 +24,7 @@ fn catalog() -> Vec<(String, String)> {
 
 fn emitted_codes() -> BTreeSet<String> {
     let pattern = Regex::new(
-        r#""((?:config|template|setting|property|pack)\.[a-z]+(?:-[a-z]+)*|datapack\.unknown-class)""#,
+        r#""((?:config|template|setting|property|pack)\.[a-z]+(?:-[a-z]+)*|datapack\.unknown-class|schema\.(?:unknown-type|duplicate-type|builtin-shadow)|provider\.(?:duplicate-prefix|builtin-shadow))""#,
     )
     .unwrap();
     let mut found = BTreeSet::new();
