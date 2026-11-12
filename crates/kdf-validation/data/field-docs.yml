@@ -2061,8 +2061,8 @@ kinds:
             unlockSchematic: /Game/FactoryGame/Schematics/Progression/Schematic_1-1.Schematic_1-1_C
       docs: "features/event-rules"
     "rules[].actions[].log":
-      summary: "Write nonblank diagnostic text of at most 2048 characters to LogKDataForge."
-      description: "Writes diagnostic text to LogKDataForge and does not display a toast or other player popup."
+      summary: "Write nonblank diagnostic text of at most 2048 characters to LogKDFModule."
+      description: "Writes diagnostic text to LogKDFModule and does not display a toast or other player popup."
       type: "string"
       examples:
         - title: "Configure log"
@@ -2989,6 +2989,28 @@ kinds:
                 properties:
                   mProductionTime: 4.0
       docs: "features/data-assets#creating-new-instances-type-dataasset"
+    "assets[].rewards":
+      summary: "Replace a data asset's instanced reward objects."
+      description: >-
+        A list of concrete reward classes targeting mRewardObjects. The full list is validated before replacement.
+        Empty list clears it; reload replaces rather than appends. Each entry accepts a property mapping or operation
+        list. An unlock reward can contain one nested unlocks list, whose children are owned by that reward.
+      type: "list of instanced reward objects"
+      uses: instancedObject
+      docs: "features/data-assets#instanced-rewards"
+    "assets[].rewards[].class":
+      summary: "Concrete reward Blueprint class."
+      description: "Use a BP_DeliveryItemReward, BP_DeliverySinkPointReward or BP_DeliveryUnlockReward child."
+      type: "reward class path"
+    "assets[].rewards[].properties":
+      summary: "Reward instance fields as a mapping or operation list."
+      type: "mapping or operations"
+      uses: operation
+    "assets[].rewards[].unlocks":
+      summary: "Real unlock children owned by this unlock reward."
+      description: "One level only; delivery reward instances are not valid unlock children."
+      type: "list of unlocks"
+      uses: instancedObject
     "assets[].id":
       summary: "Stable id of the data asset."
       description: >-
@@ -5050,10 +5072,11 @@ kinds:
     subType:
       summary: "Kind of object whose menu category and order are changed."
       description: >-
-        `items` targets item or building descriptors, `recipe` targets recipes, `schematic`
+        `items` targets item or building descriptors, `buildings` adds typed build-menu and
+        quick-switch groups, `recipe` targets recipes, `schematic`
         targets schematics, and `settings` targets UFGUserSetting assets. Recipes support only a
         main category.
-      type: "items | recipe | schematic | settings"
+      type: "items | buildings | recipe | schematic | settings"
       required: true
       values: categoryReorderSubType
       examples:
@@ -5067,7 +5090,6 @@ kinds:
         Class path of a category compatible with the selected subtype. The handler writes the
         category before assigning one-based menu priorities.
       type: "category class path"
-      required: true
       examples:
         - title: Pipeline category
           partial: true
@@ -5108,7 +5130,6 @@ kinds:
         Every entry must be unique. First entry receives priority 1, second receives 2, and so on.
         Settings entries are UFGUserSetting asset paths and must already contain WidgetsToCreate[0].
       type: "non-empty unique list of class or asset paths"
-      required: true
       examples:
         - title: Order two descriptors
           partial: true
@@ -5117,6 +5138,126 @@ kinds:
               - /Game/Items/Desc_First.Desc_First_C
               - /Game/Items/Desc_Second.Desc_Second_C
       docs: "features/category-reorder"
+
+    "categories":
+      summary: "Managed build-menu category classes, created before assignments."
+      description: "Building-only definitions. Every category needs a stable id, build/build_sub categoryType, localized name and texture icon."
+      type: "list of managed categories"
+      examples:
+        - title: Configure categories
+          partial: true
+          yaml: "categories: [{id: Storage, categoryType: build_sub, name: Storage, icon: /MyMod/UI/Icon.Icon}]"
+      docs: "features/category-reorder#grouped-build-menus"
+    "categories[].id":
+      summary: "Pack-scoped generated category class ID."
+      description: "Shared generated-class namespace; reference it from category or groups[].subCategory."
+      type: "class id"
+      examples:
+        - title: Configure id
+          partial: true
+          yaml: "id: Storage"
+      docs: "features/category-reorder#grouped-build-menus"
+    "categories[].categoryType":
+      summary: "Native build-menu category base."
+      description: "build creates UFGBuildCategory; build_sub creates UFGBuildSubCategory."
+      type: "build | build_sub"
+      values: categoryReorderCategoryType
+      examples:
+        - title: Configure categoryType
+          partial: true
+          yaml: "categoryType: build_sub"
+      docs: "features/category-reorder#grouped-build-menus"
+    "categories[].name":
+      summary: "Localized category label."
+      description: "Use plain text, {ns, key, source}, or {stringTable, key}."
+      type: "FText"
+      uses: localizedText
+      examples:
+        - title: Configure name
+          partial: true
+          yaml: "name: {ns: Example, key: Storage, source: Storage}"
+      docs: "features/category-reorder#grouped-build-menus"
+    "categories[].icon":
+      summary: "Required category icon."
+      description: "Existing Texture2D object path; every managed category has its own icon."
+      type: "texture path"
+      examples:
+        - title: Configure icon
+          partial: true
+          yaml: "icon: /MyMod/UI/Icon.Icon"
+      docs: "features/category-reorder#grouped-build-menus"
+    "groups":
+      summary: "Ordered subcategory groups, instead of the root order list."
+      description: "Groups require category; incompatible with top-level order, subCategory and subCategoryPriority. Recipes do not support groups."
+      type: "list of menu groups"
+      examples:
+        - title: Configure groups
+          partial: true
+          yaml: "groups: [{subCategory: Storage, order: [/MyMod/Desc.Desc_C]}]"
+      docs: "features/category-reorder#grouped-build-menus"
+    "groups[].subCategory":
+      summary: "Subcategory assigned to this group's targets."
+      description: "Accepts an existing class path or a managed category ID."
+      type: "category class path"
+      examples:
+        - title: Configure subCategory
+          partial: true
+          yaml: "subCategory: Storage"
+      docs: "features/category-reorder#grouped-build-menus"
+    "groups[].subCategoryPriority":
+      summary: "Optional priority of this subcategory."
+      description: "Defaults to the group's one-based position."
+      type: "number"
+      examples:
+        - title: Configure subCategoryPriority
+          partial: true
+          yaml: "subCategoryPriority: 2"
+      docs: "features/category-reorder#grouped-build-menus"
+    "groups[].order":
+      summary: "Targets in this subcategory, in menu order."
+      description: "Priorities start at one in each group. Targets must be unique across the document's menu groups."
+      type: "list of class or asset paths"
+      examples:
+        - title: Configure order
+          partial: true
+          yaml: "order: [/MyMod/Desc.Desc_C]"
+      docs: "features/category-reorder#grouped-build-menus"
+    "quickSwitchGroups":
+      summary: "Explicit quick-switch memberships for buildings."
+      description: "Building-only. Does not change menu category or priority; can be used without order/groups."
+      type: "list of quick-switch groups"
+      examples:
+        - title: Configure quickSwitchGroups
+          partial: true
+          yaml: "quickSwitchGroups: [{id: Variants, targets: [/MyMod/A.A_C, /MyMod/B.B_C]}]"
+      docs: "features/category-reorder#quick-switch-variants"
+    "quickSwitchGroups[].id":
+      summary: "Generated quick-switch class ID, or null to clear an assignment."
+      description: "Exactly one of id or class. Generated groups require at least two targets. IDs share the pack's generated-class namespace."
+      type: "class id | null"
+      examples:
+        - title: Configure id
+          partial: true
+          yaml: "id: Variants"
+      docs: "features/category-reorder#quick-switch-variants"
+    "quickSwitchGroups[].class":
+      summary: "Reuse an existing quick-switch group."
+      description: "Must derive from UFGQuickSwitchGroup. Use instead of id."
+      type: "class path"
+      examples:
+        - title: Configure class
+          partial: true
+          yaml: "class: /MyMod/Groups/Variants.Variants_C"
+      docs: "features/category-reorder#quick-switch-variants"
+    "quickSwitchGroups[].targets":
+      summary: "Building descriptors assigned to this quick-switch group."
+      description: "Select a deliberate set, such as a modular building with its modules. Targets must be unique across all quick-switch groups in this document."
+      type: "list of class paths"
+      examples:
+        - title: Configure targets
+          partial: true
+          yaml: "targets: [/MyMod/A.A_C, /MyMod/B.B_C]"
+      docs: "features/category-reorder#quick-switch-variants"
 
   sinkpoints:
     track:
@@ -5417,7 +5558,35 @@ kinds:
       docs: "features/unlocks"
 
 values:
+  categoryReorderCategoryType:
+    build:
+      summary: "Main building category."
+      description: "Generates a UFGBuildCategory class with the declared icon and localized label."
+      type: "managed category type"
+      examples:
+        - title: Main category
+          partial: true
+          yaml: "categoryType: build"
+      docs: "features/category-reorder#grouped-build-menus"
+    build_sub:
+      summary: "Building subcategory."
+      description: "Generates a UFGBuildSubCategory class for a menu group."
+      type: "managed category type"
+      examples:
+        - title: Subcategory
+          partial: true
+          yaml: "categoryType: build_sub"
+      docs: "features/category-reorder#grouped-build-menus"
   categoryReorderSubType:
+    buildings:
+      summary: "Orders building descriptors and quick-switch variants."
+      description: "Uses typed build categories, optional managed category definitions and independent quick-switch groups."
+      type: "category reorder subtype"
+      examples:
+        - title: Buildings
+          partial: true
+          yaml: "subType: buildings"
+      docs: "features/category-reorder#supported-subtypes"
     items:
       summary: "Orders item and building descriptors."
       description: "Assigns item categories, optional subcategories, and one-based menu priorities."

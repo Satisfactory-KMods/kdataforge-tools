@@ -147,7 +147,7 @@ pub(crate) fn hover(env: &Env<'_>, resolved: &Resolved) -> Option<Hover> {
                     &property,
                     Some((reload, reason.as_str())),
                     Some(patch.class.as_str()),
-                ),
+                ) + &rename_summary(env, &patch.class, &path),
             );
         }
     }
@@ -237,7 +237,7 @@ fn path_hover(env: &Env<'_>, resolved: &Resolved, scalar: &Scalar) -> Option<Hov
             &property,
             Some((reload, reason.as_str())),
             Some(patch.class.as_str()),
-        ),
+        ) + &rename_summary(env, &patch.class, path),
     )
 }
 
@@ -320,11 +320,10 @@ fn member_card(
         Member::Path { path, .. } => {
             let property = env.reflection.resolve_property_path(class, &path)?;
             let (reload, reason) = env.reflection.property_reload(class, &path);
-            Some(property_card(
-                &property,
-                Some((reload, reason.as_str())),
-                Some(class),
-            ))
+            Some(
+                property_card(&property, Some((reload, reason.as_str())), Some(class))
+                    + &rename_summary(env, class, &path),
+            )
         }
     }
 }
@@ -343,4 +342,16 @@ fn function_text(
     };
     let signature = env.reflection.signature(&function, implicit);
     Some(function_card(&function, &signature, &callable))
+}
+
+fn rename_summary(env: &Env<'_>, class: &str, path: &str) -> String {
+    env.reflection
+        .resolve_property_path_with_renames(class, path)
+        .map(|(_, renames)| {
+            renames
+                .into_iter()
+                .map(|(_, old, new)| format!("\n\n`{old}` renamed to `{new}`."))
+                .collect()
+        })
+        .unwrap_or_default()
 }

@@ -20,8 +20,28 @@ properties:
     $ref: '#/$defs/text'
   icon:
     type: string
-    minLength: 1
-    pattern: '^[A-Za-z0-9_][A-Za-z0-9_.-]*(/[A-Za-z0-9_][A-Za-z0-9_.-]*)*$'
+    description: >-
+      Omit or use an empty string for no icon. A nonempty value without a leading
+      slash is a pack-relative image path: every segment starts with an ASCII
+      letter, digit or underscore and otherwise contains only ASCII letters,
+      digits, underscores, hyphens or dots. Existing file containment checks apply;
+      relative paths have no additional length cap. A leading slash selects a
+      top-level Unreal texture object path /Root/Package.Asset, at most 1024
+      characters, with valid long-package and object names, no empty component,
+      double dots, backslash or subobject suffix. The mount and asset need not
+      exist at parse time. Invalid object syntax produces a nonfatal runtime
+      diagnostic and clears only the icon; the module declaration remains usable.
+      The UI cache must load the referenced object as UTexture2D.
+    if:
+      pattern: '^/'
+    then:
+      maxLength: 1024
+      pattern: >-
+        ^/[^\\:*?"<>|' ,.&!~\x0A\x0D\x09@#/]+(?:/[^\\:*?"<>|' ,.&!~\x0A\x0D\x09@#/]+)+\.[^\\"' ,/.:|&!~\x0A\x0D\x09@#(){}\[\]=;^%$`]+$
+      not:
+        pattern: '\.[Nn][Oo][Nn][Ee]$'
+    else:
+      pattern: '^(?:[A-Za-z0-9_][A-Za-z0-9_.-]*(/[A-Za-z0-9_][A-Za-z0-9_.-]*)*)?$'
   dependencies:
     type: array
     items:

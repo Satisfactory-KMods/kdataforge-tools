@@ -280,9 +280,17 @@
       }
     },
     {
+      "name": "BuildCategoryKind",
+      "members": {
+        "Build": "build",
+        "BuildSub": "build_sub"
+      }
+    },
+    {
       "name": "CategoryKind",
       "members": {
         "Items": "items",
+        "Buildings": "buildings",
         "Recipe": "recipe",
         "Schematic": "schematic",
         "Settings": "settings"
@@ -475,6 +483,11 @@
     }
   ],
   "schemaBindings": [
+    {
+      "file": "category_reorder.schema.yml",
+      "pointer": "/$defs/managedCategory/properties/categoryType",
+      "enum": "BuildCategoryKind"
+    },
     {
       "file": "category_reorder.schema.yml",
       "pointer": "/allOf/1/properties/subType",

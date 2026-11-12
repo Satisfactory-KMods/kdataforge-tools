@@ -27,6 +27,16 @@ describe("optional schema-derived content types", () => {
 		const source = readFileSync(new URL("../../../kdataforgejs-types/index.d.ts", import.meta.url), "utf8");
 		assert.deepEqual(diagnostics("", source).map((item) => ts.flattenDiagnosticMessageText(item.messageText, " ")), []);
 	});
+	it("accepts Buildings category ordering from the runtime enum", () => {
+		const code = `import { CategoryKind, type CategoryReorderDocument } from "@sf-kmods/kdataforgejs";
+const doc: CategoryReorderDocument = {
+    type: DocumentType.CategoryReorder,
+    subType: CategoryKind.Buildings,
+    category: "/Example/BuildCategory.BuildCategory_C",
+    order: ["/Example/Desc_Building.Desc_Building_C"],
+};`;
+		assert.deepEqual(diagnostics(code).map((item) => ts.flattenDiagnosticMessageText(item.messageText, " ")), []);
+	});
 	it("organizes strict types only when the option is enabled", () => {
 		const source = 'declare module "@sf-kmods/kdataforgejs" { export interface SchematicDocument { readonly type: "schematic"; readonly schematics: readonly Record<string, unknown>[]; } }';
 		for (const contentTypes of [false, true]) {

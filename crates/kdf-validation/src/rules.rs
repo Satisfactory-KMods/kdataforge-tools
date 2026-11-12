@@ -1264,7 +1264,7 @@ fn validate_class_references(
         check_reflection_class(file, index, path, family, pointer, datapack, result);
         match classes.get(&normalize_class(path)) {
             None if datapack.is_none() => emit(file, index, pointer, Severity::Warning, "class.unknown", format!("{family} class {path:?} is not in the bundled Unreal class catalog; runtime will verify it"), result),
-            Some(entry) if entry.family != family => emit(file, index, pointer, Severity::Warning, "class.wrong-family", format!("{path:?} is a {} class, not a {family} class", entry.family), result),
+            Some(entry) if entry.family != family => emit(file, index, pointer, if entry.family == "reward" || family == "reward" { Severity::Error } else { Severity::Warning }, "class.wrong-family", format!("{path:?} is a {} class, not a {family} class", entry.family), result),
             Some(entry) if entry.blueprint.is_some() && path.starts_with("/Script/") => emit(file, index, pointer, Severity::Warning, "class.native-remapped", format!("native class {path:?} is remapped at runtime to concrete Blueprint {}", entry.blueprint.as_deref().unwrap_or("")), result),
             Some(entry) if entry.abstract_class => emit(file, index, pointer, Severity::Warning, "class.abstract-no-blueprint", format!("abstract {family} class {path:?} has no known concrete Blueprint variant"), result),
             _ => {}
@@ -1300,12 +1300,26 @@ fn validate_class_references(
                 }
                 for (child_key, family) in [
                     ("unlocks", "unlock"),
+                    ("rewards", "reward"),
                     ("dependencies", "dependency"),
                     ("unlockDependencies", "dependency"),
                     ("visibilityDependencies", "dependency"),
                 ] {
                     if let Some(items) = entry.get(child_key).and_then(Value::as_array) {
                         for (j, child) in items.iter().enumerate() {
+                            if child_key == "rewards" {
+                                if let Some(unlocks) =
+                                    child.get("unlocks").and_then(Value::as_array)
+                                {
+                                    for (nested_index, unlock) in unlocks.iter().enumerate() {
+                                        if let Some(path) =
+                                            unlock.get("class").and_then(Value::as_str)
+                                        {
+                                            check(path, "unlock", &format!("/{key}/{i}/{child_key}/{j}/unlocks/{nested_index}/class"), result);
+                                        }
+                                    }
+                                }
+                            }
                             if let Some(path) = child.get("class").and_then(Value::as_str) {
                                 check(
                                     path,

@@ -85,6 +85,18 @@ pub(crate) fn validate(
             let Some(target) = target else {
                 continue;
             };
+            if let Some(filter) = entry.get("where") {
+                nested_aliases(
+                    file,
+                    document_index,
+                    filter,
+                    &format!("{pointer}/where"),
+                    target,
+                    index,
+                    source,
+                    result,
+                );
+            }
             let Some(properties) = entry.get("properties") else {
                 continue;
             };
@@ -143,11 +155,23 @@ pub(crate) fn validate(
             for (path, value, operation, path_pointer, value_pointer) in changes {
                 let name = path.split(['.', '[']).next().unwrap_or(path);
                 let evidence = index.replacement_evidence("property", Some(target), name);
+                let resolved = index.find_property(target, name);
+                let canonical = resolved.as_ref().map(|p| p.name.as_str()).unwrap_or(name);
+                emit_renames(
+                    file,
+                    document_index,
+                    &path_pointer,
+                    path,
+                    target,
+                    index,
+                    source,
+                    result,
+                );
                 let Some(field) = fields.iter().find(|field| {
                     field
                         .get("name")
                         .and_then(Value::as_str)
-                        .is_some_and(|value| value.eq_ignore_ascii_case(name))
+                        .is_some_and(|value| value.eq_ignore_ascii_case(canonical))
                 }) else {
                     if complete {
                         emit(
@@ -185,6 +209,41 @@ pub(crate) fn validate(
                 let Some(value) = value else {
                     continue;
                 };
+                if let Some(property) = index.resolve_property_path(target, path) {
+                    let element = property.inner.as_deref().unwrap_or(&property);
+                    let owner = element
+                        .struct_path
+                        .as_deref()
+                        .or(element.class_path.as_deref());
+                    if let Some(owner) = owner {
+                        nested_aliases(
+                            file,
+                            document_index,
+                            value,
+                            &value_pointer,
+                            owner,
+                            index,
+                            source,
+                            result,
+                        );
+                        if let Some((parent, _)) = value_pointer.rsplit_once('/') {
+                            let where_pointer = format!("{parent}/where");
+                            if let Some(filter) = document.pointer(&where_pointer) {
+                                nested_aliases(
+                                    file,
+                                    document_index,
+                                    filter,
+                                    &where_pointer,
+                                    owner,
+                                    index,
+                                    source,
+                                    result,
+                                );
+                            }
+                        }
+                    }
+                }
+
                 if path != name {
                     continue;
                 }
@@ -797,6 +856,142 @@ pub(crate) fn apply_policy(options: &LintOptions, result: &mut LintResult) {
                 UnknownClassSeverity::Information => Severity::Information,
                 _ => Severity::Warning,
             };
+        }
+    }
+}
+
+#[expect(
+    clippy::too_many_arguments,
+    reason = "shares the validation context and exact source location"
+)]
+fn emit_renames(
+    file: &ParsedFile,
+    document: usize,
+    pointer: &str,
+    path: &str,
+    target: &str,
+    index: &ReflectionIndex,
+    source: Option<&SourceMap<'_>>,
+    result: &mut LintResult,
+) {
+    let Some((_, renames)) = index.resolve_property_path_with_renames(target, path) else {
+        return;
+    };
+    for (offset, old, new) in renames {
+        emit(
+            file,
+            document,
+            pointer,
+            Severity::Information,
+            "property.renamed",
+            format!("Property {old:?} was renamed to {new:?}; use {new:?}."),
+            result,
+        );
+        let diagnostic = result.diagnostics.last_mut().unwrap();
+        if let Some(mut range) = source.and_then(|source| {
+            source
+                .scalar_value_range(document, pointer, path)
+                .or_else(|| source.property_key_range(document, pointer, path))
+        }) {
+            range.start.character += path
+                .chars()
+                .take(offset)
+                .map(char::len_utf16)
+                .sum::<usize>() as u32;
+            range.end.character = range.start.character + old.encode_utf16().count() as u32;
+            diagnostic.range = range;
+            diagnostic.line = Some(range.start.line as usize + 1);
+            diagnostic.column = Some(range.start.character as usize + 1);
+            diagnostic.evidence = Some(crate::evidence::Evidence {
+                schema_version: crate::evidence::CONTRACT_VERSION,
+                status: "verified".into(),
+                reason: "Exported property alias".into(),
+                reflection_digest: index.digest.clone(),
+                replacement: Some(crate::evidence::VerifiedReplacement {
+                    kind: "property".into(),
+                    old_name: old,
+                    new_name: new,
+                    owner: Some(target.into()),
+                    authority: "kdf.aliases".into(),
+                    reflection_digest: index.digest.clone().unwrap_or_default(),
+                }),
+            });
+        }
+    }
+}
+
+#[expect(
+    clippy::too_many_arguments,
+    reason = "recursive traversal retains validation and source context"
+)]
+fn nested_aliases(
+    file: &ParsedFile,
+    document: usize,
+    value: &Value,
+    pointer: &str,
+    owner: &str,
+    index: &ReflectionIndex,
+    source: Option<&SourceMap<'_>>,
+    result: &mut LintResult,
+) {
+    if let Some(items) = value.as_array() {
+        for (position, item) in items.iter().enumerate() {
+            nested_aliases(
+                file,
+                document,
+                item,
+                &format!("{pointer}/{position}"),
+                owner,
+                index,
+                source,
+                result,
+            );
+        }
+    }
+    let Some(fields) = value.as_object() else {
+        return;
+    };
+    let owner = fields.get("class").and_then(Value::as_str).unwrap_or(owner);
+    if let Some(path) = fields.get("path").and_then(Value::as_str) {
+        emit_renames(
+            file,
+            document,
+            &format!("{pointer}/path"),
+            path,
+            owner,
+            index,
+            source,
+            result,
+        );
+    }
+
+    if let Some(properties) = fields.get("properties") {
+        nested_aliases(
+            file,
+            document,
+            properties,
+            &format!("{pointer}/properties"),
+            owner,
+            index,
+            source,
+            result,
+        );
+        return;
+    }
+    for (path, child) in fields {
+        let pointer = format!("{pointer}/{}", path.replace('~', "~0").replace('/', "~1"));
+        emit_renames(file, document, &pointer, path, owner, index, source, result);
+        if let Some(property) = index.resolve_property_path(owner, path) {
+            let element = property.inner.as_deref().unwrap_or(&property);
+            if let Some(owner) = element
+                .struct_path
+                .as_deref()
+                .or(element.class_path.as_deref())
+            {
+                nested_aliases(
+                    file, document, child, &pointer, owner, index, source, result,
+                );
+            }
         }
     }
 }

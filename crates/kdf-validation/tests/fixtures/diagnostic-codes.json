@@ -46,6 +46,7 @@
     { "code": "datapack.unknown-class", "severity": "W", "python": false, "summary": "class in a template or category is absent from the reflection snapshot (existing code, reused)" },
     { "code": "setting.unknown-id", "severity": "W", "python": false, "summary": "setting id not found in indexes/settings.json (only reported when the index exists)" },
     { "code": "setting.type-mismatch", "severity": "W", "python": false, "summary": "setting value type does not fit the target slot" },
+    { "code": "property.renamed", "severity": "I", "python": false, "summary": "Former property name accepted; use the current name" },
     { "code": "property.cold", "severity": "I", "python": true, "summary": "op path targets a cold or newActors property; /kdf reload and hot configs do not update it live (Python: only with an explicit target class)" },
     { "code": "pack.icon-missing", "severity": "E", "python": true, "summary": "relative icon file does not exist" },
     { "code": "pack.icon-escape", "severity": "E", "python": true, "summary": "relative icon path leaves the pack folder" },

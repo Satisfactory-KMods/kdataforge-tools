@@ -667,7 +667,7 @@ impl LanguageServer for Backend {
             );
         }
         if params.context.diagnostics.iter().any(|diagnostic| matches!(&diagnostic.code,
-            Some(NumberOrString::String(code)) if matches!(code.as_str(), "datapack.unknown-class" | "datapack.unknown-property" | "datapack.outdated-name"))) {
+            Some(NumberOrString::String(code)) if matches!(code.as_str(), "datapack.unknown-class" | "datapack.unknown-property" | "datapack.outdated-name" | "property.renamed"))) {
             actions.extend(self.reflection_fixes(&params.text_document.uri, &params.context.diagnostics).await?);
         }
         for diagnostic in params.context.diagnostics {

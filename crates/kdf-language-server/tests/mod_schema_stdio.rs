@@ -10,6 +10,7 @@ fn discovered_type_is_completed_and_exported() {
         .path()
         .join("Mods/Example/Resources/KDataForge/Schemas");
     fs::create_dir_all(&schemas).unwrap();
+    fs::write(root.path().join("Mods/Example/Example.uplugin"), "{}").unwrap();
     fs::write(schemas.join("sfpmodule.schema.yml"), include_str!("../../kdf-validation/tests/fixtures/mod-schema/Mods/GameFeatures/SatisfactoryPlus/Resources/KDataForge/Schemas/sfpmodule.schema.yml")).unwrap();
     let uri = Url::from_file_path(root.path().join("test.sfpmodule.yml"))
         .unwrap()
@@ -46,6 +47,7 @@ fn condition_provider_completion_and_hover() {
     let root = tempfile::tempdir().unwrap();
     let dir = root.path().join("Mods/Example/Resources/KDataForge");
     fs::create_dir_all(&dir).unwrap();
+    fs::write(root.path().join("Mods/Example/Example.uplugin"), "{}").unwrap();
     fs::write(dir.join("providers.yml"), "providers:\n  - prefix: sfp\n    description: SatisfactoryPlus module availability.\n    valueType: bool\n").unwrap();
     let uri = Url::from_file_path(root.path().join("test.cdo.yml"))
         .unwrap()

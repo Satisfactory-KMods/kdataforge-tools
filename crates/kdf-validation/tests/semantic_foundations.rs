@@ -32,6 +32,51 @@ fn at() -> Position {
 }
 
 #[test]
+fn category_reorder_managed_classes_have_typed_symbols_and_references() {
+    let data = snapshot(vec![input(
+        "menu.category_reorder.yml",
+        r#"type: category_reorder
+subType: buildings
+categories:
+  - {id: Network, categoryType: build, name: Network, icon: /Game/Icon.Icon}
+  - {id: Storage, categoryType: build_sub, name: Storage, icon: /Game/Icon.Icon}
+category: Network
+groups:
+  - subCategory: Storage
+    order: [/Game/A.A_C, /Game/B.B_C]
+quickSwitchGroups:
+  - id: Variants
+    targets: [/Game/A.A_C, /Game/B.B_C]
+  - id: null
+    targets: [/Game/C.C_C]
+"#,
+    )]);
+    for (id, parent) in [
+        ("Network", "/Script/FactoryGame.FGBuildCategory"),
+        ("Storage", "/Script/FactoryGame.FGBuildSubCategory"),
+        ("Variants", "/Script/FactoryGame.FGQuickSwitchGroup"),
+    ] {
+        let symbol = data.symbols.iter().find(|symbol| symbol.id == id).unwrap();
+        assert_eq!(symbol.parent.as_deref(), Some(parent));
+        assert_eq!(symbol.identity.namespace, GeneratedNamespace::Class);
+    }
+    assert!(data.references.iter().any(|reference| reference.typed
+        && reference
+            .candidates
+            .iter()
+            .any(|identity| identity.id == "network")));
+    assert!(data.references.iter().any(|reference| reference.typed
+        && reference
+            .candidates
+            .iter()
+            .any(|identity| identity.id == "storage")));
+    assert!(!data
+        .limitations
+        .iter()
+        .any(|message| message.contains("nonliteral content declaration")));
+}
+
+#[test]
 fn current_runtime_script_manifest_and_sdk_starter_validate() {
     let starter = include_str!("fixtures/scripts/typed-starter.pack.yml");
     let result =

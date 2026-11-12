@@ -357,12 +357,17 @@ impl PropertyKind {
     }
 }
 
+/// Alias occurrences: character offset, old spelling and current spelling.
+pub type PropertyRenames = Vec<(usize, String, String)>;
+
 /// Compact copy of a property record (no JSON is retained).
 #[derive(Clone, Debug, PartialEq, Serialize)]
 pub struct PropertyInfo {
     /// As exported (lowercase for Blueprint-authored members).
     pub name: String,
     pub authored_name: String,
+    /// Former names exported in `kdf.aliases`.
+    pub aliases: Vec<String>,
     pub kind: PropertyKind,
     pub kind_name: String,
     pub cpp_type: String,
@@ -429,6 +434,17 @@ impl PropertyInfo {
         PropertyInfo {
             name: text("name").unwrap_or_default(),
             authored_name: text("authoredName").unwrap_or_default(),
+            aliases: record
+                .pointer("/kdf/aliases")
+                .and_then(Value::as_array)
+                .map(|items| {
+                    items
+                        .iter()
+                        .filter_map(Value::as_str)
+                        .map(str::to_owned)
+                        .collect()
+                })
+                .unwrap_or_default(),
             kind,
             kind_name,
             cpp_type: text("cppType").unwrap_or_default(),
@@ -657,7 +673,7 @@ pub struct MemberInfo {
 
 #[derive(Debug)]
 enum Segment {
-    Field(String),
+    Field(String, usize),
     Index,
 }
 
@@ -681,12 +697,13 @@ fn parse_property_path(path: &str) -> Option<Vec<Segment>> {
         }
         Some(chars[start..*index].iter().collect::<String>())
     };
-    segments.push(Segment::Field(read_word(&mut index)?));
+    segments.push(Segment::Field(read_word(&mut index)?, 0));
     while index < chars.len() {
         match chars[index] {
             '.' => {
                 index += 1;
-                segments.push(Segment::Field(read_word(&mut index)?));
+                let offset = index;
+                segments.push(Segment::Field(read_word(&mut index)?, offset));
             }
             '[' => {
                 index += 1;
@@ -1116,6 +1133,22 @@ impl ReflectionIndex {
                 return Some(PropertyInfo::from_record(property));
             }
         }
+        for path in self.super_chain_inclusive(class) {
+            let properties = self.class_info(path)?.get("properties")?.as_array()?;
+            if let Some(property) =
+                properties
+                    .iter()
+                    .map(PropertyInfo::from_record)
+                    .find(|property| {
+                        property
+                            .aliases
+                            .iter()
+                            .any(|alias| alias.eq_ignore_ascii_case(name))
+                    })
+            {
+                return Some(property);
+            }
+        }
         None
     }
 
@@ -1131,6 +1164,14 @@ impl ReflectionIndex {
             .find(|property| {
                 property.name.eq_ignore_ascii_case(name)
                     || property.authored_name.eq_ignore_ascii_case(name)
+            })
+            .or_else(|| {
+                entry.properties.iter().find(|property| {
+                    property
+                        .aliases
+                        .iter()
+                        .any(|alias| alias.eq_ignore_ascii_case(name))
+                })
             })
             .cloned()
     }
@@ -1154,31 +1195,54 @@ impl ReflectionIndex {
     /// Resolves a property path (`mA.mB[0]['key'].mC`) starting at `class`: struct fields, array
     /// and set elements, map values and object references are followed.
     pub fn resolve_property_path(&self, class: &str, path: &str) -> Option<PropertyInfo> {
+        self.resolve_property_path_with_renames(class, path)
+            .map(|(property, _)| property)
+    }
+
+    /// Resolves a path and returns alias uses as (character offset, old name, current name).
+    pub fn resolve_property_path_with_renames(
+        &self,
+        class: &str,
+        path: &str,
+    ) -> Option<(PropertyInfo, PropertyRenames)> {
         let segments = parse_property_path(path)?;
-        let mut iter = segments.into_iter();
-        let Some(Segment::Field(first)) = iter.next() else {
-            return None;
-        };
-        let mut current = self.find_property(class, &first)?;
-        for segment in iter {
-            current = match segment {
-                Segment::Index => match current.kind {
-                    PropertyKind::Array | PropertyKind::Set => *current.inner?,
-                    PropertyKind::Map => *current.value?,
-                    _ => return None,
-                },
-                Segment::Field(name) => match current.kind {
-                    PropertyKind::Struct => {
-                        self.find_struct_field(current.struct_path.as_deref()?, &name)?
+        let mut current: Option<PropertyInfo> = None;
+        let mut renames = Vec::new();
+        for segment in segments {
+            match segment {
+                Segment::Index => {
+                    let property = current?;
+                    current = Some(match property.kind {
+                        PropertyKind::Array | PropertyKind::Set => *property.inner?,
+                        PropertyKind::Map => *property.value?,
+                        _ => return None,
+                    });
+                }
+                Segment::Field(name, offset) => {
+                    let property = match current {
+                        None => self
+                            .find_property(class, &name)
+                            .or_else(|| self.find_struct_field(class, &name))?,
+                        Some(ref property) => match property.kind {
+                            PropertyKind::Struct => {
+                                self.find_struct_field(property.struct_path.as_deref()?, &name)?
+                            }
+                            kind if kind.is_object_reference() => {
+                                self.find_property(property.class_path.as_deref()?, &name)?
+                            }
+                            _ => return None,
+                        },
+                    };
+                    if !property.name.eq_ignore_ascii_case(&name)
+                        && !property.authored_name.eq_ignore_ascii_case(&name)
+                    {
+                        renames.push((offset, name, property.display_name().to_owned()));
                     }
-                    kind if kind.is_object_reference() => {
-                        self.find_property(current.class_path.as_deref()?, &name)?
-                    }
-                    _ => return None,
-                },
-            };
+                    current = Some(property);
+                }
+            }
         }
-        Some(current)
+        Some((current?, renames))
     }
 
     /// Function by name (case-insensitive on `name` and `authoredName`), searching the class and

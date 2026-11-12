@@ -299,6 +299,31 @@ impl<'a> SourceMap<'a> {
         })
     }
 
+    /// Exact literal mapping key range, excluding quotes; escaped spellings are not editable.
+    pub fn property_key_range(&self, document: usize, pointer: &str, value: &str) -> Option<Range> {
+        let (parent, key) = pointer.rsplit_once('/')?;
+        let key = key.replace("~1", "/").replace("~0", "~");
+        let mapping = self.node_at(document, parent)?.data.as_mapping()?;
+        let (node, _) = mapping
+            .iter()
+            .find(|(node, _)| node.data.as_str() == Some(key.as_str()))?;
+        let mut range = self.marked_range(node);
+        let byte = byte_offset_at_utf16(self.text, range.start)?;
+        let tail = self.text.get(byte..)?;
+        if tail.starts_with(['\'', '"']) {
+            range.start.character += 1;
+        }
+        let byte = byte_offset_at_utf16(self.text, range.start)?;
+        if !self.text.get(byte..)?.starts_with(value) {
+            return None;
+        }
+        range.end = Position {
+            character: range.start.character + value.encode_utf16().count() as u32,
+            ..range.start
+        };
+        Some(range)
+    }
+
     /// Range of a parsed node. Saphyr markers carry a 1-based line and a 0-based character
     /// column, so both ends are mapped with [`Self::exact_position`] (reading the column as
     /// 1-based shifts the range one column to the left). Nodes spanning several lines, and empty

@@ -1,16 +1,76 @@
 $schema: https://json-schema.org/draft/2020-12/schema
 $id: https://raw.githubusercontent.com/Satisfactory-KMods/KDataForge-Linter/main/src/kdataforge_linter/schemas/category_reorder.schema.yml
 x-kdf-type: category_reorder
-title: KDataForge category ordering
+
+title: KDataForge category ordering and building variant groups
+$defs:
+  pathList:
+    type: array
+    minItems: 1
+    uniqueItems: true
+    items:
+      $ref: https://raw.githubusercontent.com/Satisfactory-KMods/KDataForge-Linter/main/src/kdataforge_linter/schemas/common.schema.yml#/$defs/nonEmptyString
+  managedCategory:
+    type: object
+    required: [id, categoryType, name, icon]
+    properties:
+      id:
+        $ref: https://raw.githubusercontent.com/Satisfactory-KMods/KDataForge-Linter/main/src/kdataforge_linter/schemas/common.schema.yml#/$defs/nonEmptyString
+      categoryType:
+        type: string
+        enum: [build, build_sub]
+      name:
+        $ref: https://raw.githubusercontent.com/Satisfactory-KMods/KDataForge-Linter/main/src/kdataforge_linter/schemas/common.schema.yml#/$defs/textValue
+      icon:
+        $ref: https://raw.githubusercontent.com/Satisfactory-KMods/KDataForge-Linter/main/src/kdataforge_linter/schemas/common.schema.yml#/$defs/nonEmptyString
+    additionalProperties: false
+  menuGroup:
+    type: object
+    required: [subCategory, order]
+    properties:
+      subCategory:
+        $ref: https://raw.githubusercontent.com/Satisfactory-KMods/KDataForge-Linter/main/src/kdataforge_linter/schemas/common.schema.yml#/$defs/nonEmptyString
+      subCategoryPriority:
+        type: number
+        description: Defaults to the group's one-based position.
+      order:
+        $ref: "#/$defs/pathList"
+    additionalProperties: false
+  quickSwitchGroup:
+    type: object
+    required: [targets]
+    oneOf:
+      - required: [id]
+      - required: [class]
+    properties:
+      id:
+        description: Stable pack-scoped class ID; null clears an existing quick-switch assignment.
+        oneOf:
+          - type: "null"
+          - $ref: https://raw.githubusercontent.com/Satisfactory-KMods/KDataForge-Linter/main/src/kdataforge_linter/schemas/common.schema.yml#/$defs/nonEmptyString
+      targets:
+        $ref: "#/$defs/pathList"
+      class:
+        description: Reuse an existing UFGQuickSwitchGroup class instead of generating one.
+        $ref: https://raw.githubusercontent.com/Satisfactory-KMods/KDataForge-Linter/main/src/kdataforge_linter/schemas/common.schema.yml#/$defs/nonEmptyString
+    allOf:
+      - if:
+          properties:
+            id: { type: string }
+          required: [id]
+        then:
+          properties:
+            targets: { minItems: 2 }
+    additionalProperties: false
 allOf:
   - $ref: https://raw.githubusercontent.com/Satisfactory-KMods/KDataForge-Linter/main/src/kdataforge_linter/schemas/common.schema.yml#/$defs/documentBase
   - type: object
-    required: [subType, category, order]
+    required: [subType]
     properties:
       type: { const: category_reorder }
       subType:
         type: string
-        enum: [items, recipe, schematic, settings]
+        enum: [items, buildings, recipe, schematic, settings]
       category:
         $ref: https://raw.githubusercontent.com/Satisfactory-KMods/KDataForge-Linter/main/src/kdataforge_linter/schemas/common.schema.yml#/$defs/nonEmptyString
       subCategory:
@@ -18,16 +78,60 @@ allOf:
       categoryPriority: { type: number }
       subCategoryPriority: { type: number }
       order:
+        $ref: "#/$defs/pathList"
+      categories:
+        description: Managed build-menu classes generated before this document's groups are assigned.
         type: array
         minItems: 1
-        uniqueItems: true
         items:
-          $ref: https://raw.githubusercontent.com/Satisfactory-KMods/KDataForge-Linter/main/src/kdataforge_linter/schemas/common.schema.yml#/$defs/nonEmptyString
+          $ref: "#/$defs/managedCategory"
+      groups:
+        description: Ordered subcategories; item menu priorities restart at one within each group.
+        type: array
+        minItems: 1
+        items:
+          $ref: "#/$defs/menuGroup"
+      quickSwitchGroups:
+        description: Explicit building quick-switch memberships; menu placement stays unchanged.
+        type: array
+        minItems: 1
+        items:
+          $ref: "#/$defs/quickSwitchGroup"
+    anyOf:
+      - required: [order]
+      - required: [groups]
+      - required: [quickSwitchGroups]
     allOf:
-      - if:
-          required: [subCategoryPriority]
+      - if: { required: [order] }
         then:
-          required: [subCategory]
+          required: [category]
+          not: { required: [groups] }
+      - if: { required: [groups] }
+        then:
+          required: [category]
+          not:
+            anyOf:
+              - required: [order]
+              - required: [subCategory]
+              - required: [subCategoryPriority]
+      - if: { required: [categoryPriority] }
+        then: { required: [category] }
+      - if: { required: [category] }
+        then:
+          anyOf:
+            - required: [order]
+            - required: [groups]
+      - if: { required: [subCategory] }
+        then: { required: [order] }
+      - if: { required: [subCategoryPriority] }
+        then: { required: [subCategory] }
+      - if:
+          anyOf:
+            - required: [categories]
+            - required: [quickSwitchGroups]
+        then:
+          properties:
+            subType: { const: buildings }
       - if:
           properties:
             subType: { const: recipe }
@@ -37,5 +141,6 @@ allOf:
             anyOf:
               - required: [subCategory]
               - required: [subCategoryPriority]
+              - required: [groups]
     unevaluatedProperties: false
 unevaluatedProperties: false

@@ -26,6 +26,31 @@ allOf:
               type: array
               items:
                 $ref: https://raw.githubusercontent.com/Satisfactory-KMods/KDataForge-Linter/main/src/kdataforge_linter/schemas/common.schema.yml#/$defs/instancedObject
+            rewards:
+              type: array
+              maxItems: 64
+              items:
+                type: object
+                additionalProperties: false
+                required: [class]
+                properties:
+                  class:
+                    type: string
+                    minLength: 1
+                  properties:
+                    $ref: https://raw.githubusercontent.com/Satisfactory-KMods/KDataForge-Linter/main/src/kdataforge_linter/schemas/common.schema.yml#/$defs/properties
+                  unlocks:
+                    type: array
+                    items:
+                      type: object
+                      additionalProperties: false
+                      required: [class]
+                      properties:
+                        class:
+                          type: string
+                          minLength: 1
+                        properties:
+                          $ref: https://raw.githubusercontent.com/Satisfactory-KMods/KDataForge-Linter/main/src/kdataforge_linter/schemas/common.schema.yml#/$defs/properties
             dependencies:
               type: array
               items:

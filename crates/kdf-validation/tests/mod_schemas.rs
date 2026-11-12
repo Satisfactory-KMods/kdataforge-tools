@@ -63,6 +63,16 @@ fn duplicate_and_builtin_shadow_are_diagnostics_and_first_wins() {
             .path()
             .join(format!("Mods/{name}/Resources/KDataForge/Schemas"));
         fs::create_dir_all(&dir).unwrap();
+        fs::write(
+            dir.ancestors()
+                .find(|p| p.file_name().is_some_and(|n| n == "Resources"))
+                .unwrap()
+                .parent()
+                .unwrap()
+                .join("Test.uplugin"),
+            "{}",
+        )
+        .unwrap();
         fs::write(dir.join("custom.schema.yml"), content).unwrap();
     }
     let registry = SchemaRegistry::for_root(&LintOptions::default(), Some(root.path())).unwrap();
@@ -141,6 +151,16 @@ fn finds_each_supported_mod_container() {
             .join("Resources/KDataForge/Schemas");
         fs::create_dir_all(&dir).unwrap();
         fs::write(
+            dir.ancestors()
+                .find(|p| p.file_name().is_some_and(|n| n == "Resources"))
+                .unwrap()
+                .parent()
+                .unwrap()
+                .join("Test.uplugin"),
+            "{}",
+        )
+        .unwrap();
+        fs::write(
             dir.join("type.schema.yml"),
             source.replace("sfpmodule", kind),
         )
@@ -206,6 +226,16 @@ fn provider_collisions_report_both_owners_and_builtin() {
             .join("Resources/KDataForge");
         fs::create_dir_all(&dir).unwrap();
         fs::write(
+            dir.ancestors()
+                .find(|p| p.file_name().is_some_and(|n| n == "Resources"))
+                .unwrap()
+                .parent()
+                .unwrap()
+                .join("Test.uplugin"),
+            "{}",
+        )
+        .unwrap();
+        fs::write(
             dir.join("providers.yml"),
             format!("providers:\n  - prefix: {prefix}\n    description: Example\n"),
         )
@@ -223,4 +253,50 @@ fn provider_collisions_report_both_owners_and_builtin() {
         .iter()
         .any(|d| d.code == "provider.builtin-shadow"));
     assert_eq!(registry.providers().len(), 1);
+}
+
+#[test]
+fn nested_workspace_and_fixture_copies_do_not_duplicate_live_mod_contracts() {
+    let root = tempfile::tempdir().unwrap();
+    let body = fs::read_to_string(fixture().join(
+        "Mods/GameFeatures/SatisfactoryPlus/Resources/KDataForge/Schemas/sfpmodule.schema.yml",
+    ))
+    .unwrap();
+    for relative in [
+        "Mods/GameFeatures/Live",
+        "tools/tooling/tests/fixtures/copy/Mods/GameFeatures/Copy",
+    ] {
+        let owner = root.path().join(relative);
+        let resources = owner.join("Resources/KDataForge");
+        fs::create_dir_all(resources.join("Schemas")).unwrap();
+        fs::write(owner.join("Example.uplugin"), "{}").unwrap();
+        fs::write(resources.join("Schemas/example.schema.yml"), &body).unwrap();
+        fs::write(
+            resources.join("providers.yml"),
+            "providers:\n  - prefix: example\n    description: Example\n",
+        )
+        .unwrap();
+    }
+    // Resource-shaped tooling directories without a descriptor are not mod owners.
+    let fake = root.path().join("tools/fake/Resources/KDataForge");
+    fs::create_dir_all(fake.join("Schemas")).unwrap();
+    fs::write(fake.join("Schemas/example.schema.yml"), &body).unwrap();
+    fs::write(
+        fake.join("providers.yml"),
+        "providers:\n  - prefix: example\n    description: Example\n",
+    )
+    .unwrap();
+    for scope in [
+        root.path().to_owned(),
+        root.path().join("tools/tooling/tests/fixtures/copy"),
+    ] {
+        let registry = SchemaRegistry::for_root(&LintOptions::default(), Some(&scope)).unwrap();
+        assert!(registry.schema("sfpmodule").is_some());
+        assert_eq!(registry.providers().len(), 1);
+        assert!(
+            registry.diagnostics().is_empty(),
+            "{:?}",
+            registry.diagnostics()
+        );
+    }
 }

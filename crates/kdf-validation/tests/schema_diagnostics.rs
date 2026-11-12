@@ -348,3 +348,58 @@ fn leaf_operand_union_error_preserves_unknown_operation_field() {
         result.diagnostics
     );
 }
+
+#[test]
+fn dataasset_reward_lists_support_clear_mapping_ops_and_one_nested_unlock_level() {
+    for (rewards, valid) in [
+        ("[]", true),
+        ("[{class: /KPrivateCodeLib/Rewards/BP_DeliveryItemReward.BP_DeliveryItemReward_C, properties: {mRequiredCompletion: 1}}]", true),
+        ("[{class: /KPrivateCodeLib/Rewards/BP_DeliveryItemReward.BP_DeliveryItemReward_C, properties: [{path: mRequiredCompletion, value: 1}]}]", true),
+        ("[{class: /KPrivateCodeLib/Rewards/BP_DeliveryUnlockReward.BP_DeliveryUnlockReward_C, unlocks: [{class: /Game/FactoryGame/Unlocks/BP_UnlockRecipe.BP_UnlockRecipe_C}]}]", true),
+        ("[{properties: {mItems: []}}]", false),
+        ("[{class: /KPrivateCodeLib/Rewards/BP_DeliveryUnlockReward.BP_DeliveryUnlockReward_C, unlocks: [{class: /Game/FactoryGame/Unlocks/BP_UnlockRecipe.BP_UnlockRecipe_C, unlocks: []}]}]", false),
+    ] {
+        let text = format!("type: dataasset\nassets:\n  - id: RewardContract\n    class: /Script/KAPI.KAPIDeliveryTask\n    rewards: {rewards}\n");
+        let result = validate_document(Path::new("reward.dataasset.yml"), &text, &LintOptions::default()).unwrap();
+        assert_eq!(!result.diagnostics.iter().any(|d| d.code.starts_with("schema.")), valid, "{rewards}: {:?}", result.diagnostics);
+    }
+}
+
+#[test]
+fn delivery_reward_and_real_unlock_families_are_not_interchangeable() {
+    for (field, class, wrong_family) in [
+        (
+            "rewards",
+            "/KPrivateCodeLib/Rewards/BP_DeliveryItemReward.BP_DeliveryItemReward_C",
+            false,
+        ),
+        (
+            "unlocks",
+            "/KPrivateCodeLib/Rewards/BP_DeliveryItemReward.BP_DeliveryItemReward_C",
+            true,
+        ),
+        (
+            "rewards",
+            "/Game/FactoryGame/Unlocks/BP_UnlockRecipe.BP_UnlockRecipe_C",
+            true,
+        ),
+    ] {
+        let text = format!("type: dataasset\nassets:\n  - id: Contract\n    class: /Script/KAPI.KAPIDeliveryTask\n    {field}:\n      - class: {class}\n");
+        let result = validate_document(
+            Path::new("reward-family.dataasset.yml"),
+            &text,
+            &LintOptions::default(),
+        )
+        .unwrap();
+        assert_eq!(
+            result
+                .diagnostics
+                .iter()
+                .any(|d| d.code == "class.wrong-family"
+                    && d.severity == kdf_validation::Severity::Error),
+            wrong_family,
+            "{text}: {:?}",
+            result.diagnostics
+        );
+    }
+}

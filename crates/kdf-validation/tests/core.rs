@@ -83,6 +83,60 @@ fn category_reorder_matches_runtime_contract() {
 }
 
 #[test]
+fn category_reorder_building_groups_match_runtime_contract() {
+    let path = Path::new("buildings.category_reorder.yml");
+    let valid = r#"type: category_reorder
+subType: buildings
+categories:
+  - id: Main
+    categoryType: build
+    name: {ns: Example, key: Main, source: Buildings}
+    icon: /Game/Icon.Icon
+  - id: Storage
+    categoryType: build_sub
+    name: Storage
+    icon: /Game/Icon.Icon
+category: Main
+groups:
+  - subCategory: Storage
+    order: [/Game/A.A_C, /Game/B.B_C]
+quickSwitchGroups:
+  - id: StorageVariants
+    targets: [/Game/A.A_C, /Game/B.B_C]
+  - id: null
+    targets: [/Game/C.C_C]
+  - class: /Game/Existing.Existing_C
+    targets: [/Game/D.D_C]
+"#;
+    for text in [valid, "type: category_reorder\nsubType: buildings\nquickSwitchGroups:\n  - id: Pair\n    targets: [/Game/A.A_C, /Game/B.B_C]\n"] {
+        let result = validate_document(path, text, &LintOptions::default()).unwrap();
+        assert!(result.ok, "{:?}", result.diagnostics);
+    }
+    for text in [
+        valid.replace("category: Main", "category: Main\norder: [/Game/A.A_C]"),
+        valid.replace("subType: buildings", "subType: items"),
+        valid.replace("id: StorageVariants", "id: Main"),
+        valid.replace("/Game/C.C_C", "/game/a.a_c"),
+        valid.replace(
+            "targets: [/Game/A.A_C, /Game/B.B_C]",
+            "targets: [/Game/A.A_C]",
+        ),
+        valid.replace(
+            "class: /Game/Existing.Existing_C",
+            "id: AlsoAnId\n    class: /Game/Existing.Existing_C",
+        ),
+        valid.replace("categoryType: build_sub", "categoryType: item"),
+        valid.replace(
+            "order: [/Game/A.A_C, /Game/B.B_C]",
+            "order: [/Game/A.A_C, /game/a.a_c]",
+        ),
+    ] {
+        let result = validate_document(path, &text, &LintOptions::default()).unwrap();
+        assert!(!result.ok, "invalid building groups passed: {text}");
+    }
+}
+
+#[test]
 fn direct_pack_root_and_nested_pack_root_both_work() {
     let temp = tempdir().unwrap();
     manifest(temp.path(), "");

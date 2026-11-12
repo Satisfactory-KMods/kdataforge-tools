@@ -182,8 +182,13 @@ declare module "@sf-kmods/kdataforgejs" {
         Float = "float",
         Vector = "vector",
     }
+    export enum BuildCategoryKind {
+        Build = "build",
+        BuildSub = "build_sub",
+    }
     export enum CategoryKind {
         Items = "items",
+        Buildings = "buildings",
         Recipe = "recipe",
         Schematic = "schematic",
         Settings = "settings",

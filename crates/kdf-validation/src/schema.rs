@@ -661,16 +661,38 @@ fn schema_declares_root_property(schema: &Value, field: &str) -> bool {
 fn discover_mod_dirs(root: &Path) -> std::collections::BTreeSet<PathBuf> {
     let mut dirs = std::collections::BTreeSet::new();
     for ancestor in root.ancestors() {
-        dirs.insert(ancestor.join("Resources/KDataForge"));
+        if is_mod_root(ancestor) {
+            dirs.insert(ancestor.join("Resources/KDataForge"));
+        }
+        let mut workspace = false;
         for container in ["Mods", "Mods/GameFeatures", "FactoryGame/Mods", "tools"] {
             if let Ok(entries) = fs::read_dir(ancestor.join(container)) {
+                workspace = true;
                 for entry in entries.flatten() {
-                    dirs.insert(entry.path().join("Resources/KDataForge"));
+                    if is_mod_root(&entry.path()) {
+                        dirs.insert(entry.path().join("Resources/KDataForge"));
+                    }
                 }
             }
         }
+        // A nested workspace owns its schema scope; never inherit an outer checkout's mods.
+        if workspace {
+            break;
+        }
     }
     dirs
+}
+
+fn is_mod_root(path: &Path) -> bool {
+    fs::read_dir(path).is_ok_and(|entries| {
+        entries.flatten().any(|entry| {
+            entry.path().is_file()
+                && entry
+                    .path()
+                    .extension()
+                    .is_some_and(|extension| extension.eq_ignore_ascii_case("uplugin"))
+        })
+    })
 }
 
 fn discover_mod_schemas(root: &Path) -> Vec<PathBuf> {

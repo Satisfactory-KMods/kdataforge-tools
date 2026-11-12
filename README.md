@@ -35,3 +35,7 @@ channel contract. `dev` can publish only experimental/beta artifacts; `main` can
 artifacts. Publication requires protected GitHub environments and their scoped credentials.
 
 Licensed under the [MIT License](LICENSE).
+
+### Native pack conditions
+
+Integrations may add conditions through `FKDFPacksScannedContext::AddPackCondition` during the packs-scanned callback. This adds no YAML syntax or required schema field. SatisfactoryPlus implicitly gates packs containing exactly one `sfpmodule` declaration; multiple declarations receive no implicit gate. Explicit pack conditions remain ANDed. Validators continue to validate authored conditions normally; a module `config:` condition is optional for single-module packs.

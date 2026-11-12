@@ -487,11 +487,29 @@ pub fn default_base_class(entries_key: &str) -> Option<&'static str> {
         // A `building` document generates building descriptors, not buildable actors.
         "buildings" => Some("/Script/FactoryGame.FGBuildingDescriptor"),
         "unlocks" => Some("/Script/FactoryGame.FGUnlock"),
+        "rewards" => Some("/Script/KAPI.KAPIDeliveryReward"),
         "recipes" => Some("/Script/FactoryGame.FGRecipe"),
         "schematics" => Some("/Script/FactoryGame.FGSchematic"),
         "research" => Some("/Script/FactoryGame.FGResearchTree"),
+        "categories" => Some("/Script/FactoryGame.FGCategory"),
+        "quickSwitchGroups" => Some("/Script/FactoryGame.FGQuickSwitchGroup"),
         _ => None,
     }
+}
+
+/// Parent identity of a generated definition, including managed build-menu categories.
+pub fn generated_parent<'a>(entries_key: &str, entry: &'a Value) -> Option<&'a str> {
+    entry.get("parent").and_then(Value::as_str).or_else(|| {
+        if entries_key == "categories" {
+            match entry.get("categoryType").and_then(Value::as_str) {
+                Some("build") => Some("/Script/FactoryGame.FGBuildCategory"),
+                Some("build_sub") => Some("/Script/FactoryGame.FGBuildSubCategory"),
+                _ => default_base_class(entries_key),
+            }
+        } else {
+            default_base_class(entries_key)
+        }
+    })
 }
 
 /// Document-level conditions of hot-capable kinds are still evaluated when reloading; of content

@@ -10,6 +10,9 @@ pub(crate) fn validate(
     kind: &str,
     result: &mut LintResult,
 ) {
+    if kind == "category_reorder" {
+        validate_category_groups(file, index, document, result);
+    }
     if kind == "resourcenode" {
         validate_node_visuals(file, index, document, result);
     }
@@ -78,6 +81,63 @@ pub(crate) fn validate(
                     "Actor selector box min must be less than max on every axis.",
                     result,
                 );
+            }
+        }
+    }
+}
+
+fn validate_category_groups(
+    file: &ParsedFile,
+    index: usize,
+    document: &Value,
+    result: &mut LintResult,
+) {
+    let mut identities = HashSet::new();
+    for collection in ["categories", "quickSwitchGroups"] {
+        for (entry_index, entry) in document
+            .get(collection)
+            .and_then(Value::as_array)
+            .into_iter()
+            .flatten()
+            .enumerate()
+        {
+            if let Some(id) = entry.get("id").and_then(Value::as_str) {
+                if !identities.insert(crate::rules::runtime_identity(id)) {
+                    emit(file, index, &format!("/{collection}/{entry_index}/id"), Severity::Error,
+                        "semantic.category-reorder-id", "Managed category and quick-switch IDs must have unique runtime identities.", result);
+                }
+            }
+        }
+    }
+    for (collection, field) in [("groups", "order"), ("quickSwitchGroups", "targets")] {
+        let mut targets = HashSet::new();
+        for (group_index, group) in document
+            .get(collection)
+            .and_then(Value::as_array)
+            .into_iter()
+            .flatten()
+            .enumerate()
+        {
+            for (target_index, target) in group
+                .get(field)
+                .and_then(Value::as_array)
+                .into_iter()
+                .flatten()
+                .enumerate()
+            {
+                if let Some(path) = target.as_str() {
+                    if !targets.insert(path.to_lowercase()) {
+                        emit(
+                            file,
+                            index,
+                            &format!("/{collection}/{group_index}/{field}/{target_index}"),
+                            Severity::Error,
+                            "semantic.category-reorder-target",
+                            "A target may belong to only one group of each kind in a document.",
+                            result,
+                        );
+                    }
+                }
             }
         }
     }

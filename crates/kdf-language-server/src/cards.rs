@@ -193,6 +193,13 @@ pub(crate) fn property_card(
         display_type(property),
         property.kind_name
     );
+    if !property.aliases.is_empty() {
+        out.push_str(&format!(
+            "Former names: {}. Renamed to `{}`.\n\n",
+            property.aliases.join(", "),
+            property.display_name()
+        ));
+    }
     if let Some(class) = class {
         out.push_str(&format!("Class `{class}`\n\n"));
     }

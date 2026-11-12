@@ -14814,6 +14814,226 @@
       }
     },
     {
+      "symbolId": "enum.BuildCategoryKind",
+      "kind": "context",
+      "binding": {
+        "status": "known",
+        "value": {
+          "kind": "export",
+          "module": "@sf-kmods/kdataforgejs",
+          "exportName": "BuildCategoryKind",
+          "members": [],
+          "operation": "read"
+        },
+        "provenance": {
+          "source": "KDataForgeJS runtime enum exports",
+          "version": "runtime-enums-v2",
+          "authority": "authoritative"
+        }
+      },
+      "capabilities": {
+        "status": "known",
+        "value": [],
+        "provenance": {
+          "source": "KDataForgeJS runtime enum exports",
+          "version": "runtime-enums-v2",
+          "authority": "authoritative"
+        }
+      },
+      "authority": {
+        "status": "unknown",
+        "reason": "Immutable enum reads have no authority or lifecycle restriction"
+      },
+      "lifecycle": {
+        "status": "unknown",
+        "reason": "Immutable enum reads have no authority or lifecycle restriction"
+      },
+      "quotas": {
+        "status": "known",
+        "value": [],
+        "provenance": {
+          "source": "KDataForgeJS runtime enum exports",
+          "version": "runtime-enums-v2",
+          "authority": "authoritative"
+        }
+      },
+      "references": {
+        "status": "known",
+        "value": [],
+        "provenance": {
+          "source": "KDataForgeJS runtime enum exports",
+          "version": "runtime-enums-v2",
+          "authority": "authoritative"
+        }
+      },
+      "signature": {
+        "status": "known",
+        "value": "readonly enum BuildCategoryKind",
+        "provenance": {
+          "source": "KDataForgeJS runtime enum exports",
+          "version": "runtime-enums-v2",
+          "authority": "authoritative"
+        }
+      },
+      "deterministicInitialization": {
+        "status": "known",
+        "value": true,
+        "provenance": {
+          "source": "KDataForgeJS runtime enum exports",
+          "version": "runtime-enums-v2",
+          "authority": "authoritative"
+        }
+      }
+    },
+    {
+      "symbolId": "enum.BuildCategoryKind.Build",
+      "kind": "context",
+      "binding": {
+        "status": "known",
+        "value": {
+          "kind": "export",
+          "module": "@sf-kmods/kdataforgejs",
+          "exportName": "BuildCategoryKind",
+          "members": [
+            "Build"
+          ],
+          "operation": "read"
+        },
+        "provenance": {
+          "source": "KDataForgeJS runtime enum exports",
+          "version": "runtime-enums-v2",
+          "authority": "authoritative"
+        }
+      },
+      "capabilities": {
+        "status": "known",
+        "value": [],
+        "provenance": {
+          "source": "KDataForgeJS runtime enum exports",
+          "version": "runtime-enums-v2",
+          "authority": "authoritative"
+        }
+      },
+      "authority": {
+        "status": "unknown",
+        "reason": "Immutable enum reads have no authority or lifecycle restriction"
+      },
+      "lifecycle": {
+        "status": "unknown",
+        "reason": "Immutable enum reads have no authority or lifecycle restriction"
+      },
+      "quotas": {
+        "status": "known",
+        "value": [],
+        "provenance": {
+          "source": "KDataForgeJS runtime enum exports",
+          "version": "runtime-enums-v2",
+          "authority": "authoritative"
+        }
+      },
+      "references": {
+        "status": "known",
+        "value": [],
+        "provenance": {
+          "source": "KDataForgeJS runtime enum exports",
+          "version": "runtime-enums-v2",
+          "authority": "authoritative"
+        }
+      },
+      "signature": {
+        "status": "known",
+        "value": "BuildCategoryKind.Build = \"build\"",
+        "provenance": {
+          "source": "KDataForgeJS runtime enum exports",
+          "version": "runtime-enums-v2",
+          "authority": "authoritative"
+        }
+      },
+      "deterministicInitialization": {
+        "status": "known",
+        "value": true,
+        "provenance": {
+          "source": "KDataForgeJS runtime enum exports",
+          "version": "runtime-enums-v2",
+          "authority": "authoritative"
+        }
+      }
+    },
+    {
+      "symbolId": "enum.BuildCategoryKind.BuildSub",
+      "kind": "context",
+      "binding": {
+        "status": "known",
+        "value": {
+          "kind": "export",
+          "module": "@sf-kmods/kdataforgejs",
+          "exportName": "BuildCategoryKind",
+          "members": [
+            "BuildSub"
+          ],
+          "operation": "read"
+        },
+        "provenance": {
+          "source": "KDataForgeJS runtime enum exports",
+          "version": "runtime-enums-v2",
+          "authority": "authoritative"
+        }
+      },
+      "capabilities": {
+        "status": "known",
+        "value": [],
+        "provenance": {
+          "source": "KDataForgeJS runtime enum exports",
+          "version": "runtime-enums-v2",
+          "authority": "authoritative"
+        }
+      },
+      "authority": {
+        "status": "unknown",
+        "reason": "Immutable enum reads have no authority or lifecycle restriction"
+      },
+      "lifecycle": {
+        "status": "unknown",
+        "reason": "Immutable enum reads have no authority or lifecycle restriction"
+      },
+      "quotas": {
+        "status": "known",
+        "value": [],
+        "provenance": {
+          "source": "KDataForgeJS runtime enum exports",
+          "version": "runtime-enums-v2",
+          "authority": "authoritative"
+        }
+      },
+      "references": {
+        "status": "known",
+        "value": [],
+        "provenance": {
+          "source": "KDataForgeJS runtime enum exports",
+          "version": "runtime-enums-v2",
+          "authority": "authoritative"
+        }
+      },
+      "signature": {
+        "status": "known",
+        "value": "BuildCategoryKind.BuildSub = \"build_sub\"",
+        "provenance": {
+          "source": "KDataForgeJS runtime enum exports",
+          "version": "runtime-enums-v2",
+          "authority": "authoritative"
+        }
+      },
+      "deterministicInitialization": {
+        "status": "known",
+        "value": true,
+        "provenance": {
+          "source": "KDataForgeJS runtime enum exports",
+          "version": "runtime-enums-v2",
+          "authority": "authoritative"
+        }
+      }
+    },
+    {
       "symbolId": "enum.CategoryKind",
       "kind": "context",
       "binding": {
@@ -14943,6 +15163,80 @@
       "signature": {
         "status": "known",
         "value": "CategoryKind.Items = \"items\"",
+        "provenance": {
+          "source": "KDataForgeJS runtime enum exports",
+          "version": "runtime-enums-v2",
+          "authority": "authoritative"
+        }
+      },
+      "deterministicInitialization": {
+        "status": "known",
+        "value": true,
+        "provenance": {
+          "source": "KDataForgeJS runtime enum exports",
+          "version": "runtime-enums-v2",
+          "authority": "authoritative"
+        }
+      }
+    },
+    {
+      "symbolId": "enum.CategoryKind.Buildings",
+      "kind": "context",
+      "binding": {
+        "status": "known",
+        "value": {
+          "kind": "export",
+          "module": "@sf-kmods/kdataforgejs",
+          "exportName": "CategoryKind",
+          "members": [
+            "Buildings"
+          ],
+          "operation": "read"
+        },
+        "provenance": {
+          "source": "KDataForgeJS runtime enum exports",
+          "version": "runtime-enums-v2",
+          "authority": "authoritative"
+        }
+      },
+      "capabilities": {
+        "status": "known",
+        "value": [],
+        "provenance": {
+          "source": "KDataForgeJS runtime enum exports",
+          "version": "runtime-enums-v2",
+          "authority": "authoritative"
+        }
+      },
+      "authority": {
+        "status": "unknown",
+        "reason": "Immutable enum reads have no authority or lifecycle restriction"
+      },
+      "lifecycle": {
+        "status": "unknown",
+        "reason": "Immutable enum reads have no authority or lifecycle restriction"
+      },
+      "quotas": {
+        "status": "known",
+        "value": [],
+        "provenance": {
+          "source": "KDataForgeJS runtime enum exports",
+          "version": "runtime-enums-v2",
+          "authority": "authoritative"
+        }
+      },
+      "references": {
+        "status": "known",
+        "value": [],
+        "provenance": {
+          "source": "KDataForgeJS runtime enum exports",
+          "version": "runtime-enums-v2",
+          "authority": "authoritative"
+        }
+      },
+      "signature": {
+        "status": "known",
+        "value": "CategoryKind.Buildings = \"buildings\"",
         "provenance": {
           "source": "KDataForgeJS runtime enum exports",
           "version": "runtime-enums-v2",
@@ -24287,8 +24581,13 @@
       "Float": "float",
       "Vector": "vector"
     },
+    "BuildCategoryKind": {
+      "Build": "build",
+      "BuildSub": "build_sub"
+    },
     "CategoryKind": {
       "Items": "items",
+      "Buildings": "buildings",
       "Recipe": "recipe",
       "Schematic": "schematic",
       "Settings": "settings"

@@ -151,6 +151,7 @@ fn entries(kind: &str) -> &'static [&'static str] {
         "class" => &["classes"],
         "eventrule" => &["rules"],
         "resourcenode" => &["add", "replace"],
+        "category_reorder" => &["categories", "quickSwitchGroups"],
         _ => &[],
     }
 }
@@ -457,11 +458,7 @@ impl SemanticSnapshot {
                             path: input.path.clone(),
                             document,
                             range,
-                            parent: entry
-                                .get("parent")
-                                .and_then(Value::as_str)
-                                .or_else(|| crate::slots::default_base_class(key))
-                                .map(str::to_owned),
+                            parent: crate::slots::generated_parent(key, entry).map(str::to_owned),
                         });
                     }
                 }

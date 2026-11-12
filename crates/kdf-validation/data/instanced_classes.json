@@ -1474,6 +1474,94 @@
           "blueprints": []
         }
       ]
+    },
+    "reward": {
+      "base": "/Script/KAPI.KAPIDeliveryReward",
+      "entries": [
+        {
+          "family": "reward",
+          "name": "KAPIDeliveryReward",
+          "path": "/Script/KAPI.KAPIDeliveryReward",
+          "parent": "/Script/FactoryGame.FGUnlock",
+          "abstract": true,
+          "blueprint": null,
+          "blueprints": [],
+          "source": "KAPI",
+          "sourceFile": "Mods/GameFeatures/KAPI/Source/KAPI/Public/Rewards/KAPIDeliveryReward.h"
+        },
+        {
+          "family": "reward",
+          "name": "KAPIDeliveryItemReward",
+          "path": "/Script/KAPI.KAPIDeliveryItemReward",
+          "parent": "/Script/KAPI.KAPIDeliveryReward",
+          "abstract": false,
+          "blueprint": "/KPrivateCodeLib/Rewards/BP_DeliveryItemReward.BP_DeliveryItemReward_C",
+          "blueprints": [
+            "/KPrivateCodeLib/Rewards/BP_DeliveryItemReward.BP_DeliveryItemReward_C"
+          ],
+          "source": "KAPI",
+          "sourceFile": "Mods/GameFeatures/KAPI/Source/KAPI/Public/Rewards/KAPIDeliveryItemReward.h"
+        },
+        {
+          "family": "reward",
+          "name": "BP_DeliveryItemReward_C",
+          "path": "/KPrivateCodeLib/Rewards/BP_DeliveryItemReward.BP_DeliveryItemReward_C",
+          "parent": "/Script/KAPI.KAPIDeliveryItemReward",
+          "abstract": false,
+          "blueprint": null,
+          "blueprints": [],
+          "source": "KPrivateCodeLib",
+          "sourceFile": "/KPrivateCodeLib/Rewards/BP_DeliveryItemReward"
+        },
+        {
+          "family": "reward",
+          "name": "KAPIDeliverySinkPointReward",
+          "path": "/Script/KAPI.KAPIDeliverySinkPointReward",
+          "parent": "/Script/KAPI.KAPIDeliveryReward",
+          "abstract": false,
+          "blueprint": "/KPrivateCodeLib/Rewards/BP_DeliverySinkPointReward.BP_DeliverySinkPointReward_C",
+          "blueprints": [
+            "/KPrivateCodeLib/Rewards/BP_DeliverySinkPointReward.BP_DeliverySinkPointReward_C"
+          ],
+          "source": "KAPI",
+          "sourceFile": "Mods/GameFeatures/KAPI/Source/KAPI/Public/Rewards/KAPIDeliverySinkPointReward.h"
+        },
+        {
+          "family": "reward",
+          "name": "BP_DeliverySinkPointReward_C",
+          "path": "/KPrivateCodeLib/Rewards/BP_DeliverySinkPointReward.BP_DeliverySinkPointReward_C",
+          "parent": "/Script/KAPI.KAPIDeliverySinkPointReward",
+          "abstract": false,
+          "blueprint": null,
+          "blueprints": [],
+          "source": "KPrivateCodeLib",
+          "sourceFile": "/KPrivateCodeLib/Rewards/BP_DeliverySinkPointReward"
+        },
+        {
+          "family": "reward",
+          "name": "KAPIDeliveryUnlockReward",
+          "path": "/Script/KAPI.KAPIDeliveryUnlockReward",
+          "parent": "/Script/KAPI.KAPIDeliveryReward",
+          "abstract": false,
+          "blueprint": "/KPrivateCodeLib/Rewards/BP_DeliveryUnlockReward.BP_DeliveryUnlockReward_C",
+          "blueprints": [
+            "/KPrivateCodeLib/Rewards/BP_DeliveryUnlockReward.BP_DeliveryUnlockReward_C"
+          ],
+          "source": "KAPI",
+          "sourceFile": "Mods/GameFeatures/KAPI/Source/KAPI/Public/Rewards/KAPIDeliveryUnlockReward.h"
+        },
+        {
+          "family": "reward",
+          "name": "BP_DeliveryUnlockReward_C",
+          "path": "/KPrivateCodeLib/Rewards/BP_DeliveryUnlockReward.BP_DeliveryUnlockReward_C",
+          "parent": "/Script/KAPI.KAPIDeliveryUnlockReward",
+          "abstract": false,
+          "blueprint": null,
+          "blueprints": [],
+          "source": "KPrivateCodeLib",
+          "sourceFile": "/KPrivateCodeLib/Rewards/BP_DeliveryUnlockReward"
+        }
+      ]
     }
   }
 }

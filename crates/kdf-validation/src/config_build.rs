@@ -10,7 +10,7 @@ use crate::document::runtime_bool;
 use crate::expression::is_config_id;
 use crate::project::{is_pack_manifest, ParsedFile};
 use crate::schema::infer_type;
-use crate::slots::default_base_class;
+use crate::slots::generated_parent;
 use crate::{Range, ReflectionIndex, ReflectionStatus, Severity, SourceMap};
 use serde_json::{Map, Value};
 use std::borrow::Borrow;
@@ -167,36 +167,35 @@ fn build_with<F: Borrow<ParsedFile>>(
             let Some(pack) = pack else {
                 continue;
             };
-            let entries_key = match infer_type(&file.path, document, multi).as_deref() {
-                Some("class") => "classes",
-                Some("item") => "items",
-                Some("resource") => "resources",
-                Some("building") => "buildings",
-                Some("unlock") => "unlocks",
-                Some("recipe") => "recipes",
-                Some("schematic") => "schematics",
-                Some("research") => "research",
+            let entries_keys: &[&str] = match infer_type(&file.path, document, multi).as_deref() {
+                Some("class") => &["classes"],
+                Some("item") => &["items"],
+                Some("resource") => &["resources"],
+                Some("building") => &["buildings"],
+                Some("unlock") => &["unlocks"],
+                Some("recipe") => &["recipes"],
+                Some("schematic") => &["schematics"],
+                Some("research") => &["research"],
+                Some("category_reorder") => &["categories", "quickSwitchGroups"],
                 _ => continue,
             };
-            for entry in object
-                .get(entries_key)
-                .and_then(Value::as_array)
-                .into_iter()
-                .flatten()
-            {
-                let Some(id) = entry.get("id").and_then(Value::as_str) else {
-                    continue;
-                };
-                let parent = entry
-                    .get("parent")
-                    .and_then(Value::as_str)
-                    .or_else(|| default_base_class(entries_key))
-                    .map(str::to_owned);
-                packs[pack].classes.push(GeneratedClass {
-                    id: id.to_owned(),
-                    parent,
-                    file: file.path.clone(),
-                });
+            for entries_key in entries_keys {
+                for entry in object
+                    .get(*entries_key)
+                    .and_then(Value::as_array)
+                    .into_iter()
+                    .flatten()
+                {
+                    let Some(id) = entry.get("id").and_then(Value::as_str) else {
+                        continue;
+                    };
+                    let parent = generated_parent(entries_key, entry).map(str::to_owned);
+                    packs[pack].classes.push(GeneratedClass {
+                        id: id.to_owned(),
+                        parent,
+                        file: file.path.clone(),
+                    });
+                }
             }
         }
     }
