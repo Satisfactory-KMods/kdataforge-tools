@@ -27,6 +27,7 @@ allOf:
               items:
                 $ref: https://raw.githubusercontent.com/Satisfactory-KMods/KDataForge-Linter/main/src/kdataforge_linter/schemas/common.schema.yml#/$defs/instancedObject
             rewards:
+              description: "Task-owned UObject rewards: items, KMods points, optional AWESOME Sink points, or unlocks. BP_DeliveryKModsPointReward must be installed before authoring that class. Nested unlocks remain UFGUnlock objects."
               type: array
               maxItems: 64
               items:

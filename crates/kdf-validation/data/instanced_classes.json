@@ -373,9 +373,7 @@
           "parent": "/Script/FactoryGame.FGUnlockRecipe",
           "family": "unlock",
           "blueprint": "/Game/FactoryGame/Unlocks/BP_UnlockBlueprints.BP_UnlockBlueprints_C",
-          "blueprints": [
-            "/Game/FactoryGame/Unlocks/BP_UnlockBlueprints.BP_UnlockBlueprints_C"
-          ]
+          "blueprints": ["/Game/FactoryGame/Unlocks/BP_UnlockBlueprints.BP_UnlockBlueprints_C"]
         },
         {
           "cppName": "UFGUnlockBuildEfficiency",
@@ -471,9 +469,7 @@
           "parent": "/Script/FactoryGame.FGUnlockInfoOnly",
           "family": "unlock",
           "blueprint": "/Game/FactoryGame/Unlocks/BP_UnlockCheckmark.BP_UnlockCheckmark_C",
-          "blueprints": [
-            "/Game/FactoryGame/Unlocks/BP_UnlockCheckmark.BP_UnlockCheckmark_C"
-          ]
+          "blueprints": ["/Game/FactoryGame/Unlocks/BP_UnlockCheckmark.BP_UnlockCheckmark_C"]
         },
         {
           "cppName": "UFGUnlockCircuitDaisyChaining",
@@ -511,9 +507,7 @@
           "parent": "/Script/FactoryGame.FGUnlock",
           "family": "unlock",
           "blueprint": "/Game/FactoryGame/Unlocks/BP_UnlockCustomizer.BP_UnlockCustomizer_C",
-          "blueprints": [
-            "/Game/FactoryGame/Unlocks/BP_UnlockCustomizer.BP_UnlockCustomizer_C"
-          ]
+          "blueprints": ["/Game/FactoryGame/Unlocks/BP_UnlockCustomizer.BP_UnlockCustomizer_C"]
         },
         {
           "cppName": "UFGUnlockEmote",
@@ -525,9 +519,7 @@
           "parent": "/Script/FactoryGame.FGUnlock",
           "family": "unlock",
           "blueprint": "/Game/FactoryGame/Unlocks/BP_UnlockEmote.BP_UnlockEmote_C",
-          "blueprints": [
-            "/Game/FactoryGame/Unlocks/BP_UnlockEmote.BP_UnlockEmote_C"
-          ]
+          "blueprints": ["/Game/FactoryGame/Unlocks/BP_UnlockEmote.BP_UnlockEmote_C"]
         },
         {
           "cppName": "UFGUnlockGiveItem",
@@ -539,9 +531,7 @@
           "parent": "/Script/FactoryGame.FGUnlock",
           "family": "unlock",
           "blueprint": "/Game/FactoryGame/Unlocks/BP_UnlockGiveItem.BP_UnlockGiveItem_C",
-          "blueprints": [
-            "/Game/FactoryGame/Unlocks/BP_UnlockGiveItem.BP_UnlockGiveItem_C"
-          ]
+          "blueprints": ["/Game/FactoryGame/Unlocks/BP_UnlockGiveItem.BP_UnlockGiveItem_C"]
         },
         {
           "cppName": "UFGUnlockInfoOnly",
@@ -553,9 +543,7 @@
           "parent": "/Script/FactoryGame.FGUnlock",
           "family": "unlock",
           "blueprint": "/Game/FactoryGame/Unlocks/BP_UnlockInfoOnly.BP_UnlockInfoOnly_C",
-          "blueprints": [
-            "/Game/FactoryGame/Unlocks/BP_UnlockInfoOnly.BP_UnlockInfoOnly_C"
-          ]
+          "blueprints": ["/Game/FactoryGame/Unlocks/BP_UnlockInfoOnly.BP_UnlockInfoOnly_C"]
         },
         {
           "cppName": "UFGUnlockInventorySlot",
@@ -595,9 +583,7 @@
           "parent": "/Script/FactoryGame.FGUnlock",
           "family": "unlock",
           "blueprint": "/Game/FactoryGame/Unlocks/BP_UnlockMap.BP_UnlockMap_C",
-          "blueprints": [
-            "/Game/FactoryGame/Unlocks/BP_UnlockMap.BP_UnlockMap_C"
-          ]
+          "blueprints": ["/Game/FactoryGame/Unlocks/BP_UnlockMap.BP_UnlockMap_C"]
         },
         {
           "cppName": "UFGUnlockRecipe",
@@ -609,9 +595,7 @@
           "parent": "/Script/FactoryGame.FGUnlock",
           "family": "unlock",
           "blueprint": "/Game/FactoryGame/Unlocks/BP_UnlockRecipe.BP_UnlockRecipe_C",
-          "blueprints": [
-            "/Game/FactoryGame/Unlocks/BP_UnlockRecipe.BP_UnlockRecipe_C"
-          ]
+          "blueprints": ["/Game/FactoryGame/Unlocks/BP_UnlockRecipe.BP_UnlockRecipe_C"]
         },
         {
           "cppName": "UFGUnlockSAMIntensity",
@@ -623,9 +607,7 @@
           "parent": "/Script/FactoryGame.FGUnlock",
           "family": "unlock",
           "blueprint": "/Game/FactoryGame/Unlocks/BP_UnlockSAMIntensity.BP_UnlockSAMIntensity_C",
-          "blueprints": [
-            "/Game/FactoryGame/Unlocks/BP_UnlockSAMIntensity.BP_UnlockSAMIntensity_C"
-          ]
+          "blueprints": ["/Game/FactoryGame/Unlocks/BP_UnlockSAMIntensity.BP_UnlockSAMIntensity_C"]
         },
         {
           "cppName": "UFGUnlockScannableObject",
@@ -665,9 +647,7 @@
           "parent": "/Script/FactoryGame.FGUnlock",
           "family": "unlock",
           "blueprint": "/Game/FactoryGame/Unlocks/BP_UnlockSchematic.BP_UnlockSchematic_C",
-          "blueprints": [
-            "/Game/FactoryGame/Unlocks/BP_UnlockSchematic.BP_UnlockSchematic_C"
-          ]
+          "blueprints": ["/Game/FactoryGame/Unlocks/BP_UnlockSchematic.BP_UnlockSchematic_C"]
         },
         {
           "cppName": "UFGUnlockTape",
@@ -703,9 +683,7 @@
           "parent": "/Script/FactoryGame.FGUnlock",
           "family": "unlock",
           "blueprint": "/KLib/Unlocks/BP_GiveToPlayersUnlock.BP_GiveToPlayersUnlock_C",
-          "blueprints": [
-            "/KLib/Unlocks/BP_GiveToPlayersUnlock.BP_GiveToPlayersUnlock_C"
-          ]
+          "blueprints": ["/KLib/Unlocks/BP_GiveToPlayersUnlock.BP_GiveToPlayersUnlock_C"]
         },
         {
           "cppName": "UKLNetworkLevelUnlock",
@@ -741,9 +719,7 @@
           "parent": "/Script/FactoryGame.FGUnlockInfoOnly",
           "family": "unlock",
           "blueprint": "/KLib/Unlocks/BP_CleanerUnlock.BP_CleanerUnlock_C",
-          "blueprints": [
-            "/KLib/Unlocks/BP_CleanerUnlock.BP_CleanerUnlock_C"
-          ]
+          "blueprints": ["/KLib/Unlocks/BP_CleanerUnlock.BP_CleanerUnlock_C"]
         },
         {
           "cppName": "UKPCLDeliveryTaskInventorySlotUnlock",
@@ -793,9 +769,7 @@
           "parent": "/Script/FactoryGame.FGUnlock",
           "family": "unlock",
           "blueprint": "/KPrivateCodeLib/Unlocks/BP_DeliveryTaskUnlock.BP_DeliveryTaskUnlock_C",
-          "blueprints": [
-            "/KPrivateCodeLib/Unlocks/BP_DeliveryTaskUnlock.BP_DeliveryTaskUnlock_C"
-          ]
+          "blueprints": ["/KPrivateCodeLib/Unlocks/BP_DeliveryTaskUnlock.BP_DeliveryTaskUnlock_C"]
         },
         {
           "cppName": "UKPCLFaxitCapacityUnlock",
@@ -807,9 +781,7 @@
           "parent": "/Script/KPrivateCodeLib.KPCLFaxitUnlockBase",
           "family": "unlock",
           "blueprint": "/KPrivateCodeLib/Unlocks/BP_FaxitCapaUnlock.BP_FaxitCapaUnlock_C",
-          "blueprints": [
-            "/KPrivateCodeLib/Unlocks/BP_FaxitCapaUnlock.BP_FaxitCapaUnlock_C"
-          ]
+          "blueprints": ["/KPrivateCodeLib/Unlocks/BP_FaxitCapaUnlock.BP_FaxitCapaUnlock_C"]
         },
         {
           "cppName": "UKPCLFaxitFeatureUnlock",
@@ -821,9 +793,7 @@
           "parent": "/Script/KPrivateCodeLib.KPCLFaxitUnlockBase",
           "family": "unlock",
           "blueprint": "/KPrivateCodeLib/Unlocks/BP_FaxitFeatureUnlock.BP_FaxitFeatureUnlock_C",
-          "blueprints": [
-            "/KPrivateCodeLib/Unlocks/BP_FaxitFeatureUnlock.BP_FaxitFeatureUnlock_C"
-          ]
+          "blueprints": ["/KPrivateCodeLib/Unlocks/BP_FaxitFeatureUnlock.BP_FaxitFeatureUnlock_C"]
         },
         {
           "cppName": "UKPCLFaxitSpeedUnlock",
@@ -835,9 +805,7 @@
           "parent": "/Script/KPrivateCodeLib.KPCLFaxitUnlockBase",
           "family": "unlock",
           "blueprint": "/KPrivateCodeLib/Unlocks/BP_FaxitSpeedUnlock.BP_FaxitSpeedUnlock_C",
-          "blueprints": [
-            "/KPrivateCodeLib/Unlocks/BP_FaxitSpeedUnlock.BP_FaxitSpeedUnlock_C"
-          ]
+          "blueprints": ["/KPrivateCodeLib/Unlocks/BP_FaxitSpeedUnlock.BP_FaxitSpeedUnlock_C"]
         },
         {
           "cppName": "UKPCLFaxitUnlockBase",
@@ -1482,7 +1450,7 @@
           "family": "reward",
           "name": "KAPIDeliveryReward",
           "path": "/Script/KAPI.KAPIDeliveryReward",
-          "parent": "/Script/FactoryGame.FGUnlock",
+          "parent": "/Script/CoreUObject.Object",
           "abstract": true,
           "blueprint": null,
           "blueprints": [],
@@ -1496,9 +1464,7 @@
           "parent": "/Script/KAPI.KAPIDeliveryReward",
           "abstract": false,
           "blueprint": "/KPrivateCodeLib/Rewards/BP_DeliveryItemReward.BP_DeliveryItemReward_C",
-          "blueprints": [
-            "/KPrivateCodeLib/Rewards/BP_DeliveryItemReward.BP_DeliveryItemReward_C"
-          ],
+          "blueprints": ["/KPrivateCodeLib/Rewards/BP_DeliveryItemReward.BP_DeliveryItemReward_C"],
           "source": "KAPI",
           "sourceFile": "Mods/GameFeatures/KAPI/Source/KAPI/Public/Rewards/KAPIDeliveryItemReward.h"
         },
@@ -1560,6 +1526,30 @@
           "blueprints": [],
           "source": "KPrivateCodeLib",
           "sourceFile": "/KPrivateCodeLib/Rewards/BP_DeliveryUnlockReward"
+        },
+        {
+          "family": "reward",
+          "name": "KAPIDeliveryKModsPointReward",
+          "path": "/Script/KAPI.KAPIDeliveryKModsPointReward",
+          "parent": "/Script/KAPI.KAPIDeliveryReward",
+          "abstract": false,
+          "blueprint": "/KPrivateCodeLib/Rewards/BP_DeliveryKModsPointReward.BP_DeliveryKModsPointReward_C",
+          "blueprints": [
+            "/KPrivateCodeLib/Rewards/BP_DeliveryKModsPointReward.BP_DeliveryKModsPointReward_C"
+          ],
+          "source": "KAPI",
+          "sourceFile": "Mods/GameFeatures/KAPI/Source/KAPI/Public/Rewards/KAPIDeliveryKModsPointReward.h"
+        },
+        {
+          "family": "reward",
+          "name": "BP_DeliveryKModsPointReward_C",
+          "path": "/KPrivateCodeLib/Rewards/BP_DeliveryKModsPointReward.BP_DeliveryKModsPointReward_C",
+          "parent": "/Script/KAPI.KAPIDeliveryKModsPointReward",
+          "abstract": false,
+          "blueprint": null,
+          "blueprints": [],
+          "source": "KPrivateCodeLib",
+          "sourceFile": "/KPrivateCodeLib/Rewards/BP_DeliveryKModsPointReward"
         }
       ]
     }

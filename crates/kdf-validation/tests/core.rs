@@ -227,7 +227,7 @@ fn pack_and_document_boolean_flags_match_runtime_scalar_conversion() {
 
     let cdo = validate_document(
         Path::new("buffer-inventory-release-default.yml"),
-        "type: cdo\ndebug: ON\npatches:\n  - target: /Script/KPrivateCodeLib.KPCLNetworkBuildingBase\n    properties:\n      - path: bHasBufferInventory\n        value: false\n",
+        "type: cdo\ndebug: ON\npatches:\n  - target: /Script/KPrivateCodeLib.KPCLNetworkBuildingBase\n    properties:\n      - path: bReplicates\n        value: false\n",
         &LintOptions::default(),
     )
     .unwrap();
@@ -297,7 +297,7 @@ fn research_coordinates_must_fit_runtime_int32_grid() {
 
 #[test]
 fn nested_boolean_flags_match_runtime_scalar_conversion() {
-    let cdo = "type: cdo\npatches:\n  - target: /Script/KPrivateCodeLib.KPCLNetworkBuildingBase\n    applyToSubclasses: \"yes\"\n    applyToSpawnedActors: ON\n    deferOneGameTick: 0\n    properties:\n      - path: bHasBufferInventory\n        value: false\n";
+    let cdo = "type: cdo\npatches:\n  - target: /Script/KPrivateCodeLib.KPCLNetworkBuildingBase\n    applyToSubclasses: \"yes\"\n    applyToSpawnedActors: ON\n    deferOneGameTick: 0\n    properties:\n      - path: bReplicates\n        value: false\n";
     let valid_cdo = validate_document(
         Path::new("buffer-inventory-release-default.yml"),
         cdo,
@@ -589,7 +589,7 @@ fn diagnostic_range_covers_plain_and_quoted_scalars_to_their_last_character() {
 
 #[test]
 fn document_priority_diagnostic_points_to_ignored_field() {
-    let text = "type: cdo\npriority: -2147483648\npatches:\n  - target: /Script/KPrivateCodeLib.KPCLNetworkBuildingBase\n    properties:\n      - path: bHasBufferInventory\n        value: false\n";
+    let text = "type: cdo\npriority: -2147483648\npatches:\n  - target: /Script/KPrivateCodeLib.KPCLNetworkBuildingBase\n    properties:\n      - path: bReplicates\n        value: false\n";
     let result = validate_document(
         Path::new("buffer-inventory-release-default.yml"),
         text,
@@ -1407,7 +1407,7 @@ fn standalone_document_uses_same_local_semantic_diagnostics_as_project_lint() {
     let project = tempdir().unwrap();
     manifest(project.path(), "");
     let path = project.path().join("input.cdo.yml");
-    let text = "type: cdo\npatches:\n  - target: /KLib/Assets/Buildings/Faxit/Build_CS_InputSolid.Build_CS_InputSolid_C\n    matchName: Build_CS_InputSolid\n    properties:\n      - path: bHasBufferInventory\n        value: true\n";
+    let text = "type: cdo\npatches:\n  - target: /KLib/Assets/Buildings/Faxit/Build_CS_InputSolid.Build_CS_InputSolid_C\n    matchName: Build_CS_InputSolid\n    properties:\n      - path: bReplicates\n        value: true\n";
     fs::write(&path, text).unwrap();
 
     let standalone = validate_document(&path, text, &LintOptions::default()).unwrap();
