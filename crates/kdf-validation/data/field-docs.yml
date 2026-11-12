@@ -5931,7 +5931,8 @@ values:
       summary: "Adds to the end of a container, or concatenates onto text."
       description: >-
         Arrays and sets take one item or a list; strings concatenate; tag containers add tags; a
-        map merges the key/value pairs of `value`; bitmasks OR-add named flags. An instanced
+        map adds new keys and replaces existing values; the last pack applied wins. Identical values
+        remain unchanged. All map entries are validated before writing; bitmasks OR-add named flags. An instanced
         object array accepts a value with `class` and nested `properties`. An empty list adds nothing and is not
         an error; leaving `value` out is.
       type: "op"
@@ -5999,7 +6000,8 @@ values:
       summary: "Deletes by content: array/set elements, a map key, tags or bitmask flags."
       description: >-
         On arrays and sets it deletes every element equal to `value`, and fails when nothing
-        matches. On maps `value` is the key; on tag containers the tag(s); on bitmasks it clears
+        matches. On maps `value` is the key and a missing key fails; on tag containers the tag(s);
+        on bitmasks it clears
         the named bits.
       type: "op"
       examples:

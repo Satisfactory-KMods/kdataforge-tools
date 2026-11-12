@@ -880,3 +880,10 @@ fn markdown_leaves_out_unset_parts() {
         "**S**\n\nD\n\n*T*\n\n```yaml\na: 1\n```"
     );
 }
+
+#[test]
+fn map_append_hover_documents_last_write_wins() {
+    let append = value("op", "append").expect("append documentation");
+    assert!(append.description.contains("replaces existing values"));
+    assert!(append.description.contains("last pack applied wins"));
+}

@@ -84,7 +84,7 @@ fn fixture_with_integer_fields(
     }
     zip.write_all(concat!(
         "{\"path\":\"/Script/Test.Base\",\"properties\":[{\"name\":\"mFlag\",\"cppType\":\"bool\",\"kind\":\"BoolProperty\"},{\"name\":\"mDisplayName\",\"cppType\":\"FText\",\"kind\":\"TextProperty\"}]}\n",
-        "{\"path\":\"/Script/Test.Child\",\"super\":\"/Script/Test.Base\",\"properties\":[{\"name\":\"mCount\",\"cppType\":\"int32\",\"kind\":\"IntProperty\"},{\"name\":\"mCounts\",\"cppType\":\"TArray<int32>\",\"kind\":\"ArrayProperty\",\"inner\":{\"name\":\"mCounts\",\"cppType\":\"int32\",\"kind\":\"IntProperty\"}},{\"name\":\"mMode\",\"cppType\":\"EResourceForm\",\"enum\":\"/Script/Test.EResourceForm\",\"options\":[{\"name\":\"RF_SOLID\",\"fullName\":\"EResourceForm::RF_SOLID\",\"valueExact\":\"0\",\"value\":0}]}]}\n",
+        "{\"path\":\"/Script/Test.Child\",\"super\":\"/Script/Test.Base\",\"properties\":[{\"name\":\"mCount\",\"cppType\":\"int32\",\"kind\":\"IntProperty\"},{\"name\":\"mMap\",\"cppType\":\"TMap<FName, int32>\",\"kind\":\"MapProperty\"},{\"name\":\"mCounts\",\"cppType\":\"TArray<int32>\",\"kind\":\"ArrayProperty\",\"inner\":{\"name\":\"mCounts\",\"cppType\":\"int32\",\"kind\":\"IntProperty\"}},{\"name\":\"mMode\",\"cppType\":\"EResourceForm\",\"enum\":\"/Script/Test.EResourceForm\",\"options\":[{\"name\":\"RF_SOLID\",\"fullName\":\"EResourceForm::RF_SOLID\",\"valueExact\":\"0\",\"value\":0}]}]}\n",
         "{\"path\":\"/Script/Test.Limited\",\"super\":\"/Script/NotExported.Base\",\"properties\":[]}\n"
     ).as_bytes()).unwrap();
     zip.finish().unwrap();
@@ -586,4 +586,32 @@ fn substituted_config_operands_avoid_literal_type_checks_but_quoted_refs_still_a
         "{:?}",
         report.diagnostics
     );
+}
+
+#[test]
+fn map_operation_operands_and_unsupported_operations_match_runtime() {
+    let (directory, _archive, index) = fixture();
+    let selected = directory.path().join("map.cdo.yml");
+    let options = configured_options(directory.path(), index, "");
+    for (operation, value, valid) in [
+        ("append", "{Iron: 10}", true),
+        ("append", "Iron", false),
+        ("remove", "1", true),
+        ("remove", "{Iron: 10}", false),
+        ("set", "{Iron: 10}", true),
+        ("prepend", "{Iron: 10}", false),
+        ("append_unique", "{Iron: 10}", false),
+    ] {
+        fs::write(&selected, format!("type: cdo\npatches:\n  - target: /Script/Test.Child\n    properties:\n      - path: mMap\n        op: {operation}\n        value: {value}\n")).unwrap();
+        let report = lint_path(&selected, &options).unwrap();
+        let mismatch = report
+            .diagnostics
+            .iter()
+            .any(|diagnostic| diagnostic.code == "datapack.type-mismatch");
+        assert_eq!(
+            !mismatch, valid,
+            "{operation}: {value}: {:?}",
+            report.diagnostics
+        );
+    }
 }

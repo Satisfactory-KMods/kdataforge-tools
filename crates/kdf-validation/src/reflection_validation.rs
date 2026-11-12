@@ -435,6 +435,18 @@ fn validate_value(
         );
         return;
     }
+    if cpp.starts_with("TMap<") && operation == "prepend" {
+        emit(
+            file,
+            document,
+            pointer,
+            Severity::Warning,
+            "datapack.type-mismatch",
+            "prepend is not supported on map properties",
+            result,
+        );
+        return;
+    }
     if operation == "update_where"
         && field.pointer("/inner/kind").and_then(Value::as_str) != Some("StructProperty")
     {
@@ -605,7 +617,12 @@ fn validate_value(
                 Some(value.is_array() || value.is_string())
             }
         }
-        _ if cpp.starts_with("TMap<") => Some(value.is_object() || value.is_string()),
+        _ if cpp.starts_with("TMap<") => match operation {
+            "append" => Some(value.is_object()),
+            "remove" => Some(value.is_string() || value.is_number() || value.is_boolean()),
+            "set" => Some(value.is_object() || value.is_string()),
+            _ => None,
+        },
         _ => None,
     };
     if valid == Some(false) {

@@ -282,6 +282,7 @@ $defs:
           - $ref: '#/$defs/propertyPath'
           - const: '@tagContainers'
       op:
+        description: For maps, append adds keys and replaces existing values; pack order decides.
         enum:
           - add
           - append
@@ -375,6 +376,7 @@ $defs:
     additionalProperties: false
     properties:
       $op:
+        description: For maps, append adds keys and replaces existing values; pack order decides.
         enum: [add, append, append_unique, clamp, clear, copy, divide, duplicate, insert, max, min, move, multiply, prepend, remove, remove_at, replace_refs, replace, reverse, set, sort, subtract, swap, unique, update_where]
       value: {}
       where:

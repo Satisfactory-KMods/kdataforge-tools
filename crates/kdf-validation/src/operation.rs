@@ -35,7 +35,7 @@ pub const OPERATIONS: &[OperationSpec] = &[
     OperationSpec {
         name: "append",
         required: &["value"],
-        description: "Append value to an array.",
+        description: "Append to a container. For maps, add new keys and replace existing values; pack order decides.",
     },
     OperationSpec {
         name: "append_unique",
