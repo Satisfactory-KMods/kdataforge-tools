@@ -326,6 +326,9 @@ fn named_bitmask_operations_validate_exported_names_and_preserve_missing_metadat
     let options = configured_options(directory.path(), index, "");
     let cases = [
         ("mNamedFlags32", "A", true),
+        ("mNamedFlags32", "'TestFlags::A|B'", true),
+        ("mNamedFlags32", "'/Script/Test.TestFlags::A|B'", true),
+        ("mNamedFlags32", "'OtherFlags::A|B'", false),
         ("mNamedFlags32", "'A | TestFlags::B'", true),
         ("mNamedFlags32", "[A, B]", true),
         ("mNamedFlags32", "'A|Missing'", false),
@@ -613,5 +616,32 @@ fn map_operation_operands_and_unsupported_operations_match_runtime() {
             "{operation}: {value}: {:?}",
             report.diagnostics
         );
+    }
+}
+
+#[test]
+fn qualified_flags_are_accepted_on_plain_integers_without_metadata() {
+    let (directory, _archive, index) = fixture_with_integer_fields(true);
+    let selected = directory.path().join("qualified.cdo.yml");
+    let options = configured_options(directory.path(), index, "");
+    for (value, valid) in [
+        ("EKAPIDeliveryTaskParent::BelowRight", true),
+        ("'/Script/KAPI.EKAPIDeliveryTaskParent::Above|Left'", true),
+        (
+            "[EKAPIDeliveryTaskParent::Above, EKAPIDeliveryTaskParent::Left]",
+            true,
+        ),
+        ("'EOne::A|ETwo::B'", false),
+        ("'EOne::A|'", false),
+    ] {
+        fs::write(&selected, format!("type: cdo\npatches:\n  - target: /Script/Test.Integers\n    properties:\n      - path: mSigned32\n        value: {value}\n")).unwrap();
+        let report = lint_path(&selected, &options).unwrap();
+        let rejected = report.diagnostics.iter().any(|item| {
+            matches!(
+                item.code.as_str(),
+                "datapack.type-mismatch" | "datapack.enum-value"
+            )
+        });
+        assert_eq!(!rejected, valid, "{value}: {:?}", report.diagnostics);
     }
 }

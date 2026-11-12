@@ -5798,8 +5798,9 @@ values:
     set:
       summary: "Overwrites the property with `value`."
       description: >-
-        The default operation. Works on every property type; bitmask properties accept one flag
-        name or a list of names. `set` is implied when `$op` is left out.
+        The default operation. Works on every property type; integer flags accept enum-qualified
+        names or a list, including in packaged games when the enum is loaded. Unqualified names
+        require editor property metadata. `set` is implied when `$op` is left out.
       type: "op"
       examples:
         - title: Replace a text

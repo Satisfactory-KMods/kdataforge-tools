@@ -461,6 +461,29 @@ fn validate_value(
         );
         return;
     }
+    if operation == "set"
+        && field.get("bitflags").and_then(Value::as_bool) != Some(true)
+        && field.get("enum").and_then(Value::as_str).is_none()
+        && matches!(
+            cpp,
+            "int8" | "int16" | "int32" | "int64" | "uint8" | "uint16" | "uint32" | "uint64"
+        )
+    {
+        if let Some(valid) = qualified_flag_syntax(value) {
+            if !valid {
+                emit(
+                    file,
+                    document,
+                    pointer,
+                    Severity::Warning,
+                    "datapack.enum-value",
+                    "invalid or mixed enum-qualified flags",
+                    result,
+                );
+            }
+            return;
+        }
+    }
     if field.get("bitflags").and_then(Value::as_bool) == Some(true) {
         if is_enum_backed_bitflags(field) {
             let valid = match operation {
@@ -728,6 +751,42 @@ fn enum_backed_bitflag_value_valid(field: &Value, value: &Value) -> Option<bool>
     Some(declared_bitmask_mask(field).is_none_or(|allowed| value & !allowed == 0))
 }
 
+/// Checks qualified syntax without pretending unloaded enum metadata proves values exist.
+fn qualified_flag_syntax(value: &Value) -> Option<bool> {
+    let parts: Vec<&str> = match value {
+        Value::String(text) => text.split('|').collect(),
+        Value::Array(values) => values
+            .iter()
+            .map(Value::as_str)
+            .collect::<Option<Vec<_>>>()?
+            .into_iter()
+            .flat_map(|text| text.split('|'))
+            .collect(),
+        _ => return None,
+    };
+    if !parts.iter().any(|part| part.contains("::")) {
+        return None;
+    }
+    let mut selected: Option<&str> = None;
+    for part in parts {
+        let part = part.trim();
+        if let Some((qualifier, name)) = part.rsplit_once("::") {
+            let short = qualifier.rsplit('.').next().unwrap_or(qualifier);
+            if short.is_empty()
+                || name.is_empty()
+                || name.contains("::")
+                || selected.is_some_and(|previous| !previous.eq_ignore_ascii_case(short))
+            {
+                return Some(false);
+            }
+            selected = Some(short);
+        } else if selected.is_none() || part.is_empty() {
+            return Some(false);
+        }
+    }
+    Some(selected.is_some())
+}
+
 fn named_bitmask_value_valid(field: &Value, value: &Value) -> Option<bool> {
     let names = match value {
         Value::String(text) if !looks_like_raw_bitmask(text) => text
@@ -763,7 +822,14 @@ fn named_bitmask_value_valid(field: &Value, value: &Value) -> Option<bool> {
                     option
                         .get(key)
                         .and_then(Value::as_str)
-                        .is_some_and(|candidate| candidate.eq_ignore_ascii_case(name))
+                        .is_some_and(|candidate| {
+                            candidate.eq_ignore_ascii_case(name)
+                                || name.rsplit_once("::").is_some_and(|(qualifier, bare)| {
+                                    let short = qualifier.rsplit('.').next().unwrap_or(qualifier);
+                                    let full = format!("{short}::{bare}");
+                                    candidate.eq_ignore_ascii_case(&full)
+                                })
+                        })
                 })
             })
         })
