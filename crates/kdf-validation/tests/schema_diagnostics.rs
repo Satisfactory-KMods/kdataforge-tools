@@ -356,6 +356,7 @@ fn dataasset_reward_lists_support_clear_mapping_ops_and_one_nested_unlock_level(
         ("[{class: /KPrivateCodeLib/Rewards/BP_DeliveryItemReward.BP_DeliveryItemReward_C, properties: {mRequiredCompletion: 1}}]", true),
         ("[{class: /KPrivateCodeLib/Rewards/BP_DeliveryItemReward.BP_DeliveryItemReward_C, properties: [{path: mRequiredCompletion, value: 1}]}]", true),
         ("[{class: /KPrivateCodeLib/Rewards/BP_DeliveryUnlockReward.BP_DeliveryUnlockReward_C, unlocks: [{class: /Game/FactoryGame/Unlocks/BP_UnlockRecipe.BP_UnlockRecipe_C}]}]", true),
+        ("[{class: /KPrivateCodeLib/Rewards/BP_DeliverySchematicReward.BP_DeliverySchematicReward_C, properties: {mRequiredCompletion: 1, mSchematics: [/Game/FactoryGame/Schematics/Progression/Schematic_1-1.Schematic_1-1_C]}}]", true),
         ("[{properties: {mItems: []}}]", false),
         ("[{class: /KPrivateCodeLib/Rewards/BP_DeliveryUnlockReward.BP_DeliveryUnlockReward_C, unlocks: [{class: /Game/FactoryGame/Unlocks/BP_UnlockRecipe.BP_UnlockRecipe_C, unlocks: []}]}]", false),
     ] {
@@ -402,4 +403,24 @@ fn delivery_reward_and_real_unlock_families_are_not_interchangeable() {
             result.diagnostics
         );
     }
+}
+
+#[test]
+fn delivery_legacy_grants_warn_without_rejecting_other_classes() {
+    let text = include_str!("fixtures/delivery-legacy-grants.dataasset.yml");
+    let result = validate_document(
+        Path::new("delivery.dataasset.yml"),
+        text,
+        &LintOptions::default(),
+    )
+    .unwrap();
+    let warnings: Vec<_> = result
+        .diagnostics
+        .iter()
+        .filter(|diagnostic| diagnostic.code == "delivery.legacy-grants")
+        .collect();
+    assert_eq!(warnings.len(), 3, "{warnings:?}");
+    assert!(warnings
+        .iter()
+        .all(|diagnostic| diagnostic.severity == kdf_validation::Severity::Warning));
 }

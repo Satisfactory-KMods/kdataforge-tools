@@ -1,0 +1,21 @@
+type: dataasset
+assets:
+  - id: Unlock
+    class: /Script/KAPI.KAPIDeliveryTask
+    unlocks: []
+  - id: Mapping
+    class: /Script/KAPI.KAPIDeliveryTask
+    properties:
+      mSchematics: []
+  - id: Operation
+    class: /Script/KAPI.KAPIDeliveryTask
+    properties:
+      - path: mSchematics
+        value: []
+  - id: Other
+    class: /Script/Test.Other
+    unlocks: []
+    dependencies:
+      - class: /Game/FactoryGame/AvailabilityDependencies/BP_SchematicPurchasedDependency.BP_SchematicPurchasedDependency_C
+        properties:
+          mSchematics: []

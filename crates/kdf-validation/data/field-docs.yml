@@ -3073,10 +3073,11 @@ kinds:
                   mProductionTime: 4.0
       docs: "features/operations"
     "assets[].unlocks":
-      summary: "Instanced unlock objects appended to the asset's `mUnlocks`."
+      summary: "Instanced unlock objects for compatible data assets; deprecated on delivery tasks."
       description: >-
-        Intended for `UKAPIDeliveryTask`. A class that has no such array reports it at runtime.
-        The entry shape matches schematic unlocks, including native-to-Blueprint remapping.
+        Delivery tasks should use an unlock reward in `rewards:` with nested `unlocks:`.
+        Legacy task unlocks become a reward for every endless completion or completion 1 of a
+        one-time task. Other compatible data assets continue to use their own `mUnlocks` array.
       type: "list of instanced objects"
       uses: instancedObject
       examples:
@@ -3086,9 +3087,13 @@ kinds:
             assets:
               - id: MyDeliveryTask
                 class: /Script/KAPI.KAPIDeliveryTask
-                unlocks:
-                  - class: /Game/FactoryGame/Unlocks/BP_UnlockRecipe.BP_UnlockRecipe_C
-      docs: "features/data-assets#creating-new-instances-type-dataasset"
+                rewards:
+                  - class: /KPrivateCodeLib/Rewards/BP_DeliveryUnlockReward.BP_DeliveryUnlockReward_C
+                    properties:
+                      mRequiredCompletion: 1
+                    unlocks:
+                      - class: /Game/FactoryGame/Unlocks/BP_UnlockRecipe.BP_UnlockRecipe_C
+      docs: "features/data-assets#instanced-rewards"
     "assets[].dependencies":
       summary: "Instanced dependency objects appended to the asset's `mTaskDependencies`."
       description: >-

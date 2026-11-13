@@ -374,6 +374,9 @@ pub(crate) fn semantic_document_local(
         validate_operations(file, index, document, "", result);
     }
     validate_class_references(file, index, document, kind, datapack, result);
+    if kind == "dataasset" {
+        validate_legacy_delivery_grants(file, index, document, datapack, result);
+    }
     if kind == "building" {
         validate_building_parents(file, index, document, datapack, result);
     }
@@ -386,6 +389,48 @@ pub(crate) fn semantic_document_local(
     }
     if kind == "gametag" {
         validate_gametag_edges(file, index, document, result);
+    }
+}
+
+fn validate_legacy_delivery_grants(
+    file: &ParsedFile,
+    index: usize,
+    document: &Value,
+    datapack: Option<&ReflectionIndex>,
+    result: &mut LintResult,
+) {
+    let Some(assets) = document.get("assets").and_then(Value::as_array) else {
+        return;
+    };
+    for (asset_index, asset) in assets.iter().enumerate() {
+        let Some(class) = asset.get("class").and_then(Value::as_str) else {
+            continue;
+        };
+        let base = "/Script/KAPI.KAPIDeliveryTask";
+        if !class.eq_ignore_ascii_case(base)
+            && !datapack.is_some_and(|reflection| reflection.is_subclass_of(class, base))
+        {
+            continue;
+        }
+        let has_schematics = asset.get("properties").is_some_and(|value| {
+            value.get("mSchematics").is_some()
+                || value.as_array().is_some_and(|operations| {
+                    operations.iter().any(|operation| {
+                        operation.get("path").and_then(Value::as_str) == Some("mSchematics")
+                    })
+                })
+        });
+        if asset.get("unlocks").is_some() || has_schematics {
+            emit(
+                file,
+                index,
+                &format!("/assets/{asset_index}"),
+                Severity::Warning,
+                "delivery.legacy-grants",
+                "task-level unlocks and mSchematics are deprecated; use rewards",
+                result,
+            );
+        }
     }
 }
 

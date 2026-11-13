@@ -1529,6 +1529,28 @@
         },
         {
           "family": "reward",
+          "name": "KAPIDeliverySchematicReward",
+          "path": "/Script/KAPI.KAPIDeliverySchematicReward",
+          "parent": "/Script/KAPI.KAPIDeliveryReward",
+          "abstract": false,
+          "blueprint": "/KPrivateCodeLib/Rewards/BP_DeliverySchematicReward.BP_DeliverySchematicReward_C",
+          "blueprints": ["/KPrivateCodeLib/Rewards/BP_DeliverySchematicReward.BP_DeliverySchematicReward_C"],
+          "source": "KAPI",
+          "sourceFile": "Mods/GameFeatures/KAPI/Source/KAPI/Public/Rewards/KAPIDeliverySchematicReward.h"
+        },
+        {
+          "family": "reward",
+          "name": "BP_DeliverySchematicReward_C",
+          "path": "/KPrivateCodeLib/Rewards/BP_DeliverySchematicReward.BP_DeliverySchematicReward_C",
+          "parent": "/Script/KAPI.KAPIDeliverySchematicReward",
+          "abstract": false,
+          "blueprint": null,
+          "blueprints": [],
+          "source": "KPrivateCodeLib",
+          "sourceFile": "/KPrivateCodeLib/Rewards/BP_DeliverySchematicReward"
+        },
+        {
+          "family": "reward",
           "name": "KAPIDeliveryKModsPointReward",
           "path": "/Script/KAPI.KAPIDeliveryKModsPointReward",
           "parent": "/Script/KAPI.KAPIDeliveryReward",
