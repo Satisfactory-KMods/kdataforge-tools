@@ -42,6 +42,17 @@ properties:
         pattern: '\.[Nn][Oo][Nn][Ee]$'
     else:
       pattern: '^(?:[A-Za-z0-9_][A-Za-z0-9_.-]*(/[A-Za-z0-9_][A-Za-z0-9_.-]*)*)?$'
+  category:
+    type: string
+    description: Selection page category.
+    enum:
+      - Delivery
+      - Production
+      - Power
+      - Logistics
+      - World
+      - Uncategorized
+    default: Uncategorized
   dependencies:
     type: array
     items:

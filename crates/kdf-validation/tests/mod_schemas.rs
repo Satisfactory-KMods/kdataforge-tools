@@ -14,6 +14,8 @@ fn discovers_and_validates_mod_documents() {
     assert!(registry.kinds().contains(&"sfpmodule".to_owned()));
     for (name, code) in [
         ("valid", None),
+        ("category-valid", None),
+        ("category-invalid", Some("schema.enum")),
         ("missing-id", Some("schema.required")),
         ("unknown-field", Some("schema.additionalProperties")),
         ("invalid-id", Some("schema.pattern")),
