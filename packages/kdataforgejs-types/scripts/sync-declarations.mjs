@@ -21,7 +21,9 @@ if (!manifest.sourceArtifacts) throw new Error("SDK snapshot has no integrity ma
 for (const [, file] of copies) {
     if (!existsSync(join(root, file))) throw new Error(`Missing SDK snapshot: ${file}`);
     if (file === "declarations.json") continue;
-    const digest = createHash("sha256").update(readFileSync(join(root, file))).digest("hex");
+    // Hash LF content: a checkout with CRLF conversion must not make an unchanged snapshot look stale.
+    const content = readFileSync(join(root, file), "utf8").replaceAll("\r\n", "\n");
+    const digest = createHash("sha256").update(content, "utf8").digest("hex");
     if (digest !== manifest.sourceArtifacts[file]) throw new Error(`Stale SDK snapshot: ${file}`);
 }
 console.log("Verified runtime-pinned KDataForgeJS SDK snapshot");
