@@ -1,5 +1,5 @@
 use kdf_validation::{
-    lint_path, lint_workspace, validate_document, FileBuffer, LintOptions, Profile,
+    lint_path, lint_paths, lint_workspace, validate_document, FileBuffer, LintOptions, Profile,
     ReflectionIndex, ReflectionStatus, SchemaRegistry, Severity, CANONICAL_TYPES,
 };
 use std::fs;
@@ -1852,4 +1852,132 @@ fn generated_identity_collision_crosses_packs_with_same_sanitized_ref() {
                 .as_path()
         )
     );
+}
+
+#[test]
+fn external_packs_satisfy_declared_dependencies_without_masking_self_disabled_or_typos() {
+    let project = tempdir().unwrap();
+    let addon = project.path().join("Addon");
+    let disabled = project.path().join("Disabled");
+    fs::create_dir(&addon).unwrap();
+    fs::create_dir(&disabled).unwrap();
+    fs::write(
+        addon.join("pack.yml"),
+        "ref: Addon\nname: Addon\nversion: 1.0.0\nenabled: true\ndependencies:\n  - SatisfactoryPlusDataForge\n",
+    )
+    .unwrap();
+    fs::write(
+        disabled.join("pack.yml"),
+        "ref: DisabledHost\nname: Disabled Host\nversion: 1.0.0\nenabled: false\n",
+    )
+    .unwrap();
+
+    let missing = lint_path(project.path(), &LintOptions::default()).unwrap();
+    assert!(missing
+        .diagnostics
+        .iter()
+        .any(|d| d.code == "semantic.dependency-missing"));
+
+    let satisfied = lint_path(
+        project.path(),
+        &LintOptions {
+            external_packs: vec!["SatisfactoryPlusDataForge".into()],
+            ..Default::default()
+        },
+    )
+    .unwrap();
+    assert!(satisfied.ok, "{:?}", satisfied.diagnostics);
+
+    // Exact case-sensitive match: typos or different casing still fail.
+    let typo = lint_path(
+        project.path(),
+        &LintOptions {
+            external_packs: vec!["satisfactoryplusdataforge".into()],
+            ..Default::default()
+        },
+    )
+    .unwrap();
+    assert!(typo
+        .diagnostics
+        .iter()
+        .any(|d| d.code == "semantic.dependency-missing"));
+
+    // Self-dependency still fails even when listed in external_packs.
+    fs::write(
+        addon.join("pack.yml"),
+        "ref: Addon\nname: Addon\nversion: 1.0.0\nenabled: true\ndependencies:\n  - Addon\n",
+    )
+    .unwrap();
+    let self_dep = lint_path(
+        project.path(),
+        &LintOptions {
+            external_packs: vec!["Addon".into()],
+            ..Default::default()
+        },
+    )
+    .unwrap();
+    assert!(self_dep
+        .diagnostics
+        .iter()
+        .any(|d| d.code == "semantic.dependency-missing"));
+
+    // A disabled pack present in the scanned workspace cannot be masked by external_packs.
+    fs::write(
+        addon.join("pack.yml"),
+        "ref: Addon\nname: Addon\nversion: 1.0.0\nenabled: true\ndependencies:\n  - DisabledHost\n",
+    )
+    .unwrap();
+    let masked_disabled = lint_path(
+        project.path(),
+        &LintOptions {
+            external_packs: vec!["DisabledHost".into()],
+            ..Default::default()
+        },
+    )
+    .unwrap();
+    assert!(masked_disabled
+        .diagnostics
+        .iter()
+        .any(|d| d.code == "semantic.dependency-missing"));
+}
+
+#[test]
+fn lint_paths_validates_cross_root_dependencies_and_mod_schemas() {
+    let workspace = tempdir().unwrap();
+    let core_mod = workspace.path().join("Mods/CoreMod");
+    let core_dataforge = core_mod.join("DataForge");
+    let addons_dataforge = workspace.path().join("Addons/DataForge");
+    fs::create_dir_all(core_mod.join("Resources/KDataForge/Schemas")).unwrap();
+    fs::create_dir_all(&core_dataforge).unwrap();
+    fs::create_dir_all(addons_dataforge.join("AddonA")).unwrap();
+    fs::write(core_mod.join("CoreMod.uplugin"), "{}\n").unwrap();
+    fs::write(
+        core_mod.join("Resources/KDataForge/Schemas/custommod.schema.yml"),
+        "$schema: https://json-schema.org/draft/2020-12/schema\n$id: https://example.invalid/custommod.schema.yml\nx-kdf-type: custommod\ntype: object\nrequired: [type, id]\nadditionalProperties: false\nproperties:\n  type: { const: custommod }\n  id: { type: string }\n",
+    )
+    .unwrap();
+    fs::write(
+        core_dataforge.join("pack.yml"),
+        "ref: CorePack\nname: Core Pack\nversion: 1.0.0\n",
+    )
+    .unwrap();
+    fs::write(
+        addons_dataforge.join("AddonA/pack.yml"),
+        "ref: AddonA\nname: Addon A\nversion: 1.0.0\ndependencies:\n  - CorePack\n",
+    )
+    .unwrap();
+    fs::write(
+        addons_dataforge.join("AddonA/decl.custommod.yml"),
+        "type: custommod\nid: AddonA\n",
+    )
+    .unwrap();
+
+    let report = lint_paths(
+        &[core_dataforge.clone(), addons_dataforge.clone()],
+        &LintOptions::default(),
+    )
+    .unwrap();
+    assert!(report.ok, "{:?}", report.diagnostics);
+    assert_eq!(report.packs, 2);
+    assert_eq!(report.documents, 1);
 }

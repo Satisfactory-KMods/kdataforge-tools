@@ -67,6 +67,8 @@ pub struct LintOptions {
     pub no_datapack: bool,
     /// How `property.cold` is reported (information, hint or not at all).
     pub cold_properties: ColdPropertyLevel,
+    /// Pack refs known to be supplied externally (for example by a host mod not in the lint root).
+    pub external_packs: Vec<String>,
 }
 
 impl Default for LintOptions {
@@ -82,6 +84,7 @@ impl Default for LintOptions {
             datapack_index: None,
             no_datapack: false,
             cold_properties: ColdPropertyLevel::Info,
+            external_packs: Vec::new(),
         }
     }
 }
@@ -249,13 +252,23 @@ mod canonical_file_path_tests {
 static DEFAULT_REGISTRY: OnceLock<Result<Arc<SchemaRegistry>, String>> = OnceLock::new();
 
 fn registry_for(options: &LintOptions, root: &Path) -> Result<Arc<SchemaRegistry>, String> {
-    if root.ancestors().any(|p| {
-        p.join("Mods").is_dir()
-            || p.join("Resources/KDataForge").is_dir()
-            || p.join("FactoryGame/Mods").is_dir()
-            || p.join("tools").is_dir()
-    }) {
-        return SchemaRegistry::for_root(options, Some(root)).map(Arc::new);
+    registry_for_roots(options, &[root])
+}
+
+fn registry_for_roots(
+    options: &LintOptions,
+    roots: &[&Path],
+) -> Result<Arc<SchemaRegistry>, String> {
+    let has_mod_container = roots.iter().any(|root| {
+        root.ancestors().any(|p| {
+            p.join("Mods").is_dir()
+                || p.join("Resources/KDataForge").is_dir()
+                || p.join("FactoryGame/Mods").is_dir()
+                || p.join("tools").is_dir()
+        })
+    });
+    if has_mod_container {
+        return SchemaRegistry::for_roots(options, roots).map(Arc::new);
     }
     if options.schema_dirs.is_empty() {
         DEFAULT_REGISTRY
@@ -284,9 +297,28 @@ pub fn lint_path(root: &Path, options: &LintOptions) -> Result<LintResult, Strin
             .ancestors()
             .find(|directory| directory.join("pack.yml").is_file())
             .unwrap_or(parent);
-        return lint_workspace_scoped(scope, &[], options, Some(&file));
+        return lint_roots_scoped(&[scope], &[], options, Some(&file));
     }
     lint_workspace(root, &[], options)
+}
+
+pub fn lint_paths(roots: &[PathBuf], options: &LintOptions) -> Result<LintResult, String> {
+    if roots.is_empty() {
+        return Err("at least one lint path is required".into());
+    }
+    if roots.len() == 1 {
+        return lint_path(&roots[0], options);
+    }
+    for root in roots {
+        if root.is_file() {
+            return Err(format!(
+                "multiple lint paths must all be directories, got file {}",
+                root.display()
+            ));
+        }
+    }
+    let refs = roots.iter().map(PathBuf::as_path).collect::<Vec<_>>();
+    lint_roots_scoped(&refs, &[], options, None)
 }
 
 pub fn lint_workspace(
@@ -294,34 +326,53 @@ pub fn lint_workspace(
     buffers: &[FileBuffer],
     options: &LintOptions,
 ) -> Result<LintResult, String> {
-    lint_workspace_scoped(root, buffers, options, None)
+    lint_roots_scoped(&[root], buffers, options, None)
 }
 
-fn lint_workspace_scoped(
-    root: &Path,
+fn lint_roots_scoped(
+    roots: &[&Path],
     buffers: &[FileBuffer],
     options: &LintOptions,
     selected: Option<&Path>,
 ) -> Result<LintResult, String> {
-    let registry = registry_for(options, root)?;
+    let mut missing = Vec::new();
+    let mut canonical_roots = Vec::new();
+    for root in roots {
+        if !root.is_dir() {
+            missing.push((*root).to_path_buf());
+        } else {
+            let resolved = dunce::canonicalize(root)
+                .map_err(|e| format!("cannot resolve {}: {e}", root.display()))?;
+            if !canonical_roots.contains(&resolved) {
+                canonical_roots.push(resolved);
+            }
+        }
+    }
+    let registry_roots = if canonical_roots.is_empty() {
+        roots.to_vec()
+    } else {
+        canonical_roots.iter().map(PathBuf::as_path).collect()
+    };
+    let registry = registry_for_roots(options, &registry_roots)?;
     let mut result = LintResult::default();
     result.diagnostics.extend_from_slice(registry.diagnostics());
-    if !root.is_dir() {
-        result.diagnostics.push(Diagnostic::new(
-            Severity::Error,
-            "root.missing",
-            "DataForge root does not exist",
-            Some(root.to_path_buf()),
-            None,
-            "$",
-            Range::default(),
-            "semantic",
-        ));
+    if !missing.is_empty() {
+        for path in missing {
+            result.diagnostics.push(Diagnostic::new(
+                Severity::Error,
+                "root.missing",
+                "DataForge root does not exist",
+                Some(path),
+                None,
+                "$",
+                Range::default(),
+                "semantic",
+            ));
+        }
         result.finish();
         return Ok(result);
     }
-    let root =
-        dunce::canonicalize(root).map_err(|e| format!("cannot resolve {}: {e}", root.display()))?;
+    let root = &canonical_roots[0];
     if let Some(file) = selected.filter(|file| {
         let scope = file
             .ancestors()
@@ -331,7 +382,7 @@ fn lint_workspace_scoped(
                         || name.eq_ignore_ascii_case("data-editor")
                 })
             })
-            .unwrap_or(&root);
+            .unwrap_or(root.as_path());
         !crate::is_runtime_authored_path(file, scope)
     }) {
         result.diagnostics.push(ignored_directory_diagnostic(file));
@@ -344,7 +395,7 @@ fn lint_workspace_scoped(
         } else if let Some(override_path) = effective_datapack_override() {
             override_path
         } else {
-            bound_datapack_path(&root)
+            bound_datapack_path(root)
                 .or_else(|| selected.and_then(|_| root.ancestors().find_map(bound_datapack_path)))
         };
         selected.map(|path| ReflectionIndex::load(&path))
@@ -378,67 +429,70 @@ fn lint_workspace_scoped(
         }
     }
     let mut files = HashMap::<PathBuf, String>::new();
-    for entry in WalkDir::new(&root)
-        .follow_links(false)
-        .sort_by_file_name()
-        .into_iter()
-        .filter_entry(|entry| {
-            crate::runtime_authored_entry(entry)
-                && selected.is_none_or(|file| {
-                    let path = entry.path();
-                    file == path
-                        || file.starts_with(path)
-                        || (is_pack_manifest(path) && path.parent() == Some(root.as_path()))
-                })
-        })
-    {
-        let entry = entry.map_err(|e| format!("cannot walk {}: {e}", root.display()))?;
-        let path = entry.path();
-        if entry.file_type().is_symlink() {
-            result.diagnostics.push(Diagnostic::new(
-                Severity::Error,
-                "root.symlink",
-                "symlinks are not allowed in DataForge packs",
-                Some(path.to_path_buf()),
-                None,
-                "$",
-                Range::default(),
-                "semantic",
-            ));
-            continue;
-        }
-        if entry.file_type().is_file() && is_yaml(path) {
-            if entry
-                .metadata()
-                .ok()
-                .is_some_and(|meta| meta.len() > MAX_YAML_BYTES as u64)
-            {
+    for scan_root in &canonical_roots {
+        for entry in WalkDir::new(scan_root)
+            .follow_links(false)
+            .sort_by_file_name()
+            .into_iter()
+            .filter_entry(|entry| {
+                crate::runtime_authored_entry(entry)
+                    && selected.is_none_or(|file| {
+                        let path = entry.path();
+                        file == path
+                            || file.starts_with(path)
+                            || (is_pack_manifest(path)
+                                && path.parent() == Some(scan_root.as_path()))
+                    })
+            })
+        {
+            let entry = entry.map_err(|e| format!("cannot walk {}: {e}", scan_root.display()))?;
+            let path = entry.path();
+            if entry.file_type().is_symlink() {
                 result.diagnostics.push(Diagnostic::new(
                     Severity::Error,
-                    "yaml.too-large",
-                    "YAML file exceeds 8 MiB safety limit",
-                    Some(path.to_path_buf()),
-                    None,
-                    "$",
-                    Range::default(),
-                    "yaml",
-                ));
-                continue;
-            }
-            match crate::text_encoding::read_text_file(path, MAX_YAML_BYTES as u64) {
-                Ok(text) => {
-                    files.insert(path.to_path_buf(), text);
-                }
-                Err(error) => result.diagnostics.push(Diagnostic::new(
-                    Severity::Error,
-                    "root.read",
-                    format!("cannot read YAML file: {error}"),
+                    "root.symlink",
+                    "symlinks are not allowed in DataForge packs",
                     Some(path.to_path_buf()),
                     None,
                     "$",
                     Range::default(),
                     "semantic",
-                )),
+                ));
+                continue;
+            }
+            if entry.file_type().is_file() && is_yaml(path) {
+                if entry
+                    .metadata()
+                    .ok()
+                    .is_some_and(|meta| meta.len() > MAX_YAML_BYTES as u64)
+                {
+                    result.diagnostics.push(Diagnostic::new(
+                        Severity::Error,
+                        "yaml.too-large",
+                        "YAML file exceeds 8 MiB safety limit",
+                        Some(path.to_path_buf()),
+                        None,
+                        "$",
+                        Range::default(),
+                        "yaml",
+                    ));
+                    continue;
+                }
+                match crate::text_encoding::read_text_file(path, MAX_YAML_BYTES as u64) {
+                    Ok(text) => {
+                        files.insert(path.to_path_buf(), text);
+                    }
+                    Err(error) => result.diagnostics.push(Diagnostic::new(
+                        Severity::Error,
+                        "root.read",
+                        format!("cannot read YAML file: {error}"),
+                        Some(path.to_path_buf()),
+                        None,
+                        "$",
+                        Range::default(),
+                        "semantic",
+                    )),
+                }
             }
         }
     }
@@ -449,11 +503,11 @@ fn lint_workspace_scoped(
             root.join(&buffer.path)
         };
         let path = canonical_file_path(&path).unwrap_or(path);
-        if path_within(&path, &root) && !crate::is_runtime_authored_path(&path, &root) {
+        if path_within(&path, root) && !crate::is_runtime_authored_path(&path, root) {
             result.diagnostics.push(ignored_directory_diagnostic(&path));
             continue;
         }
-        if path_within(&path, &root) && is_yaml(&path) {
+        if path_within(&path, root) && is_yaml(&path) {
             files.insert(path, buffer.text.clone());
         }
     }
@@ -510,13 +564,13 @@ fn lint_workspace_scoped(
                 continue;
             }
             let target = root.join(relative_file);
-            if include_documents.contains_key(&target) || !path_within(&target, &root) {
+            if include_documents.contains_key(&target) || !path_within(&target, root) {
                 continue;
             }
             let Ok(resolved) = dunce::canonicalize(&target) else {
                 continue;
             };
-            if !path_within(&resolved, &root)
+            if !path_within(&resolved, root)
                 || !fs::metadata(&resolved).is_ok_and(|meta| meta.len() <= MAX_YAML_BYTES as u64)
             {
                 continue;
@@ -562,9 +616,14 @@ fn lint_workspace_scoped(
     let config_index = config_build::build(&parsed, datapack);
     emit_definition_issues(&config_index, &parsed, &mut result);
     let mut refs = BTreeMap::<String, PathBuf>::new();
+    let mut disabled_refs = HashSet::<String>::new();
     let mut dependencies = BTreeMap::<String, Vec<String>>::new();
     for file in &manifests {
-        if options.profile == Profile::Legacy && file.path.parent() == Some(root.as_path()) {
+        if options.profile == Profile::Legacy
+            && canonical_roots
+                .iter()
+                .any(|scan_root| file.path.parent() == Some(scan_root.as_path()))
+        {
             emit(
                 file,
                 0,
@@ -602,6 +661,9 @@ fn lint_workspace_scoped(
             );
             // The runtime scanner drops disabled packs before resolving pack refs and dependencies.
             if document.get("enabled").and_then(runtime_bool) == Some(false) {
+                if let Some(reference) = document.get("ref").and_then(Value::as_str) {
+                    disabled_refs.insert(reference.to_owned());
+                }
                 continue;
             }
             if let Some(reference) = document.get("ref").and_then(Value::as_str) {
@@ -639,7 +701,20 @@ fn lint_workspace_scoped(
     // Cross-pack availability requires a workspace scan; file lint cannot infer it
     // from a single manifest snapshot.
     if selected.is_none() {
-        validate_dependencies(&refs, &dependencies, &parsed, &mut result);
+        let external_packs = options
+            .external_packs
+            .iter()
+            .map(|value| value.trim().to_owned())
+            .filter(|value| !value.is_empty())
+            .collect::<HashSet<_>>();
+        validate_dependencies(
+            &refs,
+            &disabled_refs,
+            &external_packs,
+            &dependencies,
+            &parsed,
+            &mut result,
+        );
     }
 
     let pack_roots = manifests

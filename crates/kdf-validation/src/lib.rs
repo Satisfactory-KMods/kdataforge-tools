@@ -77,8 +77,8 @@ pub use operation::{
 pub use preview::{preview_binding, BindingPreview, DiagnosticChange, LintSummary};
 pub use project::{
     bound_datapack_path, canonical_file_path, datapack_selection, effective_datapack_override,
-    lint_path, lint_workspace, validate_document, ColdPropertyLevel, FileBuffer, LintOptions,
-    Profile,
+    lint_path, lint_paths, lint_workspace, validate_document, ColdPropertyLevel, FileBuffer,
+    LintOptions, Profile,
 };
 pub use reflection::{ClassSummary, ReflectionIndex, ReflectionStatus};
 pub use reflection_diff::{

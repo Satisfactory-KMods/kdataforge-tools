@@ -186,3 +186,83 @@ fn desktop_schema_only_override_ignores_legacy_binding() {
         .iter()
         .any(|item| item["code"] == "datapack.unavailable"));
 }
+
+#[test]
+fn lint_accepts_external_packs_via_flag_and_project_settings_and_multiple_roots() {
+    let workspace = tempfile::tempdir().unwrap();
+    let core_root = workspace.path().join("Core/DataForge");
+    let addon_project = workspace.path().join("Addons");
+    let addon_root = addon_project.join("DataForge");
+    std::fs::create_dir_all(core_root.join("CorePack")).unwrap();
+    std::fs::create_dir_all(addon_root.join("AddonPack")).unwrap();
+    std::fs::write(
+        core_root.join("CorePack/pack.yml"),
+        "ref: CorePack\nname: Core Pack\nversion: 1.0.0\n",
+    )
+    .unwrap();
+    std::fs::write(
+        addon_root.join("AddonPack/pack.yml"),
+        "ref: AddonPack\nname: Addon Pack\nversion: 1.0.0\ndependencies:\n  - CorePack\n",
+    )
+    .unwrap();
+
+    let isolated = Command::new(env!("CARGO_BIN_EXE_kdf"))
+        .args(["lint", addon_root.to_str().unwrap(), "--format", "json"])
+        .output()
+        .unwrap();
+    assert_eq!(isolated.status.code(), Some(1));
+
+    let with_flag = Command::new(env!("CARGO_BIN_EXE_kdf"))
+        .args([
+            "lint",
+            addon_root.to_str().unwrap(),
+            "--external-pack",
+            "CorePack",
+            "--format",
+            "json",
+        ])
+        .output()
+        .unwrap();
+    assert_eq!(
+        with_flag.status.code(),
+        Some(0),
+        "{}",
+        String::from_utf8_lossy(&with_flag.stdout)
+    );
+
+    let combined = Command::new(env!("CARGO_BIN_EXE_kdf"))
+        .args([
+            "lint",
+            core_root.to_str().unwrap(),
+            addon_root.to_str().unwrap(),
+            "--format",
+            "json",
+        ])
+        .output()
+        .unwrap();
+    assert_eq!(
+        combined.status.code(),
+        Some(0),
+        "{}",
+        String::from_utf8_lossy(&combined.stdout)
+    );
+    let combined_report: Value = serde_json::from_slice(&combined.stdout).unwrap();
+    assert_eq!(combined_report["packs"].as_u64(), Some(2));
+    assert_eq!(combined_report["errors"].as_u64(), Some(0));
+
+    std::fs::write(
+        addon_project.join(".kdf-editor.toml"),
+        "[lint]\nexternal_packs = [\"CorePack\"]\n",
+    )
+    .unwrap();
+    let with_settings = Command::new(env!("CARGO_BIN_EXE_kdf"))
+        .args(["lint", addon_root.to_str().unwrap(), "--format", "json"])
+        .output()
+        .unwrap();
+    assert_eq!(
+        with_settings.status.code(),
+        Some(0),
+        "{}",
+        String::from_utf8_lossy(&with_settings.stdout)
+    );
+}

@@ -1,6 +1,6 @@
 use clap::{Parser, Subcommand, ValueEnum};
 use kdf_validation::{
-    lint_path, preview_binding, LintOptions, LintResult, LintSettings, OutputFormat, Profile,
+    lint_paths, preview_binding, LintOptions, LintResult, LintSettings, OutputFormat, Profile,
     SchemaRegistry, Severity,
 };
 use std::path::PathBuf;
@@ -53,9 +53,12 @@ enum Command {
 
 #[derive(clap::Args)]
 struct LintArgs {
-    path: PathBuf,
+    #[arg(required = true)]
+    paths: Vec<PathBuf>,
     #[arg(long = "schema-dir")]
     schema_dirs: Vec<PathBuf>,
+    #[arg(long = "external-pack")]
+    external_packs: Vec<String>,
     #[arg(long)]
     format: Option<Format>,
     #[arg(long)]
@@ -206,8 +209,9 @@ fn run() -> i32 {
 
 fn run_lint(args: LintArgs, why: Option<(Option<String>, Option<u32>)>) -> i32 {
     let LintArgs {
-        path,
+        paths,
         schema_dirs,
+        external_packs,
         format,
         user_settings,
         warnings_as_errors,
@@ -222,7 +226,7 @@ fn run_lint(args: LintArgs, why: Option<(Option<String>, Option<u32>)>) -> i32 {
         return 2;
     }
 
-    let settings = match LintSettings::load(&path, user_settings.as_deref()) {
+    let settings = match LintSettings::load(&paths[0], user_settings.as_deref()) {
         Ok(settings) => settings,
         Err(error) => {
             eprintln!("settings error: {error}");
@@ -235,6 +239,7 @@ fn run_lint(args: LintArgs, why: Option<(Option<String>, Option<u32>)>) -> i32 {
     };
     let mut options = settings.lint_options(profile);
     options.schema_dirs.extend(schema_dirs);
+    options.external_packs.extend(external_packs);
     if allow_unknown_types {
         options.allow_unknown_types = true;
     }
@@ -242,7 +247,7 @@ fn run_lint(args: LintArgs, why: Option<(Option<String>, Option<u32>)>) -> i32 {
         options.allow_schema_override = true;
     }
     options.datapack_path = datapack;
-    let result = match lint_path(&path, &options) {
+    let result = match lint_paths(&paths, &options) {
         Ok(result) => result,
         Err(error) => {
             eprintln!("schema error: {error}");

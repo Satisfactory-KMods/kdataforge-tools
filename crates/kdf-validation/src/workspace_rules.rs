@@ -8,6 +8,8 @@ use std::path::PathBuf;
 
 pub(crate) fn validate_dependencies(
     refs: &BTreeMap<String, PathBuf>,
+    disabled_refs: &HashSet<String>,
+    external_packs: &HashSet<String>,
     dependencies: &BTreeMap<String, Vec<String>>,
     parsed: &[ParsedFile],
     result: &mut LintResult,
@@ -20,7 +22,8 @@ pub(crate) fn validate_dependencies(
             continue;
         };
         for dep in deps {
-            if dep == reference || !refs.contains_key(dep) {
+            let satisfied_externally = external_packs.contains(dep) && !disabled_refs.contains(dep);
+            if dep == reference || (!refs.contains_key(dep) && !satisfied_externally) {
                 emit(
                     file,
                     0,

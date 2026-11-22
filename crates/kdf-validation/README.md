@@ -17,6 +17,7 @@ warnings_as_errors = false
 merge_duplicate_diagnostics = true
 output_format = "text" # text | json | github | sarif
 coldProperties = "info" # info | hint | off: how `property.cold` is reported
+external_packs = ["SatisfactoryPlusDataForge"] # optional host pack refs outside the lint root
 ```
 
 `allow_unknown_types` changes unknown root types from errors to warnings. `warnings_as_errors` changes CLI exit status; published LSP diagnostic severity stays a warning. Schema and semantic diagnostics merge only for known equivalent rule pairs at the same YAML location. Legacy profile keeps separate diagnostics for comparison.

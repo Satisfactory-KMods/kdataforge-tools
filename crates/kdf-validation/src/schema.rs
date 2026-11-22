@@ -225,19 +225,27 @@ impl SchemaRegistry {
 
     /// Loads mod-owned schemas visible from a workspace or authored file.
     pub fn for_root(options: &LintOptions, root: Option<&Path>) -> Result<Self, String> {
+        match root {
+            Some(root) => Self::for_roots(options, &[root]),
+            None => Self::for_roots(options, &[]),
+        }
+    }
+
+    /// Loads mod-owned schemas visible from one or more workspace roots.
+    pub fn for_roots(options: &LintOptions, roots: &[&Path]) -> Result<Self, String> {
         let mut loaded = HashMap::<String, Loaded>::new();
         let mut ids = HashMap::<String, Value>::new();
         for (name, body) in BUILTIN {
             insert_schema(name, body, false, &mut loaded, &mut ids)?;
         }
         let mut diagnostics = Vec::new();
-        let providers = if let Some(root) = root {
-            load_providers(root, &mut diagnostics)?
-        } else {
+        let providers = if roots.is_empty() {
             Vec::new()
+        } else {
+            load_providers_for_roots(roots, &mut diagnostics)?
         };
-        if let Some(root) = root {
-            for path in discover_mod_schemas(root) {
+        if !roots.is_empty() {
+            for path in discover_mod_schemas_for_roots(roots) {
                 let body = fs::read_to_string(&path)
                     .map_err(|e| format!("cannot read {}: {e}", path.display()))?;
                 let yaml: serde_yaml::Value = serde_yaml::from_str(&body)
@@ -695,9 +703,17 @@ fn is_mod_root(path: &Path) -> bool {
     })
 }
 
-fn discover_mod_schemas(root: &Path) -> Vec<PathBuf> {
+fn discover_mod_dirs_for_roots(roots: &[&Path]) -> std::collections::BTreeSet<PathBuf> {
+    let mut dirs = std::collections::BTreeSet::new();
+    for root in roots {
+        dirs.extend(discover_mod_dirs(root));
+    }
+    dirs
+}
+
+fn discover_mod_schemas_for_roots(roots: &[&Path]) -> Vec<PathBuf> {
     let mut paths = std::collections::BTreeSet::new();
-    for dir in discover_mod_dirs(root) {
+    for dir in discover_mod_dirs_for_roots(roots) {
         if let Ok(entries) = fs::read_dir(dir.join("Schemas")) {
             for entry in entries.flatten() {
                 let path = entry.path();
@@ -715,12 +731,12 @@ fn discover_mod_schemas(root: &Path) -> Vec<PathBuf> {
     paths.into_iter().collect()
 }
 
-fn load_providers(
-    root: &Path,
+fn load_providers_for_roots(
+    roots: &[&Path],
     diagnostics: &mut Vec<Diagnostic>,
 ) -> Result<Vec<ProviderDeclaration>, String> {
     let mut files = std::collections::BTreeSet::new();
-    for dir in discover_mod_dirs(root) {
+    for dir in discover_mod_dirs_for_roots(roots) {
         let path = dir.join("providers.yml");
         if path.is_file() {
             files.insert(dunce::canonicalize(&path).unwrap_or(path));

@@ -48,6 +48,8 @@ pub struct LintSettings {
     pub output_format: OutputFormat,
     /// `[lint] coldProperties = "info" | "hint" | "off"`.
     pub cold_properties: ColdPropertyLevel,
+    /// `[lint] external_packs = ["SatisfactoryPlusDataForge"]`.
+    pub external_packs: Vec<String>,
 }
 
 impl Default for LintSettings {
@@ -63,6 +65,7 @@ impl Default for LintSettings {
             merge_duplicate_diagnostics: true,
             output_format: OutputFormat::Text,
             cold_properties: ColdPropertyLevel::Info,
+            external_packs: Vec::new(),
         }
     }
 }
@@ -129,6 +132,7 @@ impl LintSettings {
                 && profile != Profile::Legacy,
             profile,
             cold_properties: self.cold_properties,
+            external_packs: self.external_packs.clone(),
             ..Default::default()
         }
     }
@@ -211,6 +215,13 @@ impl LintSettings {
                 }
             };
         }
+        if let Some(packs) = patch.external_packs {
+            self.external_packs = packs
+                .into_iter()
+                .map(|value| value.trim().to_owned())
+                .filter(|value| !value.is_empty())
+                .collect();
+        }
         Ok(())
     }
 }
@@ -277,6 +288,8 @@ struct LintPatch {
     output_format: Option<OutputFormat>,
     #[serde(rename = "coldProperties", alias = "cold_properties")]
     cold_properties: Option<String>,
+    #[serde(rename = "external_packs", alias = "externalPacks")]
+    external_packs: Option<Vec<String>>,
 }
 
 #[derive(Deserialize)]
@@ -426,6 +439,25 @@ coldProperties = \"loud\"
                 .any(|item| item.code == "schema.unevaluatedProperties"),
             "{:?}",
             result.diagnostics
+        );
+    }
+
+    #[test]
+    fn external_packs_setting_flows_to_lint_options() {
+        let project = tempfile::tempdir().unwrap();
+        fs::write(
+            project.path().join(".kdf-editor.toml"),
+            "[lint]\nexternal_packs = [\"SatisfactoryPlusDataForge\", \"  \"]\n",
+        )
+        .unwrap();
+        let settings = LintSettings::load(project.path(), None).unwrap();
+        assert_eq!(
+            settings.external_packs,
+            vec!["SatisfactoryPlusDataForge".to_owned()]
+        );
+        assert_eq!(
+            settings.lint_options(Profile::Runtime).external_packs,
+            vec!["SatisfactoryPlusDataForge".to_owned()]
         );
     }
 }
